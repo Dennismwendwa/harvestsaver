@@ -1,0 +1,10 @@
+../venv/
+../.vscode/
+harvestsaver/.env
+harvestsaver.log
+db.sqlite3
+
+harvestsaver/__pycache__/
+
+accounts/__pycache__/
+accounts/migrations/__pycache__/
