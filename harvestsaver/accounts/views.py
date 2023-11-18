@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.models import auth, Group
-from .models import User
+from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
 
 
 def register(request):
@@ -40,10 +40,13 @@ def register(request):
                                                 )
                 if role == "farmer":
                     user.is_farmer = True
+                    FarmerProfile.objects.create(user=user)
                 elif role == "equipment owner":
                     user.is_equipment_owner = True
+                    EquipmentOwnerProfile.objects.create(user=user)
                 elif role == "customer":
                     user.is_customer = True
+                    BuyerProfile.objects.create(user=user)
                 elif role == "staff":
                     user.is_staff = True
                 user.save()

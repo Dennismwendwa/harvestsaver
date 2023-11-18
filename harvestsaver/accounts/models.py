@@ -37,3 +37,48 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile of {self.user.username}"
+
+
+class FarmerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    farm_name = models.CharField(max_length=100, blank=True, null=True)
+    farm_size = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    crop_types = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Farmer Profile"
+        verbose_name_plural = "Farmer Profiles"
+
+    def __str__(self):
+        return (
+                f"Farmer name: {self.user.username} "
+                f"Farm details: {self.farm_name}"
+                )
+
+class BuyerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    location = models.CharField(max_length=100, blank=True)
+    preferred_categories = models.CharField(max_length=200, blank=True,
+                                            null=True)
+    purchase_hostory = models.TextField(blank=True, null=True)
+    payment_info = models.CharField(max_length=100, blank=True, null=True)
+
+    class meta:
+        verbose_name = "Buyer Profile"
+        verbose_name_plural = "Buyer Profiles"
+
+    def __str__(self):
+        return f"Buyer: {self.user.username} location: {self.location}"
+
+
+class EquipmentOwnerProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    rental_history = models.CharField(max_length=300, blank=True, null=True)
+
+    class meta:
+        verbose_name = "Equipment Owner Profile"
+        verbose_name_plural = "Equipment Owner Profiles"
+
+    def __str__(self):
+        return f"Owner: {self.user.username}"
