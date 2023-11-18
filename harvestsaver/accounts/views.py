@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.models import auth, Group
-from .models import User
+from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
 
 
 def register(request):
@@ -19,6 +19,7 @@ def register(request):
         role = request.POST["role"]
         phone_number = request.POST.get("phone_number", "")
         gender = request.POST["gender"]
+        country = request.POST["country"]
 
         if password1 == password2 and len(password1) >= 8:
             
@@ -33,15 +34,19 @@ def register(request):
                                                 last_name=last_name,
                                                 phone_number=phone_number,
                                                 gender=gender,
+                                                country=country,
                                                 username=username,
                                                 password=password1
                                                 )
                 if role == "farmer":
                     user.is_farmer = True
+                    FarmerProfile.objects.create(user=user)
                 elif role == "equipment owner":
                     user.is_equipment_owner = True
+                    EquipmentOwnerProfile.objects.create(user=user)
                 elif role == "customer":
                     user.is_customer = True
+                    BuyerProfile.objects.create(user=user)
                 elif role == "staff":
                     user.is_staff = True
                 user.save()

@@ -22,7 +22,7 @@
               <form action="{% url 'accounts:register' %}" method="post">
                 {% csrf_token %}
                 <div class="row">
-                  <div class="col-md-6 mb-4">
+                  <div class="col-md-5 mb-4">
   
                     <div class="form-outline">
                       <input type="text" name="first_name" class="form-control form-control-lg" />
@@ -30,7 +30,7 @@
                     </div>
   
                   </div>
-                  <div class="col-md-6 mb-4">
+                  <div class="col-md-7 mb-4">
   
                     <div class="form-outline">
                       <input type="text" name="last_name" class="form-control form-control-lg" />
@@ -41,7 +41,7 @@
                 </div>
   
                 <div class="row">
-                  <div class="col-md-6 mb-4 d-flex align-items-center">
+                  <div class="col-md-5 mb-4 d-flex align-items-center">
   
                     <div class="form-outline datepicker w-100">
                       <input type="text" class="form-control form-control-lg" name="username" />
@@ -49,7 +49,7 @@
                     </div>
   
                   </div>
-                  <div class="col-md-6 mb-4">
+                  <div class="col-md-7 mb-4">
   
                     <h6 class="mb-2 pb-1">Gender: </h6>
   
@@ -75,7 +75,7 @@
                 </div>
   
                 <div class="row">
-                  <div class="col-md-6 mb-4 pb-2">
+                  <div class="col-md-5 mb-4 pb-2">
   
                     <div class="form-outline">
                       <input type="email" name="email" class="form-control form-control-lg" required />
@@ -83,7 +83,7 @@
                     </div>
   
                   </div>
-                  <div class="col-md-6 mb-4 pb-2">
+                  <div class="col-md-7 mb-4 pb-2">
   
                     <div class="form-outline">
                       <input type="tel" name="phone_number" class="form-control form-control-lg" />
@@ -94,7 +94,79 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-4 pb-2">
+                  <div class="col-md-5 mb-4 pb-2">
+                    <label class="form-label select-label">Role</label>
+                    <div class="col-12">
+                      <select class="select form-control-lg" name="role" required>
+                        <option value="" disabled selected>Choose option</option>
+                        <option value="customer">Customer</option>
+                        <option value="farmer">Farmer</option>
+                        <option value="equipment owner">Equipment owner</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-7 mb-4 pb-2">
+                    <label class="form-label select-label">Country</lebal>
+                      <div class="col-md-12">
+                        <select class="select form-control-lg" name="country" required >
+                          <option value="" disabled selected>Choose Country</option>
+                          <option value="algeria">Algeria</option>
+                          <option value="angola">Angola</option>
+                          <option value="benin">Benin</option>
+                          <option value="botswana">Botswana</option>
+                          <option value="burkina Faso">Burkina Faso</option>
+                          <option value="burudi">Burudi</option>
+                          <option value="cabo verde">Cabo verde</option>
+                          <option value="cameroon">Cameroon</option>
+                          <option value="central africa republic">Central Africa Republic</option>
+                          <option value="chad">Chad</option>
+                          <option value="comoros">Comoros</option>
+                          <option value="democratic republic of congo">Democratic Republic of Congo (DRC)</option>
+                          <option value="cote d'lvoire">Cote d'lvoire</option>
+                          <option value="djiboute">Djiboute</option>
+                          <option value="egypt">Egypt</option>
+                          <option value="equatorial guinea">Equatorial Guinea</option>
+                          <option value="Eritrea">Eritrea</option>
+                          <option value="ethiopia">Ethiopia</option>
+                          <option value="gabon">Gabon</option>
+                          <option value="gambia">Gambia</option>
+                          <option value="ghana">Ghana</option>
+                          <option value="Guinea">Guinea</option>
+                          <option value="kenya">kenya</option>
+                          <option value="lesotho">Lesotho</option>
+                          <option value="liberia">Liberia</option>
+                          <option value="libya">Libya</option>
+                          <option value="madagascar">Madagascar</option>
+                          <option value="malawi">Malawi</option>
+                          <option value="mali">Mali</option>
+                          <option value="mauritania">Mauritania</option>
+                          <option value="mauritius">Mauritius</option>
+                          <option value="morocco">Morocco</option>
+                          <option value="mozambique">Mozambique</option>
+                          <option value="namibia">Namibia</option>
+                          <option value="niger">Niger</option>
+                          <option value="nigeria">Nigeria</option>
+                          <option value="rwanda">Rwanda</option>
+                          <option value="senegal">senegal</option>
+                          <option value="seychelles">Seychelles</option>
+                          <option value="sierra leone">Sierra Leone</option>
+                          <option value="somalia">Somalia</option>
+                          <option value="south africa">South Africa</option>
+                          <option value="south sudan">South Sudan</option>
+                          <option value="sudan">sudan</option>
+                          <option value="tanzania">Tanzania</option>
+                          <option value="togo">Togo</option>
+                          <option value="tunisia">Tunisia</option>
+                          <option value="uganda">Uganda</option>
+                          <option value="zambia">Zambia</option>
+                          <option value="zimbabwe">Zimbabwe</option>
+                        </select>
+                      </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-5">
     
                       <div class="form-outline">
                         <input type="password" name="password1" class="form-control form-control-lg" required/>
@@ -102,7 +174,7 @@
                       </div>
     
                     </div>
-                    <div class="col-md-6 mb-4 pb-2">
+                    <div class="col-md-7">
     
                       <div class="form-outline">
                         <input type="password" name="password2" class="form-control form-control-lg" required />
@@ -110,22 +182,13 @@
                       </div>
     
                     </div>
-                  </div>
-  
-                <div class="row">
-                <label class="form-label select-label">Role</label>
-                    <div class="col-12">
-                    <select class="select form-control-lg" name="role" required>
-                      <option value="" disabled selected>Choose option</option>
-                      <option value="customer">Customer</option>
-                      <option value="farmer">Farmer</option>
-                      <option value="equipment owner">Equipment owner</option>
-                    </select>
-                  </div>
                 </div>
   
-                <div class="mt-4 pt-2">
+                <div class="mt-4 pt-2 d-flex justify-content-between">
                   <input class="btn btn-primary btn-lg" type="submit" value="Submit" />
+                  <p class="p-2 me-5">
+                    Do you have account already? <a class="text-danger" href="{% url 'accounts:login' %}"><strong>Login.</strong></a>
+                  </p>
                 </div>
   
               </form>
