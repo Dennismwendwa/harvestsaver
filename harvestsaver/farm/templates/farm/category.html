@@ -1,0 +1,43 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}
+    Category - {{category}}
+{% endblock %}
+
+{% block category %}
+<section>
+     <!-- ======= Services Section ======= -->
+     <section id="service" class="services pt-0">
+        <div class="container" data-aos="fade-up">
+  
+          <div class="section-header">
+            <span>{{category}}</span>
+            <h2>{{category}}</h2>
+  
+          </div>
+  
+          <div class="row gy-4">
+            {% for product in cat_products %}
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+              <div class="card">
+                <div class="card-img">
+                  <a href="{% url 'farm:product_details' product.slug product.pk %}">
+                  <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
+                  </a>
+                </div>
+                <h5 class="text-center"><a href="" class="">{{product.name}}</a></h5>
+                
+                <p>{{product.description}}</p>
+              </div>
+            </div><!-- End Card Item -->
+            {% empty %}
+            <h4 class="text-center p-3 bg-info">No products in this category check back later.</h4>
+            {% endfor %}
+          </div>
+  
+        </div>
+      </section><!-- End Services Section -->
+</section>
+
+{% endblock %}
