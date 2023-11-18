@@ -39,3 +39,23 @@ class Product(models.Model):
     def __str__(self):
         return f"product: {self.name} Owner: {self.owner.username}"
 
+
+class Cart(models.Model):
+    """This models stores the products added to cart"""
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    added_on_date = models.DateTimeField(auto_now_add=True)
+    quantity = models.PositiveIntegerField()
+
+    class Meta:
+        verbose_name = "Cart"
+        verbose_name_plural = "Carts"
+        ordering = ("-pk",)
+        unique_together = ("product", "customer")
+
+    def __str__(self):
+        return (
+                f"Customer: {self.customer.username} "
+                f"product: {self.product.name} "
+                f"Quantity: {self.quantity}"
+                )

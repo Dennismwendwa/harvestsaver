@@ -1,5 +1,8 @@
-from django.shortcuts import render, redirect
-from .models import Category, Product
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import F, Q, Sum
+from django.db import IntegrityError
+
+from .models import Category, Product, Cart
 
 
 def home(request):
@@ -29,4 +32,28 @@ def product_details(request, slug, pk):
     context = {
         "product": product,
     }
-    return render(request, "farm/product_details.html", context)
+    return render(request, "farm/product_detail.html", context)
+
+def add_to_cart(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    quantity = request.POST.get("quantity")
+    
+    try:
+        cart_product = Cart.objects.get(product=product, customer=request.user)
+        cart_product.quantity = F("quantity") + quantity
+        cart_product.save()
+        cart_product.refresh_from_db()
+    except Cart.DoesNotExist:
+        Cart.objects.create(product=product,
+                            customer=request.user,
+                            quantity=quantity
+                            )
+    except IntegrityError as e:
+        print("Error while adding to cart", e)
+
+    current_user_total_quantity = Cart.objects.filter(
+        customer=request.user).aggregate(
+            total_quantity=Sum("quantity"))["total_quantity"]
+     
+    return redirect("farm:product_details", product.slug, product.pk)
