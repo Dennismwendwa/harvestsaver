@@ -19,6 +19,7 @@ def register(request):
         role = request.POST["role"]
         phone_number = request.POST.get("phone_number", "")
         gender = request.POST["gender"]
+        country = request.POST["country"]
 
         if password1 == password2 and len(password1) >= 8:
             
@@ -33,6 +34,7 @@ def register(request):
                                                 last_name=last_name,
                                                 phone_number=phone_number,
                                                 gender=gender,
+                                                country=country,
                                                 username=username,
                                                 password=password1
                                                 )
