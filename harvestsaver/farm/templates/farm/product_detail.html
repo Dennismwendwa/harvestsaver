@@ -20,6 +20,9 @@
                         <h6>Farmer: {{product.owner.username}}</h6>
                         <p>Quantity: {{product.quantity}} bags</p>
                     </div>
+                    <div class="">
+                        <p>Product: {% if product.is_available%}Available{%else%}Out of stock{%endif%}</p>
+                    </div>
                     <hr>
                     <h4>Plice: ksh {{product.price}}</h4>
                 </div>
@@ -47,6 +50,23 @@
                                     <button class="btn btn-primary btn-lg my-1" type="submit">Add to cart</button>
                                 </div>
                             </form>
+                            {% comment %}
+                            <form action="{% url 'farm:remove_from_cart' product.pk %}" method="post">
+                                {% csrf_token %}
+                                <div class="mb-4 pb-2">
+                                    <label class="form-label select-label">Qty:</label>
+                                    <div class="col-12">
+                                    <select class="select form-control-lg" name="quantity">
+                                        <option value="1" selected>1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <button class="btn btn-primary btn-lg my-1" type="submit">remove from cart</button>
+                                </div>
+                            </form>
+                            {% endcomment %}
                             <div class="">
                             <button class="btn btn-primary btn-lg my-1" type="submit">Buy now</button>
                             </div>
@@ -57,3 +77,4 @@
         </div>
     </section>
 {% endblock %}
+
