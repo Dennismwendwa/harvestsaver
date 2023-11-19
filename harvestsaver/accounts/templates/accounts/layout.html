@@ -70,9 +70,11 @@
           
           <li class="position-relative border">
             <a href="{% url 'farm:cart_items' %}">
+              {%if current_user_total_quantity%}
               <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                 {{current_user_total_quantity}}
               </span>
+              {% endif%}
               <i class="bi bi-cart4 cart-icon"></i>
             </a>
           </li>

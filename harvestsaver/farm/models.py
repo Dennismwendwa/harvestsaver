@@ -89,15 +89,15 @@ class Order(models.Model):
     def __str__(self):
         return (
                 f"Customer: {self.customer.username} "
-                f"Order Id: {self.transaxtion_id} "
+                f"Order Id: {self.transaction_id} "
                 f"Order amount: {self.total_amount}"
                 )
 
 
 def order_transaction_id():
-    month = timezone.now().strftime("%B")[:4]
+    month = timezone.now().strftime("%B")[:4].upper()
 
-    num = uuid.uuid4()[:10].upper()
+    num = str(uuid.uuid4())[:10].upper()
 
     complete_id = f"{month}{num}"
 

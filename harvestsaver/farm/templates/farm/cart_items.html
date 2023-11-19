@@ -79,9 +79,11 @@
                 <div class="p-2 text-center">
                     <h6>Subtotal ({{number_of_items}} items) ksh {{total}}</h6>
                 </div>
-                <div class="bg-warning m-2 rounded-pill">
-                    <h4>checkout</h4>
-                </div>
+                <a href="{% url 'farm:checkout' %}">
+                    <div class="bg-warning m-2 rounded-pill">
+                        <h4>checkout</h4>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
