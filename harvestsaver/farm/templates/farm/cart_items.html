@@ -1,0 +1,90 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}
+    HarvestSaver - Shopping
+{% endblock %}
+
+{% block category %}
+
+<section>
+    <div class="container bg-light row">
+        <div class="card col-md-9">
+            <div class="m-2">
+                <h3>Shopping Cart</h3>
+            </div>
+            
+            <div class="row border-bottom">
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-6">
+                </div>
+                <div class="col-md-2 d-flex justify-content-end">
+                    price
+                </div>
+            </div>
+            
+            {% for item in items %}
+            <div class="row my-2 border-bottom">
+                <div class="col-md-4">
+                    <img src="{{item.product.image.url}}" alt="cart image" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <a href="{% url 'farm:product_details' item.product.slug item.product.pk %}">
+                        <h4>{{item.product.name}}</h4>
+                    </a>
+                    <p>{{item.product.description}}</p>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2">
+                            <form action="{% url 'farm:add_to_cart' item.pk %}" method="post">
+                                {% csrf_token %}
+                                <div class="">
+                                    
+                                    <div class="col-12">
+                                    <select class="select form-control-lg" name="quantity">
+                                        <option value="{{item.quantity}}" selected>{{item.quantity}}</option>
+                                        <option value="0">0 (delete)</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                        <option value="11">11+</option>
+                                    </select>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="border-start px-2">
+                            <a href="{% url 'farm:delete_from_cart' item.product.pk %}">
+                                <p>Delete</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex justify-content-end">
+                    ksh {{item.product.price}}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="col-md-3">
+            <div class="text-center m-2 card">
+                <h5>Price</h5>
+                <div class="p-2 text-center">
+                    <h6>Subtotal ({{number_of_items}} items) ksh {{total}}</h6>
+                </div>
+                <div class="bg-warning m-2 rounded-pill">
+                    <h4>checkout</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
