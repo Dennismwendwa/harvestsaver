@@ -32,6 +32,7 @@
 
   <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/main.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/css/morestyle.css' %}" rel="stylesheet">
 
 </head>
 
@@ -68,6 +69,16 @@
           {% endif %}
           <li><a href="contact.html">Contact</a></li>
           <li><a class="get-a-quote" href="get-a-quote.html">Get a Quote</a></li>
+          <a href="{% url 'farm:cart_items' %}">
+            <li class="position-relative">
+                {%if current_user_total_quantity%}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  {{current_user_total_quantity}}
+                </span>
+                {%endif%}
+                <i class="ps-3 pe-1 bi bi-cart4 text-white cart-icon"></i>
+            </li>
+          </a>
         </ul>
       </nav><!-- .navbar -->
 
@@ -234,7 +245,6 @@
               </div>
               <h5 class="text-center"><a href="{% url 'farm:products_category' product.slug %}" class="">{{product.category.name}}</a></h5>
               <h3>{{product.name}}</h3>
-              
               <p>{{product.description}}</p>
             </div>
           </div><!-- End Card Item -->
