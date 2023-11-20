@@ -110,7 +110,22 @@ def order_transaction_id():
     return complete_id
 
 
+class OrderItem(models.Model):
+    """This model stores the individual items within an order"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField()
 
+    class meta:
+        verbose_name = "Order Item"
+        verbose_name_plural = "Order Items"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return (
+                f"Order: {self.order.transaction_id} "
+                f"Product: {self.product.name} Quantity: {self.quantity}"
+                )
 
 
 
