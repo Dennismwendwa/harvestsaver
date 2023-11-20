@@ -6,6 +6,7 @@ from accounts.models import User
 
 
 class Category(models.Model):
+    """This is all products categories"""
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
 
@@ -18,6 +19,7 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+    """Model for all products availble in our site"""
     owner = models.ForeignKey(User,
                               limit_choices_to={"is_farmer": True},
                               on_delete=models.CASCADE)
@@ -64,6 +66,9 @@ class Cart(models.Model):
                 )
     @property
     def calculate_total_cost(self):
+        """This method calculates the total cost of item in cart
+           cost per item times the number of such items in cart
+        """
         if self.product and self.quantity:
             return self.product.price * self.quantity
 
@@ -95,6 +100,7 @@ class Order(models.Model):
 
 
 def order_transaction_id():
+    """This function generates unique transaction ID"""
     month = timezone.now().strftime("%B")[:4].upper()
 
     num = str(uuid.uuid4())[:10].upper()
