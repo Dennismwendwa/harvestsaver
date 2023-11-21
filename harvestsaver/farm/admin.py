@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Category, Product, Cart, Order, OrderItem
-from .models import EquipmentCategory, Equipment
+from .models import EquipmentCategory, Equipment, Review, FrequentQuestion
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -28,3 +28,5 @@ admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin.site.register(Equipment, EquipmentAdmin)
+admin.site.register(Review)
+admin.site.register(FrequentQuestion)
