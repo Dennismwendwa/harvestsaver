@@ -1,10 +1,16 @@
+from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import F, Q, Sum
 from django.db import IntegrityError
 from django.contrib import messages
 
-from .models import Category, Product, Cart, Order
-from .models import order_transaction_id
+from .models import Category, Product, Cart, Order, OrderItem
+from .models import order_transaction_id, EquipmentCategory, Equipment
+
+
+def succes_page(request):
+    return render(request, "farm/success_page.html")
+
 
 def home(request):
     context = {}
@@ -114,37 +120,82 @@ def checkout(request):
     
     cart_items = Cart.objects.filter(customer=request.user).all()
     products_instances = [cart_item.product for cart_item in cart_items]
+    
+    if cart_items:
+        total = 0
+        for item in cart_items:
+            subtotal = item.calculate_total_cost
+            total += subtotal
+        
+        shipping = round((Decimal(3 / 100) * total), 2)
+        total_cost = (total + shipping)
 
     if request.method == "POST":
         shipping_address = request.POST.get("address")
         payment_method = request.POST.get("payment_method", "card")
-
-        if cart_items:
-            total = 0
-            for item in cart_items:
-                subtotal = item.calculate_total_cost
-                total += subtotal
         
-            transaction_id=order_transaction_id()
-            order = Order.objects.create(customer=request.user,
-                                total_amount=total,
-                                transaction_id=transaction_id,
-                                shipping_address=shipping_address,
-                                payment_method=payment_method,
-                                status=True,
-                                )
-            order.products.set(products_instances)
-            cart_items.delete()
-            messages.success(request, (
-                                       f"Your order was successfull. "
-                                       f"Order id is {transaction_id}"
-                                       ))
-            return redirect("farm:success_page")
-    return render(request, "farm/chackout.html")
+        transaction_id=order_transaction_id()
+        order = Order.objects.create(customer=request.user,
+                            total_amount=total_cost,
+                            transaction_id=transaction_id,
+                            shipping_address=shipping_address,
+                            payment_method=payment_method,
+                            status="payed",
+                            )
+        order.products.set(products_instances)
+        
+        for cart_item in cart_items:
+            OrderItem.objects.create(order=order,
+                                     product=cart_item.product,
+                                     quantity=cart_item.quantity)
+
+        cart_items.delete()
+        messages.success(request, (
+                                   f"Your order was successfull. "
+                                   f"Order id is {transaction_id}"
+                                   ))
+        return redirect("farm:success_page")
+
+    context = {
+        "total": total,
+        "shipping": shipping,
+        "total_cost": total_cost,
+    }
+    return render(request, "farm/chackout.html", context)
 
 
-def succes_page(request):
-    return render(request, "farm/success_page.html")
+def equipment_category(request, slug):
+    flag = "equipment"
+
+    equip_category = get_object_or_404(EquipmentCategory, slug=slug)
+    
+    equipments = Equipment.objects.filter(category=equip_category,
+                                          is_available=True)
+    context = {
+        "flag": flag,
+        "equip_category": equip_category,
+        "equipments": equipments,
+    }
+    return render(request, "farm/category.html", context)
+
+
+def equipment_detail(request, slug):
+    
+    equipment = get_object_or_404(Equipment, slug=slug)
+
+    context = {
+        "equipment": equipment,
+    }
+    return render(request, "farm/equipment_detail.html", context)
+
+
+
+
+
+
+
+
+
 
 
 

@@ -110,16 +110,61 @@ def order_transaction_id():
     return complete_id
 
 
+class OrderItem(models.Model):
+    """This model stores the individual items within an order"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField()
+
+    class meta:
+        verbose_name = "Order Item"
+        verbose_name_plural = "Order Items"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return (
+                f"Order: {self.order.transaction_id} "
+                f"Product: {self.product.name} Quantity: {self.quantity}"
+                )
+
+class EquipmentCategory(models.Model):
+    """This model is for all equipment categories"""
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField()
+
+    class Meta:
+        verbose_name = "Equipment Category"
+        verbose_name_plural = "Equipment Categories"
+
+    def __str__(self):
+        return f"{self.name}"
 
 
+class Equipment(models.Model):
+    """This model store all current equitmwnr"""
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField()
+    description = models.TextField()
+    category = models.ForeignKey(EquipmentCategory,
+                                 on_delete=models.SET_NULL, null=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE,
+                              limit_choices_to={"is_equipment_owner": True})
+    location = models.CharField(max_length=100)
+    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
+    is_available = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="equipment_img")
 
+    class Meta:
+        verbose_name = "Equipment"
+        verbose_name_plural = "Equipments"
+        ordering = ("-pk",)
+        unique_together = ("name", "owner")
 
-
-
-
-
-
-
+    def __str__(self):
+        return (
+                f"Equipment: {self.name} "
+                f"{self.location}"
+                )
 
 
 

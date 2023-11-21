@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Category, Product, Cart, Order
+from .models import Category, Product, Cart, Order, OrderItem
+from .models import EquipmentCategory, Equipment
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -13,8 +14,17 @@ class ProductAdmin(admin.ModelAdmin):
                     )
     prepopulated_fields = {"slug": ("name",)}
 
+class EquipmentCategoryAdmin(admin.ModelAdmin):
+    prepopulated_fields = {"slug": ("name",)}
+
+class EquipmentAdmin(admin.ModelAdmin):
+    prepopulated_fileds = {"slug": ("name",)}
+    
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart)
 admin.site.register(Order)
+admin.site.register(OrderItem)
+admin.site.register(EquipmentCategory, EquipmentCategoryAdmin)
+admin.site.register(Equipment, EquipmentAdmin)
