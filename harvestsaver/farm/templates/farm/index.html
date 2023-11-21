@@ -100,8 +100,13 @@
           <h2 data-aos="fade-up">Your Lightning Fast Delivery Partner</h2>
           <p data-aos="fade-up" data-aos-delay="100">Facere distinctio molestiae nisi fugit tenetur repellat non praesentium nesciunt optio quis sit odio nemo quisquam. eius quos reiciendis eum vel eum voluptatem eum maiores eaque id optio ullam occaecati odio est possimus vel reprehenderit</p>
 
-          <form action="#" class="form-search d-flex align-items-stretch mb-3" data-aos="fade-up" data-aos-delay="200">
-            <input type="text" class="form-control" placeholder="ZIP code or CitY">
+          <form action="{% url 'farm:search' %}"
+            method="post"
+            class="form-search d-flex align-items-stretch mb-3"
+            data-aos="fade-up" data-aos-delay="200">
+            {%csrf_token%}
+            <input type="text" name="query" 
+            class="form-control" placeholder="Search by product name, price" required>
             <button type="submit" class="btn btn-primary">Search</button>
           </form>
 

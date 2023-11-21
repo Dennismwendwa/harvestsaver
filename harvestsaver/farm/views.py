@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import F, Q, Sum
 from django.db import IntegrityError
 from django.contrib import messages
+from django.core.mail import send_mail
 
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import order_transaction_id, EquipmentCategory, Equipment
@@ -182,6 +183,29 @@ def equipment_category(request, slug):
 def equipment_detail(request, slug):
     
     equipment = get_object_or_404(Equipment, slug=slug)
+    
+    if request.method == "POST":
+        customer_name = request.POST.get("name")
+        email = request.POST.get("email")
+        subject = request.POST.get("subject")
+        message = request.POST.get("message")
+
+        equipment_name = equipment.name
+
+        email_message = (
+                         f"Name: {customer_name}\nEmail: "
+                         f"{email}\nSubject: {subject} "
+                         f"\n\n{message}"
+                         )
+
+        send_mail(
+            subject = f"Contacting about machine {equipment_name}",
+            message = email_message,
+            from_email = email,
+            recipient_list = ["dennismusembi2@gmail.com",
+                              "dennissoftware3@gmail.com",],
+            fail_silently = False,
+            )
 
     context = {
         "equipment": equipment,
@@ -189,7 +213,18 @@ def equipment_detail(request, slug):
     return render(request, "farm/equipment_detail.html", context)
 
 
+def search(request):
+    
+    if request.method == "POST":
+        query = request.POST.get("query")
+        results = Product.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query) |
+            Q(price__icontains=query)
+        )
+        return render(request, "farm/search.html", {"results": results})
 
+    context = {}
+    return render(request, "farm/search.html", context)
 
 
 
