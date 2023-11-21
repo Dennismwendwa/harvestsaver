@@ -8,7 +8,38 @@
 {% block category %}
 <section>
      <!-- ======= Services Section ======= -->
-     <section id="service" class="services pt-0">
+     <section id="service" class="services pt-0"> 
+        {% if flag %}
+        <div class="container" data-aos="fade-up">
+  
+          <div class="section-header">
+            <span>{{equip_category}}</span>
+            <h2>{{equip_category}}</h2>
+  
+          </div>
+  
+          <div class="row gy-4">
+            {% for product in equipments %}
+            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+              <div class="card">
+                <div class="card-img">
+                  <a href="{% url 'farm:equipment_detail' product.slug %}">
+                  <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}equipment image{%endif%}" class="img-fluid">
+                  </a>
+                </div>
+                <h5 class="text-center"><a href="" class="">{{product.name}}</a></h5>
+                
+                <p>{{product.description}}</p>
+              </div>
+            </div><!-- End Card Item -->
+            {% empty %}
+            <h4 class="text-center p-3 bg-info">No Equipments in this category check back later.</h4>
+            {% endfor %}
+          </div>
+  
+        </div>
+
+        {% else%}
         <div class="container" data-aos="fade-up">
   
           <div class="section-header">
@@ -37,6 +68,7 @@
           </div>
   
         </div>
+        {%endif%}
       </section><!-- End Services Section -->
 </section>
 

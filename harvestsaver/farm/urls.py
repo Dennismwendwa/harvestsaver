@@ -18,4 +18,8 @@ urlpatterns = [
          name="delete_from_cart"),
     path("checkout", views.checkout, name="checkout"),
     path("success", views.succes_page, name="success_page"),
+    path("equipment-category/<str:slug>", views.equipment_category,
+         name="equipment_category"),
+    path("equipment-detail/<str:slug>", views.equipment_detail,
+         name="equipment_detail"),
 ]

@@ -5,7 +5,12 @@ from django.db import IntegrityError
 from django.contrib import messages
 
 from .models import Category, Product, Cart, Order, OrderItem
-from .models import order_transaction_id
+from .models import order_transaction_id, EquipmentCategory, Equipment
+
+
+def succes_page(request):
+    return render(request, "farm/success_page.html")
+
 
 def home(request):
     context = {}
@@ -159,8 +164,38 @@ def checkout(request):
     return render(request, "farm/chackout.html", context)
 
 
-def succes_page(request):
-    return render(request, "farm/success_page.html")
+def equipment_category(request, slug):
+    flag = "equipment"
+
+    equip_category = get_object_or_404(EquipmentCategory, slug=slug)
+    
+    equipments = Equipment.objects.filter(category=equip_category,
+                                          is_available=True)
+    context = {
+        "flag": flag,
+        "equip_category": equip_category,
+        "equipments": equipments,
+    }
+    return render(request, "farm/category.html", context)
+
+
+def equipment_detail(request, slug):
+    
+    equipment = get_object_or_404(Equipment, slug=slug)
+
+    context = {
+        "equipment": equipment,
+    }
+    return render(request, "farm/equipment_detail.html", context)
+
+
+
+
+
+
+
+
+
 
 
 
