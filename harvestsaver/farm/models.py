@@ -167,13 +167,41 @@ class Equipment(models.Model):
                 )
 
 
+class Review(models.Model):
+    """This models stores reviews of products"""
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    review = models.TextField()
+    review_date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Review"
+        verbose_name_plural = "Reviews"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"{self.customer.username} {self.product.name}"
+
+    @classmethod
+    def all_product_review(cls, product):
+        """Returns all reviews of a product"""
+        return cls.objects.filter(product=product)
 
 
+class FrequentQuestion(models.Model):
+    """This models stores all Frequently asked Questions"""
+    question = models.TextField()
+    answer = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
 
-
-
-
-
+    class Meta:
+        verbose_name = "Frequent Question"
+        verbose_name_plural = "Frequest Questions"
+        unique_together = ("question", "answer")
+        ordering = ("-pk",)
+    
+    def __str__(self):
+        return f"{self.date}"
 
 
 

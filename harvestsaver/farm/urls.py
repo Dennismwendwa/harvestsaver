@@ -22,4 +22,5 @@ urlpatterns = [
          name="equipment_category"),
     path("equipment-detail/<str:slug>", views.equipment_detail,
          name="equipment_detail"),
+    path("equipment/search", views.search, name="search"),
 ]

@@ -1,12 +1,16 @@
 from django.utils import timezone
 from django.db.models import Sum
 from farm.models import Category, Product, Cart, Equipment, EquipmentCategory
+from farm.models import Review, FrequentQuestion
 
 
 def common_variables(request):
     
     categories = Category.objects.all()
     products = Product.objects.all()
+
+    reviews = Review.objects.all()
+    questions = FrequentQuestion.objects.all()
 
     current_user_total_quantity = Cart.objects.filter(
         customer=request.user).aggregate(
@@ -21,4 +25,6 @@ def common_variables(request):
             "current_user_total_quantity": current_user_total_quantity,
             "equipment_categories": equipment_categories,
             "equipments": equipments,
+            "reviews": reviews,
+            "questions": questions,
             }
