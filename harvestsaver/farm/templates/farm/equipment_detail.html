@@ -1,0 +1,33 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}
+    HarvestSaver - {{equipment.name}}
+{% endblock %}
+
+{% block category %}
+<div class="container bg-white">
+    <div class="row py-2">
+        <div class="col-md-5">
+            <img src="{{equipment.image.url}}" class="img-fluid"
+                alt="{%if equipment.alt%}{{equipment.alt}}{%else%}equipment image{%endif%}">
+        </div>
+        <div class="col-md-7 my-2">
+            <h2 class="text-center">{{equipment.name}}</h2>
+            <p class="">{{equipment.description}}</p>
+            <div class="d-flex">
+                <p class="pe-2 border-end">Owner: {{equipment.owner.username}}</p>
+                <p class="px-2 border-end border-start">Contact: <strong>{{equipment.owner.phone_number}}</strong></p>
+                <p class="px-2 border-start bg-warning">Availabilty: {% if equipment.is_available%}Available{%else%}Unavailable{%endif%}</p>
+            </div>
+            <div class="text-center">
+                <h5 class="py-2 bg-info rounded-pill">Price: ksh {{equipment.price_per_hour}} per hour</h5>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary btn-lg rounded-pill">Contact Owner</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
