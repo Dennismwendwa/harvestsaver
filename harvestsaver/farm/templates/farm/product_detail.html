@@ -8,6 +8,11 @@
 {% block category %}
     <section>
         <div class="">
+            <div>
+                {% for message in messages %}
+                    <p class="p-2 bg-danger text-white">{{message}}</p>
+                {%endfor%}
+            </div>
             <div class="row">
                 <div class="col-md-6">
                     <img src="{{product.image.url}}" class="img-fluid"

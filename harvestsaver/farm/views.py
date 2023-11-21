@@ -4,6 +4,7 @@ from django.db.models import F, Q, Sum
 from django.db import IntegrityError
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
 
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import order_transaction_id, EquipmentCategory, Equipment
@@ -31,6 +32,7 @@ def prodcuts_category(request, slug):
     return render(request, "farm/category.html", context)
 
 
+@login_required
 def product_details(request, slug, pk):
     
     product = Product.objects.get(pk=pk)
@@ -41,6 +43,7 @@ def product_details(request, slug, pk):
         "product": product,
     }
     return render(request, "farm/product_detail.html", context)
+
 
 def add_to_cart(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -57,8 +60,10 @@ def add_to_cart(request, pk):
                             customer=request.user,
                             quantity=quantity
                             )
-    except IntegrityError as e:
+    except Cart.IntegrityError as e:
         print("Error while adding to cart", e)
+        messages.error(request, f"Adding to cart failed. Try agin")
+        return redirect("farm:product_details", product.slug, product.pk)
 
     current_user_total_quantity = Cart.objects.filter(
         customer=request.user).aggregate(
@@ -99,6 +104,7 @@ def delete_from_cart(request, pk):
     return redirect("farm:cart_items")
 
 
+@login_required
 def cart_items(request):
     
     items = Cart.objects.filter(customer=request.user)
@@ -116,7 +122,7 @@ def cart_items(request):
     return render(request, "farm/cart_items.html", context)
 
 
-
+@login_required
 def checkout(request):
     
     cart_items = Cart.objects.filter(customer=request.user).all()
@@ -128,8 +134,8 @@ def checkout(request):
             subtotal = item.calculate_total_cost
             total += subtotal
         
-        shipping = round((Decimal(3 / 100) * total), 2)
-        total_cost = (total + shipping)
+    shipping = round((Decimal(3 / 100) * total), 2)
+    total_cost = (total + shipping)
 
     if request.method == "POST":
         shipping_address = request.POST.get("address")
