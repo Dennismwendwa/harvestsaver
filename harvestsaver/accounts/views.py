@@ -89,9 +89,10 @@ def login(request):
             return redirect("accounts:login")
 
         user = auth.authenticate(username=username, password=password)
+        next_param = request.GET.get('next', '')
         if user is not None:
             auth.login(request, user)
-            return redirect("farm:home")
+            return redirect(next_param if next_param else "farm:home")
         else:
             messages.warning(request, f"Wrong password or username")
             return redirect("accounts:login")

@@ -6,17 +6,20 @@ from farm.models import Review, FrequentQuestion
 
 def common_variables(request):
     
-    categories = Category.objects.all()
+    categories = Category.objects.all()[:5]
     products = Product.objects.all()
 
-    reviews = Review.objects.all()
-    questions = FrequentQuestion.objects.all()
+    reviews = Review.objects.all()[:5]
+    questions = FrequentQuestion.objects.all()[:5]
 
-    current_user_total_quantity = Cart.objects.filter(
-        customer=request.user).aggregate(
-            total_quantity=Sum("quantity"))["total_quantity"]
+    if request.user.is_authenticated:
+        current_user_total_quantity = Cart.objects.filter(
+            customer=request.user).aggregate(
+                total_quantity=Sum("quantity"))["total_quantity"]
+    else:
+        current_user_total_quantity = 0
 
-    equipment_categories = EquipmentCategory.objects.all()
+    equipment_categories = EquipmentCategory.objects.all()[:5]
     equipments = Equipment.objects.filter(is_available=True)
 
     return {
