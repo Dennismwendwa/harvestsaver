@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 
+from transit.models import TransportBooking
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import order_transaction_id, EquipmentCategory, Equipment
 
@@ -157,6 +158,9 @@ def checkout(request):
                                      quantity=cart_item.quantity)
 
         cart_items.delete()
+
+        # to add transport feature here TransportBooking
+        
         messages.success(request, (
                                    f"Your order was successfull. "
                                    f"Order id is {transaction_id}"
