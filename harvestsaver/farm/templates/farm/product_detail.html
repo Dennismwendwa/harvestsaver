@@ -73,7 +73,9 @@
                             </form>
                             {% endcomment %}
                             <div class="">
-                            <button class="btn btn-primary btn-lg my-1" type="submit">Buy now</button>
+                                <a href="{% url 'farm:cart_items' %}">
+                                    <button class="btn btn-primary btn-lg my-1" type="submit">Buy now</button>
+                                </a>
                             </div>
                         </div>
                     </div>
