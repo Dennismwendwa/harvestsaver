@@ -6,7 +6,14 @@ from farm.models import Order
 
 
 class TransportBooking(models.Model):
-    """This model stores all transport booking"""
+    """
+    This model stores all transport booking
+    TRANSIT_OPTION: choices list for all options available
+    STATUS: The status of the transport.
+        Pending: for transport which have not started
+        Transit: fro stransport which has not yet be delivered
+        Delivered: for transport which is complete
+    """
     TRANSIT_OPTIONS = [
         ("Standard Delivery", "Standard Delivery"),
         ("Express Delivery", "Express Delivery"),
