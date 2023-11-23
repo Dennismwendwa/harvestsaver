@@ -1,11 +1,14 @@
 from decimal import Decimal
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import F, Q, Sum
 from django.db import IntegrityError
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
 
+from transit.models import TransportBooking
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import order_transaction_id, EquipmentCategory, Equipment
 
@@ -140,7 +143,9 @@ def checkout(request):
     if request.method == "POST":
         shipping_address = request.POST.get("address")
         payment_method = request.POST.get("payment_method", "card")
-        
+        transport = request.POST.get("transport_option")
+        pickup_location= request.POST.get("pickup_location")
+
         transaction_id=order_transaction_id()
         order = Order.objects.create(customer=request.user,
                             total_amount=total_cost,
@@ -157,6 +162,24 @@ def checkout(request):
                                      quantity=cart_item.quantity)
 
         cart_items.delete()
+
+        # to add transport feature here TransportBooking
+        today = timezone.now()
+        pickup_date_time = today + timedelta(days=4)
+        
+        try:
+            TransportBooking.objects.create(
+                customer=request.user,
+                order=order,
+                pickup_location=pickup_location,
+                transport_option=transport,
+                cost=shipping,
+                pickup_date_time=pickup_date_time,
+
+            )
+        except Exception as e:
+            print(e)
+
         messages.success(request, (
                                    f"Your order was successfull. "
                                    f"Order id is {transaction_id}"
