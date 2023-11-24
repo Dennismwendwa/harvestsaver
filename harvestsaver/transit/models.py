@@ -9,6 +9,8 @@ class TransportBooking(models.Model):
     """
     This model stores all transport booking
     TRANSIT_OPTION: choices list for all options available
+        Standard: This is the first option for transport
+        Express: It offers faster delivaries
     STATUS: The status of the transport.
         Pending: for transport which have not started
         Transit: fro stransport which has not yet be delivered
