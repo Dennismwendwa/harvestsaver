@@ -1,3 +1,5 @@
 from django.shortcuts import render
+from .models import TransportBooking
 
-# Create your views here.
+def transporthome(request):
+    return render(request, "transit/transport.html", {})
