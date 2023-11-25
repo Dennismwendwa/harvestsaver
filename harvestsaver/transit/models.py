@@ -44,7 +44,7 @@ class TransportBooking(models.Model):
         verbose_name = "Transport Booking"
         verbose_name_plural = "Transport Bookings"
         unique_together = ("customer", "order",)
-        ordering = ("-pk",)
+        ordering = ("-pk","-delivery_dateTime",) 
 
     def __str__(self):
         return f"{self.customer.username}'s Transport Booking"

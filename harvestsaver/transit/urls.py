@@ -5,5 +5,7 @@ from .import views
 app_name = "transit"
 
 urlpatterns = [
-    path("home", views.transporthome, name="transporthome"),
+    path("quote", views.transporthome, name="transportquote"),
+    path("home", views.all_transport, name="transporthome"),
+    path("delivered/<int:pk>", views.delivered, name="delivered"),
 ]
