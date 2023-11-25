@@ -163,7 +163,6 @@ def checkout(request):
 
         cart_items.delete()
 
-        # to add transport feature here TransportBooking
         today = timezone.now()
         pickup_date_time = today + timedelta(days=4)
         
