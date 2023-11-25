@@ -1,8 +1,14 @@
 from django.db import models
 from django.utils import timezone
+from django.core.validators import EmailValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator, MinLengthValidator
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
 from farm.models import Order
+from .validators import DimensionsValidator
 
 
 class TransportBooking(models.Model):
@@ -45,14 +51,35 @@ class TransportBooking(models.Model):
 
 
 class Quote(models.Model):
-    departure = models.CharField(max_length=100)
-    delivery = models.CharField(max_length=100)
-    weight = models.CharField(max_length=20, help_text="units kgs")
-    dimensions = models.CharField(max_length=50)
-    name = models.CharField(max_length=50)
-    email = models.EmailField()
-    phone = models.CharField(max_length=50)
-    message = models.TextField()
+    """model for transport quotes inquire"""
+    departure = models.CharField(max_length=100, verbose_name="Departure")
+    delivery = models.CharField(max_length=100, verbose_name="Delivery")
+    weight = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        help_text="units kgs",
+        verbose_name="Weight",
+        validators=[
+            MinValueValidator(
+                limit_value=0.001, message="Weight must be at least 0.001 Kgs"
+                ),
+            MaxValueValidator(
+                limit_value=1000000, message="Weight can not exceed 1,000,000 kgs"
+            ),
+        ]
+        )
+    dimensions = models.CharField(max_length=50, verbose_name="Demensions",
+                                  validators=[DimensionsValidator()])
+    name = models.CharField(max_length=50, verbose_name="Name")
+    email = models.EmailField(verbose_name="Email",
+                              validators=[EmailValidator(
+                                message="Enter a valid email")])
+    phone = models.CharField(max_length=50, verbose_name="Phone", validators=[
+        RegexValidator(regex=r"^\+\d{1,}", message="Phone must start with a country code (+)"),
+        MinLengthValidator(limit_value=13, message="Phone number is too short")
+        ])
+    message = models.TextField(verbose_name="Message")
+    date = models.DateTimeField(auto_now_add=True, blank=True,)
 
     class meta:
         verbose_name = "Quote"
