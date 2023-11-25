@@ -9,6 +9,8 @@ class TransportBooking(models.Model):
     """
     This model stores all transport booking
     TRANSIT_OPTION: choices list for all options available
+        Standard: This is the first option for transport
+        Express: It offers faster delivaries
     STATUS: The status of the transport.
         Pending: for transport which have not started
         Transit: fro stransport which has not yet be delivered
@@ -40,3 +42,23 @@ class TransportBooking(models.Model):
 
     def __str__(self):
         return f"{self.customer.username}'s Transport Booking"
+
+
+class Quote(models.Model):
+    departure = models.CharField(max_length=100)
+    delivery = models.CharField(max_length=100)
+    weight = models.CharField(max_length=20, help_text="units kgs")
+    dimensions = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50)
+    message = models.TextField()
+
+    class meta:
+        verbose_name = "Quote"
+        verbose_name_plural = "Quotes"
+        ordering = ("-pk")
+
+
+    def __str_(self):
+        return f"Qoute from {self.name} email is {self.email}"

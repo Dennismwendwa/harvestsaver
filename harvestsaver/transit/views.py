@@ -1,3 +1,9 @@
 from django.shortcuts import render
+from .models import TransportBooking, Quote
 
-# Create your views here.
+def transporthome(request):
+    """This view is for transport quote"""
+    if request.method == "POST":
+        pass
+    
+    return render(request, "transit/transport.html", {})
