@@ -1,7 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.models import auth, Group
+from django.core.mail import send_mail
+
 from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
+from .models import Contact
+from .forms import ContactForm
 
 
 def register(request):
@@ -105,3 +109,38 @@ def logout(request):
 
     auth.logout(request)
     return redirect("farm:home")
+
+def contact(request):
+    
+    if request.method == "POST":
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            email = form.cleaned_data["email"]
+            subject = form.cleaned_data["subject"]
+            message = form.cleaned_data["message"]
+
+            Contact.objects.create(
+                name=name,
+                email=email,
+                subject=subject,
+                message=message,
+            )
+
+            email_message = f"Name: {name}\nEmail: {email}\nSubject\n\n{message}"
+
+            send_mail(
+                subject = "New cantact form submission",
+                message = email_message,
+                from_email = email,
+                recipient_list = ["dennissoftware3@gmail.com",],
+                fail_silently = False,
+            )
+
+            messages.success(request, f"Your message has been sent. Thank you")
+            return redirect("accounts:contact")
+    else:
+        form = ContactForm()
+
+    context = {"form": form,}
+    return render(request, "accounts/conatact.html", context)

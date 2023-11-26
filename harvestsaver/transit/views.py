@@ -76,17 +76,3 @@ def delivered(request, pk):
                               f"updated successfully")
                               )
     return redirect("transit:transporthome")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
