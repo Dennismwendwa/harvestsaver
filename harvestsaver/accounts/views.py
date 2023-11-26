@@ -144,3 +144,7 @@ def contact(request):
 
     context = {"form": form,}
     return render(request, "accounts/conatact.html", context)
+
+
+def aboutus(request):
+    return render(request, "accounts/aboutus.html")

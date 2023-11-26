@@ -202,7 +202,7 @@ def equipment_category(request, slug):
                                           is_available=True)
     context = {
         "flag": flag,
-        "equip_category": equip_category,
+        "category": equip_category,
         "equipments": equipments,
     }
     return render(request, "farm/category.html", context)

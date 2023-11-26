@@ -5,129 +5,131 @@
 {% endblock%}
 
 {% block category %}
-<h3 class="m-3">Transport dashboard</h3>
-<div class="bg-white m-2">
-    <div class="my-2">
-        <h3 class="ms-2">Undelivered Orders</p>
-    </div>
-    <div class="m-2">
-        {% for message in messages %}
-        <div class="m-2 bg-success text-center">
-            <p class="text-white">{{message}}</p>
+<div class="container mt-5">
+    <h3 class="m-3 border-bottom">Transport dashboard</h3>
+    <div class="bg-white m-2">
+        <div class="my-2">
+            <h3 class="ms-2">Undelivered Orders</p>
         </div>
-        {% endfor%}
-        <div class="row">
-                <div class="col-md-2">
-                    <p>Customer</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Order id</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Pickup_location</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Transport_option</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Status</p>
-                </div>
-                <div class="col-md-1">
-                    <p>Cost</p>
-                </div>
-                <div class="col-md-1">
-                    <p>make as delivered</p>
-                </div>
-        </div>
-        {% for transport in transports %}
-        <div class="card mb-1">
-            <div class="card-body row">
-                <div class="col-md-2">
-                    <p>{{transport.customer.username}} {{transport.customer.last_name}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.order.transaction_id}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.pickup_location}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.transport_option}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.status}}</p>
-                </div>
-                <div class="col-md-1">
-                    <p>{{transport.cost}}</p>
-                </div>
-                <div class="col-md-1">
-                    <form action="{% url 'transit:delivered' transport.pk %}" method="post">
-                        {%csrf_token%}
-                        <button class="bg-success rounded-pill" type="submit">delivered</button>
-                    </form>
+        <div class="m-2 mb-5 pb-5">
+            {% for message in messages %}
+            <div class="m-2 bg-success text-center">
+                <p class="text-white">{{message}}</p>
+            </div>
+            {% endfor%}
+            <div class="row">
+                    <div class="col-md-2">
+                        <p>Customer</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Order id</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Pickup_location</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Transport_option</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Status</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>Cost</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>make as delivered</p>
+                    </div>
+            </div>
+            {% for transport in transports %}
+            <div class="card mb-1">
+                <div class="card-body row">
+                    <div class="col-md-2">
+                        <p>{{transport.customer.username}} {{transport.customer.last_name}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.order.transaction_id}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.pickup_location}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.transport_option}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.status}}</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>{{transport.cost}}</p>
+                    </div>
+                    <div class="col-md-1">
+                        <form action="{% url 'transit:delivered' transport.pk %}" method="post">
+                            {%csrf_token%}
+                            <button class="bg-success rounded-pill" type="submit">delivered</button>
+                        </form>
+                    </div>
                 </div>
             </div>
+            {%empty%}
+            <p class="text-center m-3">No pending orders</p>
+            {% endfor %}
         </div>
-        {%empty%}
-        <p class="text-center m-3">No pending orders</p>
-        {% endfor %}
-    </div>
-    <hr>
-    <div class="my-2">
-        <h3 class="ms-2">Delivered Orders</h3>
-    </div>
-    <div class="m-2">
-        <div class="row">
-                <div class="col-md-2">
-                    <p>Customer</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Order id</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Pickup_location</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Transport_option</p>
-                </div>
-                <div class="col-md-1">
-                    <p>Status</p>
-                </div>
-                <div class="col-md-1">
-                    <p>Cost</p>
-                </div>
-                <div class="col-md-2">
-                    <p>Delivery Date</p>
-                </div>
+        <hr>
+        <div class="my-2">
+            <h3 class="ms-2">Delivered Orders</h3>
         </div>
-        
-        {% for transport in  delivered %}
-        <div class="card mb-1">
-            <div class="card-body row">
-                <div class="col-md-2">
-                    <p>{{transport.customer.username}} {{transport.customer.last_name}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.order.transaction_id}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.pickup_location}}</p>
-                </div>
-                <div class="col-md-2">
-                    <p>{{transport.transport_option}}</p>
-                </div>
-                <div class="col-md-1">
-                    <p>{{transport.status}}</p>
-                </div>
-                <div class="col-md-1">
-                    <p>{{transport.cost}}</p>
-                </div>
-                <div class="col-md-2">
-                   <p>{{transport.delivery_dateTime}}
+        <div class="m-2">
+            <div class="row">
+                    <div class="col-md-2">
+                        <p>Customer</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Order id</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Pickup_location</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Transport_option</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>Status</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>Cost</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>Delivery Date</p>
+                    </div>
+            </div>
+            
+            {% for transport in  delivered %}
+            <div class="card mb-1">
+                <div class="card-body row">
+                    <div class="col-md-2">
+                        <p>{{transport.customer.username}} {{transport.customer.last_name}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.order.transaction_id}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.pickup_location}}</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p>{{transport.transport_option}}</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>{{transport.status}}</p>
+                    </div>
+                    <div class="col-md-1">
+                        <p>{{transport.cost}}</p>
+                    </div>
+                    <div class="col-md-2">
+                    <p>{{transport.delivery_dateTime}}
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}
