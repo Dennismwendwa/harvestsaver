@@ -22,6 +22,17 @@ def home(request):
     return render(request, "farm/index.html", context)
 
 
+def all_products(request):
+    
+    context = {}
+    return render(request, "farm/all_products.html", context)
+
+def all_equipments(request):
+    
+    context = {}
+    return render(request, "farm/all_equipments.html", context)
+
+
 def prodcuts_category(request, slug):
     """This view filters all products of the given category"""
     category = Category.objects.get(slug=slug)
