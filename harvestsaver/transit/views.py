@@ -9,6 +9,12 @@ from .models import TransportBooking, Quote
 from .forms import QuoteForm
 
 
+def transportoptions(request):
+    
+    context = {}
+    return render(request, "transit/transportoptions.html", context)
+
+
 def transporthome(request):
     """This view is for transport quote"""
     if request.method == "POST":
@@ -76,17 +82,3 @@ def delivered(request, pk):
                               f"updated successfully")
                               )
     return redirect("transit:transporthome")
-
-
-
-
-
-
-
-
-
-
-
-
-
-

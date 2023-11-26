@@ -82,3 +82,27 @@ class EquipmentOwnerProfile(models.Model):
 
     def __str__(self):
         return f"Owner: {self.user.username}"
+
+
+
+class Contact(models.Model):
+    """
+    This model stores all contact information
+    Args: name - required
+          email - required
+          subject - required
+          message - required
+    """
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.TextField()
+    message = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Contact"
+        verbose_name_plural = "Contacts"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"Contact by {self.name} Email: {self.email}"

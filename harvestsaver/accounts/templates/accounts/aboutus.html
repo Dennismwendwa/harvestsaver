@@ -1,0 +1,89 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title%}
+About us
+{%endblock%}
+
+{% block category%}
+<main id="main" class="bg-white p-2">
+  <div class="breadcrumbs">
+    <div class="page-header d-flex align-items-center" style="background-image: url('{% static "assets/img/page-header.jpg" %}');">
+      <div class="container position-relative">
+        <div class="row d-flex justify-content-center">
+          <div class="col-lg-6 text-center">
+            <h2>About</h2>
+            <p>
+              At HarvestSaver, we take pride in cultivating a robust network that transcends 
+              traditional boundaries in the agricultural sector. Our platform serves as a dynamic 
+              hub connecting farmers, suppliers, and logistics providers, fostering 
+              collaboration and efficiency throughout the entire agricultural supply chain
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="about" class="about">
+    <div class="container" data-aos="fade-up">
+
+      <div class="row gy-4">
+        <div class="col-lg-6 position-relative align-self-start order-lg-last order-first">
+          <img src="{% static 'assets/img/about.jpg' %}" class="img-fluid" alt="">
+          <a href="https://www.youtube.com/watch?v=LXb3EKWsInQ" class="glightbox play-btn"></a>
+        </div>
+        <div class="col-lg-6 content order-last  order-lg-first">
+          <h3>About Us</h3>
+          <p>
+            At HarvestSaver, we are dedicated to revolutionizing the agricultural landscape. 
+            Our mission is to empower farmers, suppliers, and stakeholders by providing an 
+            integrated platform that streamlines operations, enhances productivity, and 
+            fosters sustainable practices. With a commitment to innovation and community 
+            collaboration, HarvestSaver is not just a platform; it's a movement towards a 
+            more connected, efficient, and sustainable future for agriculture. Join us as 
+            we work towards reshaping the way the world harvests and saves.
+          </p>
+          <ul>
+            <li data-aos="fade-up" data-aos-delay="100">
+              <i class="bi bi-diagram-3"></i>
+              <div>
+                <h5>Farmers</h5>
+                <p>
+                  At HarvestSaver, we empower farmers with advanced tools for streamlined 
+                  inventory management and connections with buyers, revolutionizing 
+                  their agricultural practices.
+                </p>
+              </div>
+            </li>
+            <li data-aos="fade-up" data-aos-delay="200">
+              <i class="bi bi-fullscreen-exit"></i>
+              <div>
+                <h5>Equipments</h5>
+                <p>
+                  Discover quality agricultural machinery at HarvestSaver – the go-to 
+                  platform connecting equipment owners with farmers, fostering 
+                  efficiency and productivity in modern agriculture.
+                </p>
+              </div>
+            </li>
+            <li data-aos="fade-up" data-aos-delay="300">
+              <i class="bi bi-broadcast"></i>
+              <div>
+                <h5>Transport</h5>
+                <p>
+                  Elevate your logistics with HarvestSaver's comprehensive transport 
+                  services, ensuring the reliable and timely delivery of agricultural 
+                  goods through a transparent and efficient network.
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+{%endblock%}
