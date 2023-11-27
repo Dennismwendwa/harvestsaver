@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models
 from accounts.models import User
+from farm.models import Order
 
 
 class Account(models.Model):
@@ -44,3 +45,18 @@ def accounts_number(user_id):
 	ciphertext = bank_account_number.upper()
 
 	return ciphertext
+
+class Payment(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    payment_method = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+         verbose_name = "Payment"
+         verbose_name_plural = "Payments"
+         ordering = ("-pk",)
+
+    def __str__(self):
+         return f"{self.customer.username} {self.order}"
