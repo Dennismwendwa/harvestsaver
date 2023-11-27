@@ -15,4 +15,7 @@ urlpatterns = [
           name="equipment_deatil_api"),
     path("equipments/search/", views.equipment_search,
           name="equipments_search_api"),
+    path("farmers", views.userAPIView.as_view(), name="farmers_api"),
+    path("farmers/<int:pk>", views.userDetailView.as_view(),
+          name="farmer_detail"),
 ]

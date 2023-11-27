@@ -5,9 +5,10 @@ from rest_framework import status, generics
 from django.db.models import Q
 from django.http import JsonResponse
 
+from accounts.models import User
 from farm.models import Product, Equipment
 from .serializers import ProductSerializer, ProductDetailSerilizer
-from .serializers import EquipmentSerializer
+from .serializers import EquipmentSerializer, OwnerSerializer
 
 
 class ProductAPIView(APIView):
@@ -74,7 +75,7 @@ def equipment_list(request):
         return Response(serializer.data)
 
 
-@api_view(["GET", "PUT"])
+@api_view(["GET", "PUT", "DELETE"])
 def equipment_detail(request, pk):
     """Retrives or updates a single equipment instance"""
     try:
@@ -85,6 +86,11 @@ def equipment_detail(request, pk):
     if request.method == "GET":
         serializer = EquipmentSerializer(equipment)
         return Response(serializer.data)
+    
+    elif request.method == "DELETE":
+        equipment.delete()
+        return Response({"detail": "Equipment deleted successfully"},
+                        status=status.HTTP_204_NO_CONTENT)
 
     elif request.method == "PUT":
         serializer = EquipmentSerializer(equipment, data=request.data)
@@ -94,17 +100,73 @@ def equipment_detail(request, pk):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(["GET"])
 def equipment_search(request):
     query = request.GET.get("query", "")
-
-    if query:
-        queryset = Equipment.objects.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(location__icontains=query)
-        )
-    else:
-        queryset = Equipment.objects.all()
+    
+    if not query:
+        return Response({"detail": "Query parameter 'query' is required"},
+                         status=status.HTTP_400_BAD_REQUEST)
+    queryset = Equipment.objects.filter(
+        Q(name__icontains=query) |
+        Q(description__icontains=query) |
+        Q(location__icontains=query)
+    )
 
     serializer = EquipmentSerializer(queryset, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    return Response(serializer.data)
+
+
+class userAPIView(APIView):
+    def get(self, request):
+        users = User.objects.filter(is_farmer=True)
+        serializer = OwnerSerializer(users, many=True)
+        return Response(serializer.data)
+
+
+    def post(self, request):
+        serializer = OwnerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class userDetailView(APIView):
+    def get(self, request, pk):
+        try:
+            farmer = User.objects.get(pk=pk, is_farmer=True)
+            serializer = OwnerSerializer(farmer)
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        try:
+            farmer = User.objects.filter(pk=pk, is_farmer=True).first()
+            serializer = OwnerSerializer(farmer, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_404_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"errors": "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

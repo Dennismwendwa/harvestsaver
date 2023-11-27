@@ -3,11 +3,12 @@ from rest_framework import serializers
 from farm.models import Product, Equipment, Category, EquipmentCategory
 from accounts.models import User
 
+
 class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "email",
-                  "phone_number", "country"]
+        fields = ["id", "username", "first_name", "last_name", "email",
+                  "is_farmer", "phone_number", "country"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
