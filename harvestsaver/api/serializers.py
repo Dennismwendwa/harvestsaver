@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from farm.models import Product, Equipment, Category, EquipmentCategory
+from farm.models import Review
 from accounts.models import User
 
 
@@ -58,3 +59,17 @@ class EquipmentSerializer(serializers.ModelSerializer):
             "is_available", "image", "category", "owner", "owner_details",
             "category_details"
         ]
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = "__all__"
+
+
+class ProductReviewSerializer(serializers.ModelSerializer):
+    reviews = ReviewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Product
+        fields = "__all__"

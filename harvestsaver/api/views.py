@@ -6,12 +6,14 @@ from django.db.models import Q
 from django.http import JsonResponse
 
 from accounts.models import User
-from farm.models import Product, Equipment
+from farm.models import Product, Equipment, Review
 from .serializers import ProductSerializer, ProductDetailSerilizer
 from .serializers import EquipmentSerializer, OwnerSerializer
+from .serializers import ProductReviewSerializer, ReviewSerializer
 
 
 class ProductAPIView(APIView):
+    """Retrives all or creates product instances"""
     def get(self, request):
         data = Product.objects.all()
         serializer = ProductSerializer(data, many=True)
@@ -27,6 +29,7 @@ class ProductAPIView(APIView):
 
 
 class ProductDetailView(APIView):
+    """Retrives or updates a single product instance"""
     def get(self, request, pk):
         try:
             product = Product.objects.get(pk=pk)
@@ -51,6 +54,7 @@ class ProductDetailView(APIView):
 
 
 class ProductSearchAPIView(generics.ListAPIView):
+    """Retrives all matching product instances"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     search_fields = ["name", "price", "description"]
@@ -77,7 +81,7 @@ def equipment_list(request):
 
 @api_view(["GET", "PUT", "DELETE"])
 def equipment_detail(request, pk):
-    """Retrives or updates a single equipment instance"""
+    """Retrives/deletes or updates a single equipment instance"""
     try:
         equipment = Equipment.objects.get(pk=pk)
     except Equipment.DoesNotExist:
@@ -102,6 +106,7 @@ def equipment_detail(request, pk):
 
 @api_view(["GET"])
 def equipment_search(request):
+    """Retrives all matches of the query string"""
     query = request.GET.get("query", "")
     
     if not query:
@@ -118,6 +123,7 @@ def equipment_search(request):
 
 
 class userAPIView(APIView):
+    """Retrives all or creates new user instances"""
     def get(self, request):
         users = User.objects.filter(is_farmer=True)
         serializer = OwnerSerializer(users, many=True)
@@ -133,6 +139,7 @@ class userAPIView(APIView):
 
 
 class userDetailView(APIView):
+    """Retrives or updates user instances"""
     def get(self, request, pk):
         try:
             farmer = User.objects.get(pk=pk, is_farmer=True)
@@ -156,10 +163,27 @@ class userDetailView(APIView):
 
 
 
+class productreviews(generics.RetrieveUpdateAPIView):
+    """Retirves all reviews for a product"""
+    queryset = Product.objects.all()
+    serializer_class = ProductReviewSerializer
+    lookup_url_kwarg = "pk"
 
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
+    
+    def post(self, request, *args, **kwargs):
+        product = self.get_object()
 
+        serializer = ReviewSerializer(data=request.data)
 
+        if serializer.is_valid():
+            serializer.save(product=product, customer=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

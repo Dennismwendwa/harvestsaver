@@ -170,7 +170,8 @@ class Equipment(models.Model):
 class Review(models.Model):
     """This models stores reviews of products"""
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE,
+                                related_name='reviews')
     review = models.TextField()
     review_date = models.DateTimeField(auto_now_add=True)
 
