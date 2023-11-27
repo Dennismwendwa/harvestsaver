@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from farm.models import Product, Equipment, Category
+from farm.models import Product, Equipment, Category, EquipmentCategory
 from accounts.models import User
 
 class OwnerSerializer(serializers.ModelSerializer):
@@ -13,6 +13,11 @@ class OwnerSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        fields = "__all__"
+
+class EquipmentCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EquipmentCategory
         fields = "__all__"
 
 
@@ -39,4 +44,16 @@ class ProductDetailSerilizer(serializers.ModelSerializer):
             "id", "name", "slug", "price", "quantity", "unit_of_measurement",
             "description", "image", "location", "harvest_date", "is_available",
             "owner", "category"
+        ]
+
+
+class EquipmentSerializer(serializers.ModelSerializer):
+    owner_details = OwnerSerializer(source="owner", read_only=True)
+    category_details = EquipmentCategorySerializer(source="category", read_only=True)
+    class Meta:
+        model = Equipment
+        fields = [
+            "id", "name", "slug", "description", "location", "price_per_hour",
+            "is_available", "image", "category", "owner", "owner_details",
+            "category_details"
         ]

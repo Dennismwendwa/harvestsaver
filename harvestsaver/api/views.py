@@ -1,10 +1,13 @@
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
 from django.db.models import Q
+from django.http import JsonResponse
 
 from farm.models import Product, Equipment
 from .serializers import ProductSerializer, ProductDetailSerilizer
+from .serializers import EquipmentSerializer
 
 
 class ProductAPIView(APIView):
@@ -61,3 +64,47 @@ class ProductSearchAPIView(generics.ListAPIView):
                                        )
         return queryset
         
+
+@api_view(["GET"])
+def equipment_list(request):
+    """List all equipments"""
+    if request.method == "GET":
+        equipments = Equipment.objects.all()
+        serializer = EquipmentSerializer(equipments, many=True)
+        return Response(serializer.data)
+
+
+@api_view(["GET", "PUT"])
+def equipment_detail(request, pk):
+    """Retrives or updates a single equipment instance"""
+    try:
+        equipment = Equipment.objects.get(pk=pk)
+    except Equipment.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        serializer = EquipmentSerializer(equipment)
+        return Response(serializer.data)
+
+    elif request.method == "PUT":
+        serializer = EquipmentSerializer(equipment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def equipment_search(request):
+    query = request.GET.get("query", "")
+
+    if query:
+        queryset = Equipment.objects.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query) |
+            Q(location__icontains=query)
+        )
+    else:
+        queryset = Equipment.objects.all()
+
+    serializer = EquipmentSerializer(queryset, many=True)
+    return JsonResponse(serializer.data, safe=False)
