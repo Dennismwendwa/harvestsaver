@@ -9,6 +9,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("", include("farm.urls")),
     path("transport/", include("transit.urls")),
+    path("api/", include("api.urls")),
 ]
 
 if settings.DEBUG:

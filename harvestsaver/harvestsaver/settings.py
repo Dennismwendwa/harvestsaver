@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "accounts",
     "farm",
     "transit",
+    "api",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
