@@ -15,3 +15,6 @@ farm/migrations/__pycache__/
 
 transit/__pycache__/
 transit/migrations/__pycache__/
+
+payment/__pycache__/
+payment/migrations/__pycache__/

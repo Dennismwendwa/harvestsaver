@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "farm",
     "transit",
     "api",
+    "payment",
     "rest_framework",
 ]
 

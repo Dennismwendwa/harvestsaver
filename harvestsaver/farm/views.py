@@ -18,6 +18,7 @@ def succes_page(request):
 
 
 def home(request):
+
     context = {}
     return render(request, "farm/index.html", context)
 

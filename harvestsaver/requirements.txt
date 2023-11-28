@@ -1,5 +1,7 @@
 asgiref==3.7.2
+djangorestframework==3.14.0
 Django
+pytz==2023.3.post1
 Pillow
 python-dotenv
 sqlparse==0.4.4
