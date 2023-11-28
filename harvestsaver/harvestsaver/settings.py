@@ -139,6 +139,17 @@ EMAIL_PORT = os.environ.get("EMAIL_PORT")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS")
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND")
 
+# strip setup
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+if DEBUG:
+    YOUR_DOMAIN = "http://127.0.0.1:8000"
+else:
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    YOUR_DOMAIN = "www.welearncodes.com"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

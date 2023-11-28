@@ -157,7 +157,7 @@ def checkout(request):
         payment_method = request.POST.get("payment_method", "card")
         transport = request.POST.get("transport_option")
         pickup_location= request.POST.get("pickup_location")
-
+        """
         transaction_id=order_transaction_id()
         order = Order.objects.create(customer=request.user,
                             total_amount=total_cost,
@@ -190,12 +190,16 @@ def checkout(request):
             )
         except Exception as e:
             print(e)
-
+        
+        """
+        pk=1
+        transaction_id = "me"
+        
         messages.success(request, (
                                    f"Your order was successfull. "
                                    f"Order id is {transaction_id}"
                                    ))
-        return redirect("farm:success_page")
+        return redirect("payment:servicepayment", pk)
 
     context = {
         "total": total,
