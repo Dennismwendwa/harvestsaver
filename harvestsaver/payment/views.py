@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, reverse
+from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import F
 
 from django.conf import settings
 from django.views.generic import TemplateView
@@ -14,46 +16,53 @@ from django.core.mail import send_mail
 import json
 import stripe
 
-from farm.models import Product, Order
-from .models import Payment
+from farm.models import Product, Order, Cart, OrderItem
+from transit.models import TransportBooking
+from .models import Payment, Account
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def farm_payment_landing(request, pk):
     order = Order.objects.get(pk=pk)
-
-    try:
-        with transaction.Atomic():
-            Payment.objects.create(
-                customer=request.user,
-                order=order,
-                payment_method=order.payment_method,
-                amount=order.total_amount
-            )
-        
-        return redirect("payment:success")
-    except Exception:
-        return redirect("farm:checkout")
-
+    pass
 
 def create_checkoutfarmpayment(request, pk):
     order = Order.objects.get(pk=pk)
-    account = request.user.account
-    print(account)
+    current_account = request.user.account.account_number
+    cart_items = Cart.objects.filter(customer=request.user).all()
+    transport = TransportBooking.objects.get(order=order)
+    order_items = OrderItem.objects.filter(order=order).all()
+    
     if request.method == "POST":
         try:
             with transaction.atomic():
+    
                 Payment.objects.create(
                 customer=request.user,
                 order=order,
                 payment_method=order.payment_method,
                 amount=order.total_amount
                 )
+                
+                account = Account.objects.get(account_number=current_account)
 
+                if account.account_balance >= order.total_amount:
+                    account.account_balance = F("account_balance") - order.total_amount
+                    account.total_payment = F("total_payment") + order.total_amount
+                    account.last_transaction_date = timezone.now()
+                    account.save()
+                    account.refresh_from_db()
+                
+                order.status = "payed"
+                order.save()
+                cart_items.delete()
 
             print("success")
             return redirect("payment:success")
         except Exception as e:
+            print(e)
+            transport.delete()
+            order_items.delete()
             messages.error(request, f"Error processing payment: {str(e)}")
             return redirect("payment:payment_failed")
     return render(request, "payment/farmpayment.html")

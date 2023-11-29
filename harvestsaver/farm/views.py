@@ -157,12 +157,11 @@ def checkout(request):
         transport = request.POST.get("transport_option")
         pickup_location= request.POST.get("pickup_location")
 
-        """
-        payment_status = order_payment(shipping_address,payment_method,
+        
+        payment_status, pk = order_payment(shipping_address,payment_method,
                                        transport, pickup_location,
                                        request)
-        """
-        pk=32
+        
 
         return redirect("payment:servicepayment", pk)
 

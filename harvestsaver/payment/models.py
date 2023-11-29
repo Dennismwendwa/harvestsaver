@@ -20,11 +20,9 @@ class Account(models.Model):
     opening_date = models.DateTimeField(auto_now_add=True)
 
     last_transaction_date = models.DateTimeField(null=True)
-    total_withdraw = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+    total_payment = models.DecimalField(max_digits=12, decimal_places=4, default=0)
     total_deposit = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_transfar = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_paybil = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_trans_amount = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+  
 
     class Meta:
         verbose_name = "Account"
@@ -107,7 +105,7 @@ def order_payment(shipping_address,payment_method, transport, pickup_location, r
                             transaction_id=transaction_id,
                             shipping_address=shipping_address,
                             payment_method=payment_method,
-                            status="payed",
+                            status="pending",
                             )
     order.products.set(products_instances)
         
@@ -115,8 +113,6 @@ def order_payment(shipping_address,payment_method, transport, pickup_location, r
         OrderItem.objects.create(order=order,
                                      product=cart_item.product,
                                      quantity=cart_item.quantity)
-
-    cart_items.delete()
 
     today = timezone.now()
     pickup_date_time = today + timedelta(days=4)
