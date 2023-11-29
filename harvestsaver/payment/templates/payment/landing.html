@@ -215,7 +215,7 @@ button:disabled {
     var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
     var checkoutButton = document.getElementById("checkout-button");
     checkoutButton.addEventListener("click", function () {
-      console.log("JavaScript code is executed");
+    
       fetch("{% url 'payment:create-checkout-session' product.id %}", {
         method: "POST",
         headers: {
@@ -277,7 +277,7 @@ button:disabled {
       fetch("{% url 'payment:create-payment-intent' product.id %}", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json",   
           'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({

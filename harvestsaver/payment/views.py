@@ -14,9 +14,7 @@ from django.core.mail import send_mail
 import json
 import stripe
 
-from farm.models import Product, Equipment, Order
-from accounts.models import User
-from .models import Account, Payment
+from farm.models import Product, Order
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -58,7 +56,7 @@ class CreateCheckoutSessionView(View):
 
         success = reverse('payment:success')
         cancel = reverse('payment:cancel')
-        print(cancel)
+
         product_id = self.kwargs["pk"]
         product = Product.objects.get(id=product_id)
         YOUR_DOMAIN = settings.YOUR_DOMAIN
@@ -155,16 +153,12 @@ def stripe_webhook(request):
 
 class StripeIntentView(View):
     def post(self, request, *args, **kwargs):
-        
         try:
             req_json = json.loads(request.body)
             customer = stripe.Customer.create(email=req_json['email'])
             product_id = self.kwargs["pk"]
 
-            if self.kwargs["product_type"] == "service":
-                product = Product.objects.get(id=product_id)
-            elif self.kwargs["product_type"] == "course":
-                product = Product.objects.get(id=product_id)
+            product = Product.objects.get(id=product_id)
             intent = stripe.PaymentIntent.create(
                 amount=int(product.price * 100),
                 currency='usd',
