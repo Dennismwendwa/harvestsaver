@@ -101,7 +101,6 @@ def order_payment(shipping_address,payment_method, transport, pickup_location, r
     shipping = round((Decimal(3 / 100) * total), 2)
     total_cost = (total + shipping)
 
-
     transaction_id=order_transaction_id()
     order = Order.objects.create(customer=request.user,
                             total_amount=total_cost,
@@ -133,6 +132,6 @@ def order_payment(shipping_address,payment_method, transport, pickup_location, r
             )
     except Exception as e:
         print(e)
-        return "payment_error"
+        return "payment_error", None
     
-    return "payment_seccess"
+    return "payment_seccess", order.pk

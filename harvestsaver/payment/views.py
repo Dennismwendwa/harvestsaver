@@ -15,25 +15,54 @@ import json
 import stripe
 
 from farm.models import Product, Order
+from .models import Payment
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-def create_checkoutfarmpayment(request):
-    
+def farm_payment_landing(request, pk):
+    order = Order.objects.get(pk=pk)
+
+    try:
+        with transaction.Atomic():
+            Payment.objects.create(
+                customer=request.user,
+                order=order,
+                payment_method=order.payment_method,
+                amount=order.total_amount
+            )
+        
+        return redirect("payment:success")
+    except Exception:
+        return redirect("farm:checkout")
+
+
+def create_checkoutfarmpayment(request, pk):
+    order = Order.objects.get(pk=pk)
+    account = request.user.account
+    print(account)
     if request.method == "POST":
         try:
             with transaction.atomic():
-                pass
+                Payment.objects.create(
+                customer=request.user,
+                order=order,
+                payment_method=order.payment_method,
+                amount=order.total_amount
+                )
 
+
+            print("success")
+            return redirect("payment:success")
         except Exception as e:
             messages.error(request, f"Error processing payment: {str(e)}")
             return redirect("payment:payment_failed")
+    return render(request, "payment/farmpayment.html")
         
 
 @login_required
 def service_payment(request, pk):
     product_type = "service"
-    product = Product.objects.get(pk=pk)
+    product = Order.objects.get(pk=pk)
     context = {
             "product": product,
             "product_type": product_type,
@@ -58,7 +87,7 @@ class CreateCheckoutSessionView(View):
         cancel = reverse('payment:cancel')
 
         product_id = self.kwargs["pk"]
-        product = Product.objects.get(id=product_id)
+        product = Order.objects.get(id=product_id)
         YOUR_DOMAIN = settings.YOUR_DOMAIN
         payment_method_types="card"
         checkout_session = stripe.checkout.Session.create(
@@ -67,10 +96,10 @@ class CreateCheckoutSessionView(View):
                 {
                     'price_data': {
                         'currency': 'usd',
-                        'unit_amount': int(product.price * 100),
+                        'unit_amount': int(product.total_amount * 100),
                         'product_data': {
-                            'name': product.name,
-                            'images':["product.image.url",]
+                            'name': product.transaction_id,
+                            #'images':["product.image.url",]
                         },
                     },
                     'quantity': 1,

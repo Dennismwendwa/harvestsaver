@@ -12,7 +12,7 @@ from .views import (
 app_name = "payment"
 
 urlpatterns = [
-    #path("pay", views.create_checkoutfarmpayment, name="checkout_payment"),
+    path("farm-payment/<int:pk>", views.create_checkoutfarmpayment, name="checkout_payment"),
     path("payment/<int:pk>", views.service_payment, name="servicepayment"),
     path('create-payment-intent/<pk>/', StripeIntentView.as_view(),
         name='create-payment-intent'),

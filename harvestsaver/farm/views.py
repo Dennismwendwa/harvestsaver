@@ -157,16 +157,13 @@ def checkout(request):
         transport = request.POST.get("transport_option")
         pickup_location= request.POST.get("pickup_location")
 
-        payment_status = order_payment(shipping_address,payment_method, transport, pickup_location, request)
+        """
+        payment_status = order_payment(shipping_address,payment_method,
+                                       transport, pickup_location,
+                                       request)
+        """
+        pk=32
 
-
-        pk=1
-        transaction_id = "me"
-        
-        messages.success(request, (
-                                   f"Your order was successfull. "
-                                   f"Order id is {transaction_id}"
-                                   ))
         return redirect("payment:servicepayment", pk)
 
     context = {
