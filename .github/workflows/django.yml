@@ -54,4 +54,4 @@ jobs:
 
         systemctl restart gunicorn
         systemctl restart nginx
-  EOF 
+    EOF 
