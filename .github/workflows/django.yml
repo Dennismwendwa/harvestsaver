@@ -47,11 +47,4 @@ jobs:
 
         scp -r . ubuntu:54.146.57.34:/live
 
-        ssh ubuntu@54.146.57.34 <<EOF
-        cd live
-
-        python manage.py migrate
-
-        systemctl restart gunicorn
-        systemctl restart nginx
-EOF 
+        ssh ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
