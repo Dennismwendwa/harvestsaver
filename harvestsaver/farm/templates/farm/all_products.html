@@ -6,7 +6,52 @@ HarvestSaver Nextwork - Product
 {%endblock%}
 
 {% block category%}
-<div class="container mt-5">
-    <h3>Products</h3>
-</div>
+<section id="products" class="services pt-0">
+    <div class="container" data-aos="fade-up">
+      <div class="section-header">
+        <h2>Products</h2>
+      </div>
+
+      <div class="row gy-4">
+        {% for product in page_object %}
+        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="card">
+            <div class="card-img">
+              <a href="{% url 'farm:product_details' product.slug product.pk %}">
+              <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
+              </a>
+            </div>
+            <h5 class="text-center"><a href="{% url 'farm:products_category' product.category.slug %}" class="">{{product.category.name}}</a></h5>
+            <h3>{{product.name}}</h3>
+            <p>{{product.description}}</p>
+          </div>
+        </div><!-- End Card Item -->
+        {% endfor %}
+      </div>
+
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {% if page_object.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">1</a></a></li>
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_object.previous_page_number }}"
+            tabindex="-1" aria-disabled="true" >previous</a>
+          </li>
+          {% endif %}
+          <li class="page-item disabled">
+          <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{{page_object.number}}</a>
+          </li>
+          {% if page_object.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_object.next_page_number }}">Next</a>
+          </li>
+          <lic class="page-item">
+            <a class="page-link" href="?page={{ page_object.paginator.num_pages }}">last &raquo;</a>
+          </li>
+          {%endif%}
+        </ul>
+      </nav>
+    </div>
+  </section>
+
 {%endblock%}

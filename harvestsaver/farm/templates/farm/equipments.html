@@ -1,0 +1,16 @@
+<div class="row gy-4">
+    {% for product in equipments %}
+    <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+      <div class="card">
+        <div class="card-img">
+          <a href="{% url 'farm:equipment_detail' product.slug%}">
+          <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
+          </a>
+        </div>
+        <h5 class="text-center"><a href="{% url 'farm:equipment_category' product.category.slug %}" class="">{{product.category.name}}</a></h5>
+        <h3>{{product.name}}</h3>
+        <p>{{product.description}}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>

@@ -74,7 +74,7 @@
           <li><a href="{% url 'accounts:register' %}">Signin</a></li>
           {% endif %}
           <li><a href="{% url 'accounts:contact' %}">Contact</a></li>
-          <li><a class="get-a-quote" href="get-a-quote.html">Get a Quote</a></li>
+          <li><a class="get-a-quote" href="{% url 'transit:transportquote' %}">Get a Quote</a></li>
           <a href="{% url 'farm:cart_items' %}">
             <li class="position-relative">
                 {%if current_user_total_quantity%}
@@ -138,7 +138,7 @@
                 <p>Equipment Owners</p>
               </div>
             </div><!-- End Stats Item -->
-
+            It is {% now "jS F Y H:i" %}
           </div>
         </div>
 
@@ -162,7 +162,11 @@
             <div class="icon flex-shrink-0"><i class="fa-solid fa-cart-flatbed"></i></div>
             <div>
               <h4 class="title">Products</h4>
-              <p class="description">Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident</p>
+              <p class="description">
+                Explore a variety of high-quality farm products directly from our 
+                dedicated farmers. Find fresh and locally sourced goods to support 
+                your agricultural needs.
+              </p>
               <a href="{% url 'farm:all_products' %}" class="readmore stretched-link"><span>Learn More</span><i class="bi bi-arrow-right"></i></a>
             </div>
           </div>
@@ -185,7 +189,9 @@
             <div class="icon flex-shrink-0"><i class="fa-solid fa-truck-ramp-box"></i></div>
             <div>
               <h4 class="title">Equipments</h4>
-              <p class="description">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur</p>
+              <p class="description">
+                Explore cutting-edge equipment designed to elevate your farm operations.
+              </p>
               <a href="{% url 'farm:all_equipments' %}" class="readmore stretched-link"><span>Learn More</span><i class="bi bi-arrow-right"></i></a>
             </div>
           </div><!-- End Service Item -->
@@ -202,26 +208,9 @@
         <div class="section-header">
           <span>Our Products</span>
           <h2>Our Products</h2>
-
         </div>
 
-        <div class="row gy-4">
-          {% for product in products %}
-          <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="card">
-              <div class="card-img">
-                <a href="{% url 'farm:product_details' product.slug product.pk %}">
-                <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
-                </a>
-              </div>
-              <h5 class="text-center"><a href="{% url 'farm:products_category' product.slug %}" class="">{{product.category.name}}</a></h5>
-              <h3>{{product.name}}</h3>
-              <p>{{product.description}}</p>
-            </div>
-          </div><!-- End Card Item -->
-          {% endfor %}
-
-        </div>
+        {% include "farm/products.html" %}
 
       </div>
     </section><!-- End Services Section -->
@@ -236,23 +225,7 @@
 
         </div>
 
-        <div class="row gy-4">
-          {% for product in equipments %}
-          <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="card">
-              <div class="card-img">
-                <a href="{% url 'farm:equipment_detail' product.slug%}">
-                <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
-                </a>
-              </div>
-              <h5 class="text-center"><a href="{% url 'farm:equipment_category' product.slug %}" class="">{{product.category.name}}</a></h5>
-              <h3>{{product.name}}</h3>
-              <p>{{product.description}}</p>
-            </div>
-          </div><!-- End Card Item -->
-          {% endfor %}
-
-        </div>
+       {% include "farm/equipments.html" %}
 
       </div>
     </section>
@@ -348,7 +321,6 @@
             <li><a href="{% url 'farm:home' %}">Home</a></li>
             <li><a href="{% url 'accounts:aboutus' %}">About us</a></li>
             <li><a href="{% url 'accounts:contact' %}">Contact</a></li>
-            <li><a href="#products">Products</a></li>
           </ul>
         </div>
 
