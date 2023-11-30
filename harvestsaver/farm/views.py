@@ -37,8 +37,17 @@ def all_products(request):
     return render(request, "farm/all_products.html", context)
 
 def all_equipments(request):
+    equipments = Equipment.objects.all()
     
-    context = {}
+    equipments_per_page = 1
+    page_number = request.GET.get("page")
+    paginator = Paginator(equipments, equipments_per_page)
+
+    page_object = paginator.get_page(page_number)
+    
+    context = {
+        "page_object": page_object,
+    }
     return render(request, "farm/all_equipments.html", context)
 
 

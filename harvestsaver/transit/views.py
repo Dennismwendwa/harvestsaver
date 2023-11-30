@@ -18,6 +18,7 @@ def transportoptions(request):
 def transporthome(request):
     """This view is for transport quote"""
     if request.method == "POST":
+        print("here")
         form = QuoteForm(request.POST)
         if form.is_valid():
             departure = form.cleaned_data["departure"]
@@ -43,15 +44,16 @@ def transporthome(request):
                                        f"Your quote request has been sent "
                                        f"successfully. Thank you!")
                                        )
-            return redirect("transit:transporthome")
+            return redirect("transit:transportquote")
         else:
             print(form.errors)
             error_list = []
             for error in form.errors:
                 error_list.append(error)
             error_message = ", ".join(error_list)
-            messages.error(request, f"{error_message}")
-            return redirect("transit:transporthome")
+            messages.warning(request, f"{error_message}")
+            return redirect("transit:transportquote")
+    
             #return render(request, "transit/transport.html", {"form": form})
     
     return render(request, "transit/transport.html", {})

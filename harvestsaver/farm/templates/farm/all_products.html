@@ -8,7 +8,6 @@ HarvestSaver Nextwork - Product
 {% block category%}
 <section id="products" class="services pt-0">
     <div class="container" data-aos="fade-up">
-
       <div class="section-header">
         <h2>Products</h2>
       </div>
@@ -30,36 +29,18 @@ HarvestSaver Nextwork - Product
         {% endfor %}
       </div>
 
-      <div class="pagination text-dark">
-        <span class="step-links">
-          {% if page_object.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_object.previous_page_number }}">previous</a>
-          {% endif %}
-      
-          <span class="current">
-            Page {{ page_object.number }} of {{ page_object.paginator.num_pages }}.
-          </span>
-      
-          {% if page_object.has_next %}
-            <a href="?page={{ page_object.next_page_number }}">next</a>
-            <a href="?page={{ page_object.paginator.num_pages }}">last &raquo;</a>
-          {% endif %}
-        </span>
-      </div>
       <nav aria-label="Page navigation example">
         <ul class="pagination justify-content-center">
             {% if page_object.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">1</a></a></li>
-            <li class="page-item"><a class="page-link" href="?page=2">2</a></li>
           <li class="page-item">
             <a class="page-link" href="?page={{ page_object.previous_page_number }}"
             tabindex="-1" aria-disabled="true" >previous</a>
           </li>
           {% endif %}
-          
-          <li class="page-item"><a class="page-link" aria-disabled="true">current</a></li>
-
+          <li class="page-item disabled">
+          <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{{page_object.number}}</a>
+          </li>
           {% if page_object.has_next %}
           <li class="page-item">
             <a class="page-link" href="?page={{ page_object.next_page_number }}">Next</a>
