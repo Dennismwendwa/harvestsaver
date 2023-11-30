@@ -1,9 +1,14 @@
 import random
 import uuid
+from datetime import timedelta
+from decimal import Decimal, InvalidOperation
+from django.utils import timezone
+from django.db import models, transaction
 
-from django.db import models
+from farm.models import order_transaction_id
 from accounts.models import User
-from farm.models import Order
+from farm.models import Order, Cart, OrderItem
+from transit.models import TransportBooking
 
 
 class Account(models.Model):
@@ -15,11 +20,9 @@ class Account(models.Model):
     opening_date = models.DateTimeField(auto_now_add=True)
 
     last_transaction_date = models.DateTimeField(null=True)
-    total_withdraw = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+    total_payment = models.DecimalField(max_digits=12, decimal_places=4, default=0)
     total_deposit = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_transfar = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_paybil = models.DecimalField(max_digits=12, decimal_places=4, default=0)
-    total_trans_amount = models.DecimalField(max_digits=12, decimal_places=4, default=0)
+  
 
     class Meta:
         verbose_name = "Account"
@@ -60,3 +63,71 @@ class Payment(models.Model):
 
     def __str__(self):
          return f"{self.customer.username} {self.order}"
+    
+
+def customer_id():
+    num = str(uuid.uuid4())
+    return num
+
+
+class CustomerSession(models.Model):
+    customer_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    email = models.EmailField()
+    date = models.DateTimeField()
+
+    order_id = models
+    current = models.CharField(max_length=10)
+    price = models.DecimalField(max_digits=100, decimal_places=2)
+
+    class Meta:
+        verbose_name = "Customer Session"
+        verbose_name_plural = "Customer Sessions"
+        ordering = ("-pk",)
+
+
+def order_payment(shipping_address,payment_method, transport, pickup_location, request):
+
+    cart_items = Cart.objects.filter(customer=request.user).all()
+    products_instances = [cart_item.product for cart_item in cart_items]
+    
+    if cart_items:
+        total = 0
+        for item in cart_items:
+            subtotal = item.calculate_total_cost
+            total += subtotal
+        
+    shipping = round((Decimal(3 / 100) * total), 2)
+    total_cost = (total + shipping)
+
+    transaction_id=order_transaction_id()
+    order = Order.objects.create(customer=request.user,
+                            total_amount=total_cost,
+                            transaction_id=transaction_id,
+                            shipping_address=shipping_address,
+                            payment_method=payment_method,
+                            status="pending",
+                            )
+    order.products.set(products_instances)
+        
+    for cart_item in cart_items:
+        OrderItem.objects.create(order=order,
+                                     product=cart_item.product,
+                                     quantity=cart_item.quantity)
+
+    today = timezone.now()
+    pickup_date_time = today + timedelta(days=4)
+        
+    try:
+        TransportBooking.objects.create(
+            customer=request.user,
+            order=order,
+            pickup_location=pickup_location,
+            transport_option=transport,
+            cost=shipping,
+            pickup_date_time=pickup_date_time,
+            )
+    except Exception as e:
+        print(e)
+        return "payment_error", None
+    
+    return "payment_seccess", order.pk

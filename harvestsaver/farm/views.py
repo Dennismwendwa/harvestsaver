@@ -8,9 +8,9 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 
-from transit.models import TransportBooking
+from payment.models import order_payment
 from .models import Category, Product, Cart, Order, OrderItem
-from .models import order_transaction_id, EquipmentCategory, Equipment
+from .models import EquipmentCategory, Equipment
 
 
 def succes_page(request):
@@ -139,9 +139,8 @@ def cart_items(request):
 
 @login_required
 def checkout(request):
-    
+
     cart_items = Cart.objects.filter(customer=request.user).all()
-    products_instances = [cart_item.product for cart_item in cart_items]
     
     if cart_items:
         total = 0
@@ -157,48 +156,13 @@ def checkout(request):
         payment_method = request.POST.get("payment_method", "card")
         transport = request.POST.get("transport_option")
         pickup_location= request.POST.get("pickup_location")
-        """
-        transaction_id=order_transaction_id()
-        order = Order.objects.create(customer=request.user,
-                            total_amount=total_cost,
-                            transaction_id=transaction_id,
-                            shipping_address=shipping_address,
-                            payment_method=payment_method,
-                            status="payed",
-                            )
-        order.products.set(products_instances)
-        
-        for cart_item in cart_items:
-            OrderItem.objects.create(order=order,
-                                     product=cart_item.product,
-                                     quantity=cart_item.quantity)
 
-        cart_items.delete()
+        
+        payment_status, pk = order_payment(shipping_address,payment_method,
+                                       transport, pickup_location,
+                                       request)
+        
 
-        today = timezone.now()
-        pickup_date_time = today + timedelta(days=4)
-        
-        try:
-            TransportBooking.objects.create(
-                customer=request.user,
-                order=order,
-                pickup_location=pickup_location,
-                transport_option=transport,
-                cost=shipping,
-                pickup_date_time=pickup_date_time,
-
-            )
-        except Exception as e:
-            print(e)
-        
-        """
-        pk=1
-        transaction_id = "me"
-        
-        messages.success(request, (
-                                   f"Your order was successfull. "
-                                   f"Order id is {transaction_id}"
-                                   ))
         return redirect("payment:servicepayment", pk)
 
     context = {

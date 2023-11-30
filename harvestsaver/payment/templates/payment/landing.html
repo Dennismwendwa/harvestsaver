@@ -181,15 +181,16 @@ button:disabled {
           alt="{%if product.alt%}{{product.alt}}{%else%}image of the {{product.name}}{%endif%}"
         />
         <div class="description">
-          <h3>{{ product.name }}</h3>
-          <h5>$ {{ product.price }}</h5>
+          <h3>{{ product.product.name }}</h3>
+          <h5>$ {{ product.total_amount }}</h5>
         </div>
       </div>
 
       <button type="button" id="checkout-button">Checkout</button>
 
       <hr />
-      <h2>Checkout using custom payment flow</h2>
+      <h2>Checkout using Farmpay App</h2>
+      {%comment%}
       <form id="payment-form">
         <input type="text" id="email" placeholder="Email address" />
         <div id="card-element"><!--Stripe.js injects the Card Element--></div>
@@ -204,18 +205,54 @@ button:disabled {
           <a href="{% url 'farm:home' %}" target="_blank">Home page.</a>
         </p>
       </form>
+      {%endcomment%}
+      <form action="{% url 'payment:checkout_payment' product.pk %}" method="post">
+        {% csrf_token%}
+        <button type="submit" id="farm-pay">Farmpay</button>
+      </form>
 
     </section>
     {% csrf_token %}
   </body>
   
   <script type="text/javascript">
+
+    var farmcheckoutButton = document.getElementById("farm-pay");
+    farmcheckoutButton.addEventListener("click", function () {
+    
+      fetch("{% url 'payment:checkout_payment' product.pk %}", {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': csrftoken
+        }
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (session) {
+          console.log("Redirecting to success page");
+          return stripe.redirectToCheckout({ sessionId: session.id });
+        })
+        .then(function (result) {
+          // If redirectToCheckout fails due to a browser or network
+          // error, you should display the localized error message to your
+          // customer using error.message.
+          if (result.error) {
+            alert(result.error.message);
+          }
+        })
+        .catch(function (error) {
+          console.error("Error:", error);
+        });
+    });
+
+
     const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     // Create an instance of the Stripe object with your publishable API key
     var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
     var checkoutButton = document.getElementById("checkout-button");
     checkoutButton.addEventListener("click", function () {
-      console.log("JavaScript code is executed");
+    
       fetch("{% url 'payment:create-checkout-session' product.id %}", {
         method: "POST",
         headers: {
@@ -277,7 +314,7 @@ button:disabled {
       fetch("{% url 'payment:create-payment-intent' product.id %}", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json",   
           'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({

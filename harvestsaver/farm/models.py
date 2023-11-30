@@ -93,7 +93,7 @@ class Order(models.Model):
 
     def __str__(self):
         return (
-                f"Customer: {self.customer.username} "
+                f"({self.pk}). Customer: {self.customer.username} "
                 f"Order Id: {self.transaction_id} "
                 f"Order amount: {self.total_amount}"
                 )
@@ -203,7 +203,3 @@ class FrequentQuestion(models.Model):
     
     def __str__(self):
         return f"{self.date}"
-
-
-
-
