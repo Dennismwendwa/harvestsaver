@@ -6,7 +6,16 @@ Transport - options
 {%endblock%}
 
 {% block category%}
-<div class="container mt-5">
-    <h3>Equipment</h3>
-</div>
+<section id="equipment" class="services pt-0">
+    <div class="container mt-4" data-aos="fade-up">
+
+      <div class="section-header">
+        <h2>Hire Equipments</h2>
+
+      </div>
+
+     {% include "farm/equipments.html" %}
+
+    </div>
+  </section>
 {%endblock%}
