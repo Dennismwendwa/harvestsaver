@@ -41,15 +41,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.DEPLOY_PRIV_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.DEPLOY_PUB_KEY }}" > ~/.ssh/id_rsa.pub
+        chmod 600 ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa.pub
+        ssh-keyscan -H ${{ secrets.IP }} >> ~/.ssh/known_hosts
+
+
     - name: Deploy to Development Server
       run: |
         cd harvestsaver
+        ${{ secrets.USER_IP }}
 
-        echo "${{ secrets.DEPLOY_KEY }}" >> deploy_key.pem
-        chmod 600 deploy_key.pem
-        
-        eval "$(ssh-agent -s)"
-        ssh-add deploy_key.pem
-
-        scp -v -o StrictHostKeyChecking=no -r ../../harvestsaver ubuntu@18.210.13.40:/live
-        ssh -v -o StrictHostKeyChecking=no ubuntu@18.210.13.40 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
+        scp -v -r ../../harvestsaver ${{ secrets.USER_IP }}:/live
+        ssh -v ${{ secrets.USER_IP }} "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
