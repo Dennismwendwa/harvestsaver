@@ -56,5 +56,5 @@ jobs:
         cd harvestsaver
         ${{ secrets.USER_IP }}
 
-        scp -v -r ../../harvestsaver ${{ secrets.USER_IP }}:~/live
+        scp -v -r ../harvestsaver ${{ secrets.USER_IP }}:~/live
         ssh -v ${{ secrets.USER_IP }} "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
