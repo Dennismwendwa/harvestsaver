@@ -45,7 +45,7 @@ jobs:
       run: |
         cd harvestsaver
 
-        scp /usr/bin/scp -r . ubuntu:54.146.57.34:/live
+        scp /usr/bin/scp -r . ubuntu@54.146.57.34:/live
 
         /usr/bin/ssh ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
     
@@ -55,4 +55,4 @@ jobs:
         echo "GitHub Actions Environment:"
         env
         echo "Trying to SSH to the server..."
-        /usr/bin/ssh -v -i /path/to/your/private-key.pem ubuntu@54.146.57.34
+        /usr/bin/ssh -v ubuntu@54.146.57.34
