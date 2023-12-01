@@ -55,5 +55,4 @@ jobs:
 
     - name: SSH into the Server and Deploy
       run: |
-        
         ssh ubuntu@18.210.13.40 "cd ~/live/harvestsaver/harvestsaver && source ~/live/harvestsaver/venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && sudo systemctl restart gunicorn && sudo systemctl restart nginx"
