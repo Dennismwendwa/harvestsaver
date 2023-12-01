@@ -44,7 +44,6 @@ jobs:
     - name: Deploy to Development Server
       run: |
         cd harvestsaver
-
         echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
         chmod 600 deploy_key.pem
 
@@ -54,6 +53,7 @@ jobs:
         scp -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts -r . ubuntu@54.146.57.34:/live
         ssh -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
     
+        
     - name: Debugging
       run: |
         echo "SSH Key:"
