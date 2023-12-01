@@ -54,6 +54,6 @@ jobs:
     - name: Deploy to Development Server
       run: |
         cd harvestsaver
-
-        scp -v -r * ${{ secrets.USER_IP }}:~/live/harvestsaver
+        echo "${{secrets.USER_IP}}"
+        scp -v -r * ubuntu@18.210.13.40:~/live/harvestsaver
         ssh -v ${{ secrets.USER_IP }} "cd ~/live/harvestsaver &&  && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
