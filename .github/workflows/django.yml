@@ -45,7 +45,11 @@ jobs:
       run: |
         cd harvestsaver
 
-        echo "${{ secrets.DEPLOY_KEY }}"
+        echo "${{ secrets.DEPLOY_KEY }}" >> deploy_key.pem
+        chmod 600 deploy_key.pem
+        
+        eval "$(ssh-agent -s)"
+        ssh-add deploy_key.pem
 
-        scp -o StrictHostKeyChecking=no -r ../../harvestsaver ubuntu@18.210.13.40:/live
-        ssh -o StrictHostKeyChecking=no ubuntu@18.210.13.40 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
+        scp -v -o StrictHostKeyChecking=no -r ../../harvestsaver ubuntu@18.210.13.40:/live
+        ssh -v -o StrictHostKeyChecking=no ubuntu@18.210.13.40 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
