@@ -44,20 +44,14 @@ jobs:
     - name: Deploy to Development Server
       run: |
         cd harvestsaver
+        echo "SSH Key:"
+        echo "GitHub Actions Environment:"
+
         echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
         chmod 600 deploy_key.pem
 
         ssh-keyscan -t rsa 54.146.57.34 >> known_hosts
         cat known_hosts
 
-        scp -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts -r . ubuntu@54.146.57.34:/live
-        ssh -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
-    
-        
-    - name: Debugging
-      run: |
-        echo "SSH Key:"
-        echo "GitHub Actions Environment:"
-        env
-        echo "Trying to SSH to the server..."
-        /usr/bin/ssh -v ubuntu@54.146.57.34
+        scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=known_hosts -r . ubuntu@54.146.57.34:/live
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=known_hosts ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
