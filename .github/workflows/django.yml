@@ -45,7 +45,13 @@ jobs:
       run: |
         cd harvestsaver
 
-        scp /usr/bin/scp -r . ubuntu@54.146.57.34:/live
+        echo "${{ secrets.DEPLOY_KEY }}" > deploy_key.pem
+        chmod 600 deploy_key.pem
+
+        ssh-keyscan -t rsa 54.146.57.34 >> known_hosts
+        cat known_hosts
+
+        scp -i deploy_key.pem -r . ubuntu@54.146.57.34:/live
 
         /usr/bin/ssh ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
     
