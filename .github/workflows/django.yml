@@ -2,9 +2,9 @@ name: Django CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
 
 jobs:
   build:
@@ -30,5 +30,29 @@ jobs:
       run: |
         cd harvestsaver
         export SECRET_KEY="$SECRET_KEY"
-        echo "SECRECT_KEY: $SECRET_KEY"
+        echo "SECRECT_KEY: $SECRET_KEY "
         python manage.py test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+    - name: Adding know Hosts
+      run: ssh-keyscan -H 18.210.13.40 >> ~/.ssh/known_hosts
+
+    - name: Copying files
+      run: rsync -avz . ubuntu@18.210.13.40:~/live/harvestsaver
+
+    - name: SSH into the Server and Deploy
+      run: |
+        ssh ubuntu@18.210.13.40 "cd ~/live/harvestsaver/harvestsaver && source ~/live/harvestsaver/venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && sudo systemctl restart gunicorn && sudo systemctl restart nginx"
