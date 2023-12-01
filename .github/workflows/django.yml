@@ -51,9 +51,8 @@ jobs:
         ssh-keyscan -t rsa 54.146.57.34 >> known_hosts
         cat known_hosts
 
-        scp -i deploy_key.pem -r . ubuntu@54.146.57.34:/live
-
-        /usr/bin/ssh ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
+        scp -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts -r . ubuntu@54.146.57.34:/live
+        ssh -o StrictHostKeyChecking=no -i deploy_key.pem -o UserKnownHostsFile=known_hosts ubuntu@54.146.57.34 "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
     
     - name: Debugging
       run: |
