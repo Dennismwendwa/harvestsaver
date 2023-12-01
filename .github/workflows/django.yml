@@ -41,19 +41,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup SSH
-      run: |
-        mkdir -p ~/.ssh/
-        echo "${{ secrets.DEPLOY_PRIV_KEY }}" > ~/.ssh/id_rsa
-        echo "${{ secrets.DEPLOY_PUB_KEY }}" > ~/.ssh/id_rsa.pub
-        chmod 600 ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa.pub
-        ssh-keyscan -H ${{ secrets.IP }} >> ~/.ssh/known_hosts
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+    - name: Adding know Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-
-    - name: Deploy to Development Server
-      run: |
-        cd harvestsaver
-
-        scp -v -r ../harvestsaver ${{ secrets.USER_IP }}:~
-        ssh -v ${{ secrets.USER_IP }} "cd live && python manage.py migrate && systemctl restart gunicorn && systemctl restart nginx"
+    - name: Deploy with rsync
+      run:  rsync -avz . ubuntu@${{ secrets.SSH_HOST }}:/home/live/harvstaver
