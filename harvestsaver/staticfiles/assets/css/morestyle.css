@@ -1,0 +1,44 @@
+/* for register page */
+
+.gradient-custom {
+    /* fallback for old browsers */
+    background: #f093fb;
+    
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: -webkit-linear-gradient(to bottom right, rgba(240, 147, 251, 1), rgba(245, 87, 108, 1));
+    
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: linear-gradient(to bottom right, rgba(240, 147, 251, 1), rgba(245, 87, 108, 1))
+    }
+
+.main-bg {
+    background-color: rgba(14, 29, 52, 0.8);
+}
+
+.login-bg {
+    background-color: burlywood;
+}
+
+.cart-icon {
+    font-size: 36px;
+}
+
+.overlay-container {
+    display: none;
+    position: fixed;
+    background-color: blueviolet;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 50%;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    
+  }
+
+  .overlay {
+    background: orange;
+    padding: 20px;
+    border-radius: 10px;
+  }
