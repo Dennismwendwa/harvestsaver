@@ -127,22 +127,24 @@
           </ul>
         </div>
 
-        <div class="col-lg-1 col-6 footer-links">
-          <h4>Products</h4>
-          <ul>
-            {% for cat in equipment_categories %}
-            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-
         <div class="col-lg-2 col-6 footer-links">
-          <h4>Equipments</h4>
+          <h4>Products</h4>
+          
           <ul>
             {% for cat in categories %}
             <li><a href="{% url 'farm:products_category' cat.slug %}">{{cat.name}}</a></li>
             {% endfor %}
           </ul>
+        </div>
+
+        <div class="col-lg-1 col-6 footer-links">
+          <h4>Equipments</h4>
+          <ul>
+            {% for cat in equipment_categories %}
+            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
+            {% endfor %}
+          </ul>
+          
         </div>
 
         <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
