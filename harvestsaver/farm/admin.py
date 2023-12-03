@@ -18,7 +18,7 @@ class EquipmentCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 class EquipmentAdmin(admin.ModelAdmin):
-    prepopulated_fileds = {"slug": ("name",)}
+    prepopulated_fields = {"slug": ("name",)}
     
 
 admin.site.register(Category, CategoryAdmin)

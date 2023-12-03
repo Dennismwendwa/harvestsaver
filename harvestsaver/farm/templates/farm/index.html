@@ -51,14 +51,14 @@
         <ul>
           <li><a href="{% url 'farm:home' %}" class="active">Home</a></li> 
           
-          <li class="dropdown"><a href="#equipment"><span>Equipments</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
+          <li class="dropdown"><a href="{% url 'farm:all_equipments' %}"><span>Equipments</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
             <ul>
               {% for cat in equipment_categories %}
               <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat}}</a></li>
               {% endfor %}
             </ul>
           </li>
-          <li class="dropdown"><a href="#products"><span>Products</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+          <li class="dropdown"><a href="{% url 'farm:all_products' %}"><span>Products</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
             <ul>
               {% for cat in categories %}
               <li><a href="{% url 'farm:products_category' cat.slug %}">{{cat}}</a></li>
@@ -137,7 +137,7 @@
                 <p>Equipment Owners</p>
               </div>
             </div><!-- End Stats Item -->
-            It is {% now "jS F Y H:i" %}
+            
           </div>
         </div>
 
@@ -323,20 +323,22 @@
           </ul>
         </div>
 
-        <div class="col-lg-1 col-6 footer-links">
-          <h4>Products</h4>
-          <ul>
-            {% for cat in equipment_categories %}
-            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-
         <div class="col-lg-2 col-6 footer-links">
-          <h4>Equipments</h4>
+          <h4>Products</h4>
           <ul>
             {% for cat in categories %}
             <li><a href="{% url 'farm:products_category' cat.slug %}">{{cat.name}}</a></li>
+            {% endfor %}
+          </ul>
+          
+        </div>
+
+        <div class="col-lg-1 col-6 footer-links">
+          <h4>Equipments</h4>
+          
+          <ul>
+            {% for cat in equipment_categories %}
+            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
             {% endfor %}
           </ul>
         </div>
