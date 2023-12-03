@@ -1,6 +1,7 @@
 ../venv/
 ../.vscode/
 harvestsaver/.env
+harvestsaver/.env2
 harvestsaver.log
 db.sqlite3
 *.pyc
