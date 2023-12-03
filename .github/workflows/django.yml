@@ -63,7 +63,6 @@ jobs:
       run: |
         ssh ubuntu@18.210.13.40 "cd ~/live/harvestsaver/harvestsaver && \
         source ~/live/harvestsaver/venv/bin/activate && \
-        echo 'DEBUG = False' > harvestsaver/settings.py && \
         pip install -r requirements.txt && \
         python manage.py migrate && \
         python manage.py collectstatic --noinput && \
