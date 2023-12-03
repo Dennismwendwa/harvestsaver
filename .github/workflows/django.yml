@@ -41,6 +41,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Decrypt .env file
+      run: openssl aes-256-cbc -d -a -in harvestsaver/.env.enc -out harvestsaver/.env -k ${{ secrets.DECRYPTION_KEY }}
+
     - name: Install SSH Key
       uses: shimataro/ssh-key-action@v2
       with:

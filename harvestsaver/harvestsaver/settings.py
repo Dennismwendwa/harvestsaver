@@ -148,7 +148,7 @@ if DEBUG:
     YOUR_DOMAIN = "http://127.0.0.1:8000"
 else:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    YOUR_DOMAIN = "www.welearncodes.com"
+    YOUR_DOMAIN = "18.210.13.40"
 
 
 # Default primary key field type
