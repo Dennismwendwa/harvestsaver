@@ -4,7 +4,7 @@
   <a href="https://www.pysoftware.com" style="background-color:#4CAF50;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;border-radius:4px;">Live site</a>
 </div>
 
-![](readme-img/landing_img.png)
+![landin](readme-img/landing_img.png)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -13,6 +13,7 @@
 - [Live Demo](#live-demo)
 - [Contributing](#contributing)
 - [License](#license)
+- [About](#about)
 
 ## Overview
 This project is about reducing post harvest wastage. It provides
@@ -62,5 +63,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ![Testmonials](readme-img/testmonial.png)
 ![FREQUENTLY ASKED QUESTIONS](readme-img/footer.png)
 
+
+## About
+ - ### [LinkedIn](https://www.linkedin.com/in/dennis-musembi-83a18bb7/)
+ - ### [Github](https://github.com/Dennismwendwa)
+ - ### [Twitter](https://twitter.com/Dennismusembi1)
+ - ### [Project github repository](https://github.com/Dennismwendwa/harvestsaver)
 
 
