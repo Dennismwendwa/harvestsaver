@@ -4,7 +4,7 @@
   <a href="https://www.pysoftware.com" style="background-color:#4CAF50;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;border-radius:4px;">Live site</a>
 </div>
 
-(readme-img/landing_img.png)
+![](readme-img/landing_img.png)
 
 ## Table of Contents
 - [Overview](#overview)
