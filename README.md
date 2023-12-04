@@ -1,5 +1,10 @@
 # Harvestsaver Network
 
+<div align="center">
+  <a href="https://www.pysoftware.com" style="background-color:#4CAF50;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;border-radius:4px;">Live site</a>
+</div>
+
+(readme-img/landing_img.png)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -18,6 +23,8 @@ transport for products purchased or equipments hired.
 
 ## Features
 - **User Authentication and Authorization:**
+User can securely sign/login using our system.
+(readme-img/register.png)
 
 - **Payment Integration:**
 Customers ahve the option to pay using stripe or farm pay service.
