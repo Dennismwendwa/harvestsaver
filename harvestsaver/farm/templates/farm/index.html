@@ -15,12 +15,11 @@
   <link href="{% static 'assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,
-  600;0,700;1,300;1,400;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;
-  1,400;1,500;1,600;1,700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;
-  1,600;1,700&display=swap" rel="stylesheet">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;0,8..60,800;0,8..60,900;1,8..60,200;1,8..60,400;1,8..60,500;1,8..60,600;1,8..60,700;1,8..60,800;1,8..60,900&display=swap" rel="stylesheet">
+
 
   <!-- Vendor CSS Files -->
   <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -52,14 +51,14 @@
         <ul>
           <li><a href="{% url 'farm:home' %}" class="active">Home</a></li> 
           
-          <li class="dropdown"><a href="#equipment"><span>Equipments</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
+          <li class="dropdown"><a href="{% url 'farm:all_equipments' %}"><span>Equipments</span><i class="bi bi-chevron-down dropdown-indicator"></i></a>
             <ul>
               {% for cat in equipment_categories %}
               <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat}}</a></li>
               {% endfor %}
             </ul>
           </li>
-          <li class="dropdown"><a href="#products"><span>Products</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+          <li class="dropdown"><a href="{% url 'farm:all_products' %}"><span>Products</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
             <ul>
               {% for cat in categories %}
               <li><a href="{% url 'farm:products_category' cat.slug %}">{{cat}}</a></li>
@@ -138,12 +137,12 @@
                 <p>Equipment Owners</p>
               </div>
             </div><!-- End Stats Item -->
-            It is {% now "jS F Y H:i" %}
+            
           </div>
         </div>
 
         <div class="col-lg-5 order-1 order-lg-2 hero-img" data-aos="zoom-out">
-          <img src="assets/img/hero-img.svg" class="img-fluid mb-3 mb-lg-0" alt="">
+          <img src="{% static 'assets/img/hero-img.svg' %}" class="img-fluid mb-3 mb-lg-0" alt="hero image">
         </div>
 
       </div>
@@ -324,20 +323,22 @@
           </ul>
         </div>
 
-        <div class="col-lg-1 col-6 footer-links">
-          <h4>Products</h4>
-          <ul>
-            {% for cat in equipment_categories %}
-            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-
         <div class="col-lg-2 col-6 footer-links">
-          <h4>Equipments</h4>
+          <h4>Products</h4>
           <ul>
             {% for cat in categories %}
             <li><a href="{% url 'farm:products_category' cat.slug %}">{{cat.name}}</a></li>
+            {% endfor %}
+          </ul>
+          
+        </div>
+
+        <div class="col-lg-1 col-6 footer-links">
+          <h4>Equipments</h4>
+          
+          <ul>
+            {% for cat in equipment_categories %}
+            <li><a href="{% url 'farm:equipment_category' cat.slug %}">{{cat.name}}</a></li>
             {% endfor %}
           </ul>
         </div>
@@ -382,6 +383,7 @@
 
   <!-- Template Main JS File -->
   <script src="{% static 'assets/js/main.js' %}"></script>
+  
 
 </body>
 
