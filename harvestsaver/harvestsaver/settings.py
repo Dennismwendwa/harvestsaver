@@ -121,6 +121,20 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR / "static")]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
+# Database
+# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("PGDATABASE"),
+            'USER': os.environ.get("PGUSER"),
+            'PASSWORD': os.environ.get("PASSWORD"),
+            'HOST': os.environ.get("HOST"),
+            'PORT': os.environ.get("PORT"),
+            }
+        }
+
+        
 #setting for sendimg email
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
@@ -134,30 +148,17 @@ STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 if DEBUG:
     YOUR_DOMAIN = "http://127.0.0.1:8000"
     DATABASES = {
-        'default': {
+            'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            }
         }
-    }
 else:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     YOUR_DOMAIN = "http://18.210.13.40"
-
-    DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': os.environ.get("PGDATABASE"),
-                'USER': os.environ.get("PGUSER"),
-                'PASSWORD': os.environ.get("PASSWORD"),
-                'HOST': os.environ.get("HOST"),
-                'PORT': os.environ.get("PORT"),
-                }
-            }
 
 
 # Default primary key field type

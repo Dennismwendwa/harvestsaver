@@ -57,7 +57,6 @@ def create_checkoutfarmpayment(request, pk):
                 order.save()
                 cart_items.delete()
 
-            print("success")
             return redirect("payment:success")
         except Exception as e:
             print(e)
@@ -97,6 +96,8 @@ class CreateCheckoutSessionView(View):
 
         product_id = self.kwargs["pk"]
         product = Order.objects.get(id=product_id)
+        cart_items = Cart.objects.filter(customer=request.user).all()
+        transport = TransportBooking.objects.get(order=product)
         YOUR_DOMAIN = settings.YOUR_DOMAIN
         payment_method_types="card"
         checkout_session = stripe.checkout.Session.create(
@@ -122,6 +123,10 @@ class CreateCheckoutSessionView(View):
             cancel_url=YOUR_DOMAIN + f"{cancel}",
         )
         
+        product.status = "payed"
+        product.save()
+        cart_items.delete()
+
         return JsonResponse({
             'id': checkout_session.id
         })
