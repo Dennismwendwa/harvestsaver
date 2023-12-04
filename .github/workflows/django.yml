@@ -46,27 +46,27 @@ jobs:
     - name: Decrypt .env file
       run: |
         cd harvestsaver
-        echo "Decryption Key: ${{ secrets.DECRYPTION_KEY }}"
+        echo "Decryption Key: ${{ secrets.DECRYPTION_KEY_PRO }}"
         openssl aes-256-cbc -d -a -in harvestsaver/.env.enc -out harvestsaver/.env -k "${{ secrets.DECRYPTION_KEY }}" -pbkdf2
 
     - name: Install SSH Key
       uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.SSH_PRIVATE_KEY_PRO }}
         known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
     - name: Adding know Hosts
-      run: ssh-keyscan -H 18.210.13.40 >> ~/.ssh/known_hosts
+      run: ssh-keyscan -H 	54.237.207.136 >> ~/.ssh/known_hosts
 
-    #- name: Copying files
-    #  run: rsync -avz . ubuntu@18.210.13.40:~/live/harvestsaver
+    - name: Copying files
+      run: rsync -avz . ubuntu@	54.237.207.136:~/live/harvestsaver
 
-    #- name: SSH into the Server and Deploy
-    #  run: |
-    #    ssh ubuntu@18.210.13.40 "cd ~/live/harvestsaver/harvestsaver && \
-    #    source ~/live/harvestsaver/venv/bin/activate && \
-    #    pip install -r requirements.txt && \
-    #    python manage.py migrate && \
-    #    python manage.py collectstatic --noinput && \
-    #    sudo systemctl restart gunicorn && \
-    #    sudo systemctl restart nginx"
+    - name: SSH into the Server and Deploy
+      run: |
+        ssh ubuntu@	54.237.207.136 "cd ~/live/harvestsaver/harvestsaver && \
+        source ~/live/harvestsaver/venv/bin/activate && \
+        pip install -r requirements.txt && \
+        python manage.py migrate && \
+        python manage.py collectstatic --noinput && \
+        sudo systemctl restart gunicorn && \
+        sudo systemctl restart nginx"
