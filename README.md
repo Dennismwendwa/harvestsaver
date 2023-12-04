@@ -1,5 +1,4 @@
-# Harvestsaver Networks
-
+# Harvestsaver Network
 
 
 ## Table of Contents
@@ -7,15 +6,40 @@
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Live Demo](#live-demo)
-- [Installation](#installation)
-- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Overview
-This project is about reducing post harvest wastage. It provides farmers with plantform where they can sell their farm produce. It also provides farms with farm equipments such as tructors where they can hire from the owners. It offers services like transport for products purchased or equipments hired.
+This project is about reducing post harvest wastage. It provides
+farmers with plantform where they can sell their farm produce.
+It also provides farmers with farm equipments such as tructors
+where they can hire from the owners. It offers services like
+transport for products purchased or equipments hired.
 
 ## Features
+- **User Authentication and Authorization:**
+
+- **Payment Integration:**
+Customers ahve the option to pay using stripe or farm pay service.
+Farm pay service is in house service for payment and managing customer
+payment data securely.
+
+- **Transportation Services:**
+Facilitate product transportation logistics, including features for
+buying from farmers or equipment hiring.
+
+- **Products Tracking:**
+Track products through the supply chain, providing visibility from
+production to delivery.
+
+- **Real-time Data Analysis:**
+Utilize real-time data from Open Weather and crop data for dynamic
+analysis and insights.
+
+- **API Integration:**
+Provide an API for developers to integrate Harvestsaver Networks
+with other systems or build custom applications.
+
 
 ## Live Demo
 [Live Demo](https://www.pysoftware.com)
