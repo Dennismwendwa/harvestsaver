@@ -159,7 +159,7 @@ if DEBUG:
         }
 else:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    YOUR_DOMAIN = "http://18.210.13.40"
+    YOUR_DOMAIN = "http://54.237.207.136"
 
 
 # Default primary key field type
