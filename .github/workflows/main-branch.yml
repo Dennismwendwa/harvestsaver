@@ -62,7 +62,7 @@ jobs:
 
     - name: SSH into the Server and Deploy
       run: |
-        ssh ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "cd ~/live/harvestsaver/harvestsaver && \
+        ssh ubuntu@54.237.207.136 "cd ~/live/harvestsaver/harvestsaver && \
         source ~/live/harvestsaver/venv/bin/activate && \
         pip install -r requirements.txt && \
         python manage.py migrate && \
