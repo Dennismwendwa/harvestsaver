@@ -138,8 +138,8 @@ class CreateCheckoutSessionView(View):
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
-    logger.info("Webhook payload: %s", payload)
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    logger.info("\n\nWebhook payload: %s\n\n", payload)
+    sig_header = request.META.get['HTTP_STRIPE_SIGNATURE']
     event = None
 
     try:
