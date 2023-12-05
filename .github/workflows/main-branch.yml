@@ -41,3 +41,31 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Decrypt .env file
+      run: |
+        cd harvestsaver
+        echo "Decryption Key: ${{ secrets.DECRYPTION_KEY }}"
+        openssl aes-256-cbc -d -a -in harvestsaver/.env.enc -out harvestsaver/.env -k "${{ secrets.DECRYPTION_KEY }}" -pbkdf2
+
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
+        known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+    - name: Adding know Hosts
+      run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Copying files
+      run: rsync -avz . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/live/harvestsaver
+
+    - name: SSH into the Server and Deploy
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/live/harvestsaver/harvestsaver && \
+        source ~/live/harvestsaver/venv/bin/activate && \
+        pip install -r requirements.txt && \
+        python manage.py migrate && \
+        python manage.py collectstatic --noinput && \
+        sudo systemctl restart gunicorn && \
+        sudo systemctl restart nginx"
