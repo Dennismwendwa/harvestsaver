@@ -55,10 +55,10 @@ jobs:
         known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
 
     - name: Adding know Hosts
-      run: ssh-keyscan -H "${{ secrets.SSH_HOST_PRODUCTION }}" >> ~/.ssh/known_hosts
+      run: ssh-keyscan -H 54.237.207.136 >> ~/.ssh/known_hosts
 
     - name: Copying files
-      run: rsync -avz . "${{ secrets.SSH_USER_PRODUCTION }}"@"${{ secrets.SSH_HOST_PRODUCTION }}":~/live/harvestsaver
+      run: rsync -avz . ubuntu@54.237.207.136:~/live/harvestsaver
 
     - name: SSH into the Server and Deploy
       run: |
