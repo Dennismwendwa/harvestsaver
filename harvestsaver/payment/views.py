@@ -133,44 +133,6 @@ class CreateCheckoutSessionView(View):
         return JsonResponse({
             'id': checkout_session.id
         })
-    
-def (event):
-    if event['type'] == 'checkout.session.completed':
-        # Handle checkout session completed event
-        session = event['data']['object']
-        customer_email = session["customer_details"]["email"]
-        product_id = session["metadata"]["product_id"]
-        product = Product.objects.get(id=product_id)
-        send_mail(
-            subject="Here is your product",
-            message=f"""
-            Thanks for your purchase. Here is the product you ordered.
-            The URL is {product.url}
-            """,
-            recipient_list=[customer_email],
-            from_email="dennismusembi2@gmail.com"
-        )
-        # TODO - decide whether you want to send the file or the URL
-
-    elif event["type"] == "payment_intent.succeeded":
-        # Handle payment intent succeeded event
-        intent = event['data']['object']
-        stripe_customer_id = intent["customer"]
-        stripe_customer = stripe.Customer.retrieve(stripe_customer_id)
-        customer_email = stripe_customer['email']
-        product_id = intent["metadata"]["product_id"]
-        product = Product.objects.get(id=product_id)
-        send_mail(
-            subject="Here is your product",
-            message=f"""
-            Thanks for your purchase. Here is the product you ordered.
-            The URL is {product.url}
-            """,
-            recipient_list=[customer_email],
-            from_email="dennismusembi2@gmail.com"
-        )
-
-    elif event["type"] == "charge.succeeded":
 
 
 @csrf_exempt
