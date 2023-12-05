@@ -151,15 +151,9 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
 if DEBUG:
     YOUR_DOMAIN = "http://127.0.0.1:8000"
-    DATABASES = {
-            'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
 else:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    YOUR_DOMAIN = "http://18.210.13.40"
+    YOUR_DOMAIN = "http://54.237.207.136"
 
 
 # Default primary key field type
