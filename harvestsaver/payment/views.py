@@ -15,6 +15,9 @@ from django.core.mail import send_mail
 
 import json
 import stripe
+import logging
+
+logger = logging.getLogger(__name__)
 
 from farm.models import Product, Order, Cart, OrderItem
 from transit.models import TransportBooking
@@ -135,6 +138,7 @@ class CreateCheckoutSessionView(View):
 @csrf_exempt
 def stripe_webhook(request):
     payload = request.body
+    logger.info("Webhook payload: %s", payload)
     sig_header = request.META['HTTP_STRIPE_SIGNATURE']
     event = None
 
@@ -144,9 +148,11 @@ def stripe_webhook(request):
         )
     except ValueError as e:
         # Invalid payload
+        logger.error("ValueError while processing webhook: %s", e)
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
         # Invalid signature
+        logger.error("SignatureVerificationError while processing webhook: %s", e)
         return HttpResponse(status=400)
 
     # Handle the checkout.session.completed event
@@ -164,7 +170,7 @@ def stripe_webhook(request):
             Thanks for your purchase. Here is the product you ordered.
             The URL is {product.url}
             """,
-            recipient_list=[customer_email],
+            recipient_list = ["dennissoftware3@gmail.com",],
             from_email="dennismusembi2@gmail.com"
         )
 
@@ -182,7 +188,7 @@ def stripe_webhook(request):
         product = Product.objects.get(id=product_id)
 
         send_mail(
-            subject="Here is your product",
+            subject="Here is your Order",
             message=f"""
             Thanks for your purchase. Here is the product you ordered.
             The URL is {product.url}
