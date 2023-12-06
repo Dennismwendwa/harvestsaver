@@ -139,7 +139,7 @@ class CreateCheckoutSessionView(View):
 def stripe_webhook(request):
     payload = request.body
     logger.info("\n\nWebhook payload: %s\n\n", payload)
-    sig_header = request.META.get['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     event = None
 
     try:

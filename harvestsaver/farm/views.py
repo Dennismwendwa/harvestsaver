@@ -25,7 +25,7 @@ def home(request):
 def all_products(request):
     products = Product.objects.all()
 
-    products_per_page = 1
+    products_per_page = 4
     page_number = request.GET.get("page")
     paginator = Paginator(products, products_per_page)
 
@@ -39,7 +39,7 @@ def all_products(request):
 def all_equipments(request):
     equipments = Equipment.objects.all()
     
-    equipments_per_page = 1
+    equipments_per_page = 4
     page_number = request.GET.get("page")
     paginator = Paginator(equipments, equipments_per_page)
 
