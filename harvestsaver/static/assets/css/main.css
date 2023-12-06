@@ -1691,8 +1691,8 @@ section {
 .hero {
   width: 100%;
   min-height: 50vh;
-  background-color: var(--color-secondary);
-  background-image: url("../img/hero-bg.png");
+  background-color: /*var(--color-secondary)*/ rgb(100, 28, 0);
+  background-image: url("../img/quote-bg.jpg");
   background-size: cover;
   background-position: center;
   position: relative;
@@ -1792,7 +1792,7 @@ section {
 --------------------------------------------------------------*/
 .footer {
   font-size: 14px;
-  background-color: var(--color-secondary);
+  background-color: /*var(--color-secondary)*/ rgb(77, 121, 77);
   padding: 50px 0;
   color: white;
 }
