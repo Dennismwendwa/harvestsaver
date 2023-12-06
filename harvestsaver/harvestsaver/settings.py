@@ -171,7 +171,7 @@ if DEBUG:
         }
 else:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    YOUR_DOMAIN = "https:pysoftware.tech"
+    YOUR_DOMAIN = "https://pysoftware.tech"
 
 
 # Default primary key field type
