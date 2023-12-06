@@ -90,7 +90,7 @@
 
   <main id="main">
 
-    <section class="sample-page">
+    <section class="">
       <div class="">
         {% block accounts %}
         {% endblock %}
@@ -107,7 +107,7 @@
     <div class="container">
       <div class="row gy-4">
         <div class="col-lg-4 col-md-12 footer-info">
-          <a href="index.html" class="logo d-flex align-items-center">
+          <a href="{% url 'farm:home' %}" class="logo d-flex align-items-center">
             <span>HarvestSaver Nextwork</span>
           </a>
           <p>Follow us on Social media</p>
