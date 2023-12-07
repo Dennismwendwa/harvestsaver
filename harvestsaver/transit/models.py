@@ -86,6 +86,5 @@ class Quote(models.Model):
         verbose_name_plural = "Quotes"
         ordering = ("-pk")
 
-
     def __str_(self):
         return f"Qoute from {self.name} email is {self.email}"

@@ -18,7 +18,7 @@
             </div>
             {% endfor %}
             <div class="card-body p-2 p-md-1">
-              <h3 class="mb-4 pb-2 pb-md-0 mb-md-5">Registration Form</h3>
+              <h3 class="mb-4 px-2 pb-md-0 mb-md-0">Registration Form</h3>
               <form action="{% url 'accounts:register' %}" method="post">
                 {% csrf_token %}
                 <div class="row">
