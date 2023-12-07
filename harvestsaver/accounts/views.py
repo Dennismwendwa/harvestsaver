@@ -11,7 +11,7 @@ from .forms import ContactForm
 def register(request):
     """This is register view
        args: first name, last name, username, email, password1,
-             password2, role
+             password2, role, phone_number, gender, country
     """
     if request.method == "POST":
         first_name = request.POST["first_name"]

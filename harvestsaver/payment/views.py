@@ -30,6 +30,7 @@ def farm_payment_landing(request, pk):
     pass
 
 def create_checkoutfarmpayment(request, pk):
+    """This function processes payment in farm pay service"""
     order = Order.objects.get(pk=pk)
     current_account = request.user.account.account_number
     cart_items = Cart.objects.filter(customer=request.user).all()
@@ -62,7 +63,6 @@ def create_checkoutfarmpayment(request, pk):
 
             return redirect("payment:success")
         except Exception as e:
-            print(e)
             transport.delete()
             order_items.delete()
             messages.error(request, f"Error processing payment: {str(e)}")
@@ -92,6 +92,7 @@ class CancelView(TemplateView):
 
 # @method_decorator(csrf_exempt, name='dispatch')
 class CreateCheckoutSessionView(View):
+    """This is strip payment view. For processing customer payments"""
     def post(self, request, *args, **kwargs):
 
         success = reverse('payment:success')
@@ -112,14 +113,14 @@ class CreateCheckoutSessionView(View):
                         'unit_amount': int(product.total_amount * 100),
                         'product_data': {
                             'name': product.transaction_id,
-                            #'images':["product.image.url",]
+                            'images':["product.image.url",]
                         },
                     },
                     'quantity': 1,
                 },
             ],
             metadata={
-                "product_id": 2 #product.id
+                "product_id": product.id
             },
             mode='payment',
             success_url=YOUR_DOMAIN + f"{success}",

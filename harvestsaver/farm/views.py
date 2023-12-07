@@ -206,6 +206,7 @@ def equipment_category(request, slug):
 
 
 def equipment_detail(request, slug):
+    """This view is for equipment details inquiry"""
     
     equipment = get_object_or_404(Equipment, slug=slug)
     
@@ -239,6 +240,11 @@ def equipment_detail(request, slug):
 
 
 def search(request):
+    """
+    This view is for searching the database for any matching results
+    fields to search:
+        name field, description field, price field
+    """
     
     if request.method == "POST":
         query = request.POST.get("query")
@@ -254,23 +260,3 @@ def search(request):
 
     context = {}
     return render(request, "farm/search.html", context)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
