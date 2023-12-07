@@ -6,6 +6,7 @@ from accounts.models import User
 
 
 class OwnerSerializer(serializers.ModelSerializer):
+    """Serializer for user model"""
     class Meta:
         model = User
         fields = ["id", "username", "first_name", "last_name", "email",
@@ -13,17 +14,21 @@ class OwnerSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for Category model"""
     class Meta:
         model = Category
         fields = "__all__"
 
+
 class EquipmentCategorySerializer(serializers.ModelSerializer):
+    """Serializer for Equipment Category model"""
     class Meta:
         model = EquipmentCategory
         fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    """Serializer for Product model"""
     owner_details = OwnerSerializer(source="owner", read_only=True)
     category_details = CategorySerializer(source="category", read_only=True)
 
@@ -37,6 +42,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerilizer(serializers.ModelSerializer):
+    """Serializer for Product model"""
     owner = OwnerSerializer(source="owner", read_only=True)
     category = CategorySerializer(source="category", read_only=True)
 
@@ -50,6 +56,7 @@ class ProductDetailSerilizer(serializers.ModelSerializer):
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
+    """Serializer for Equipment model"""
     owner_details = OwnerSerializer(source="owner", read_only=True)
     category_details = EquipmentCategorySerializer(source="category", read_only=True)
     class Meta:
@@ -62,13 +69,15 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Serializer for Review model"""
     class Meta:
         model = Review
         fields = "__all__"
 
 
 class ProductReviewSerializer(serializers.ModelSerializer):
-    reviews = ReviewSerializer(many=True, read_only=True)
+    """Serializer for Product model"""
+    eviews = ReviewSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product

@@ -18,7 +18,6 @@ def transportoptions(request):
 def transporthome(request):
     """This view is for transport quote"""
     if request.method == "POST":
-        print("here")
         form = QuoteForm(request.POST)
         if form.is_valid():
             departure = form.cleaned_data["departure"]
