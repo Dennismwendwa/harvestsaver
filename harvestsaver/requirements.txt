@@ -3,7 +3,9 @@ boto3==1.33.8
 botocore==1.33.8
 certifi==2023.11.17
 charset-normalizer==3.3.2
+crispy-bootstrap4==2022.1
 Django==4.2.7
+django-crispy-forms==2.0
 django-storages==1.14.2
 djangorestframework==3.14.0
 idna==3.6

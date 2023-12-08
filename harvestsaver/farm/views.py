@@ -1,15 +1,17 @@
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.db.models import F, Q, Sum
 from django.db import IntegrityError
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 
 from payment.models import order_payment
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import EquipmentCategory, Equipment
+from .forms import ProductForm
 
 
 def succes_page(request):
@@ -23,6 +25,7 @@ def home(request):
 
 
 def all_products(request):
+    """List all product with pagination of 4 per page"""
     products = Product.objects.all()
 
     products_per_page = 4
@@ -37,6 +40,7 @@ def all_products(request):
     return render(request, "farm/all_products.html", context)
 
 def all_equipments(request):
+    """List all equipments with pagination of 4 per page"""
     equipments = Equipment.objects.all()
     
     equipments_per_page = 4
@@ -66,6 +70,7 @@ def prodcuts_category(request, slug):
 
 @login_required
 def product_details(request, slug, pk):
+    """Show the deatils of one product at a time"""
     
     product = Product.objects.get(pk=pk)
 
@@ -78,6 +83,7 @@ def product_details(request, slug, pk):
 
 
 def add_to_cart(request, pk):
+    """Add the product to the cart"""
     product = get_object_or_404(Product, pk=pk)
 
     quantity = request.POST.get("quantity")
@@ -105,7 +111,10 @@ def add_to_cart(request, pk):
 
 
 def remove_from_cart(request, pk):
-    
+    """
+    Removes product from the cart
+    When its the only product in the cart it delates the whole cart
+    """
     product = get_object_or_404(Product, pk=pk)
 
     quantity = int(request.POST.get("quantity"))
@@ -127,6 +136,7 @@ def remove_from_cart(request, pk):
     return redirect("farm:product_details", product.slug, product.pk)
 
 def delete_from_cart(request, pk):
+    """Delete the product from the cart"""
     product = get_object_or_404(Product, pk=pk)
 
     item = Cart.objects.get(product=product)
@@ -138,7 +148,7 @@ def delete_from_cart(request, pk):
 
 @login_required
 def cart_items(request):
-    
+    """List all items in the cart"""
     items = Cart.objects.filter(customer=request.user)
     
     total = 0
@@ -156,7 +166,10 @@ def cart_items(request):
 
 @login_required
 def checkout(request):
-
+    """
+    Collects details about the shipping, payment type and prepair
+    the items for transport upon successfull payment
+    """
     cart_items = Cart.objects.filter(customer=request.user).all()
     
     if cart_items:
@@ -191,6 +204,7 @@ def checkout(request):
 
 
 def equipment_category(request, slug):
+    """Groups equipments in their different categories"""
     flag = "equipment"
 
     equip_category = get_object_or_404(EquipmentCategory, slug=slug)
@@ -260,3 +274,63 @@ def search(request):
 
     context = {}
     return render(request, "farm/search.html", context)
+
+
+
+# login_url=reverse_lazy("farm:home"),
+@login_required
+def farmer_dashboard(request):
+    """
+    This this farmers home page
+    Contains activites which are only for farmers
+    like uploading products
+    """
+    
+    if not request.user.has_perm("farm.view_product"):
+        print("home")
+        messages.error(request, (
+                                f"You do not have permission to access "
+                                f"the page you requested.")
+                                )
+
+        return redirect(reverse_lazy("farm:home"))
+
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+        else:
+            return render(request, "farm/farmer_dashboard.html", {"form": form})
+    
+    form = ProductForm()
+    context = {"form": form}
+    return render(request, "farm/farmer_dashboard.html", context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

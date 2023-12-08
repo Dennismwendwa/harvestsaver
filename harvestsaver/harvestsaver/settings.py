@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "api",
     "payment",
     "rest_framework",
+    "crispy_forms",
+    "crispy_bootstrap4",
 ]
 
 MIDDLEWARE = [
@@ -70,6 +72,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 "harvestsaver.context_processors.common_variables",
+            ],
+            "builtins":[
+                "crispy_forms.templatetags.crispy_forms_tags",
             ],
         },
     },
@@ -110,6 +115,8 @@ USE_I18N = True
 USE_TZ = True
 
 AUTH_USER_MODEL = "accounts.User"
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

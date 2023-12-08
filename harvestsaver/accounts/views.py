@@ -36,11 +36,12 @@ def register(request):
             else:
                 user = User.objects.create_user(first_name=first_name,
                                                 last_name=last_name,
+                                                email=email,
+                                                username=username,
+                                                password=password1,
                                                 phone_number=phone_number,
                                                 gender=gender,
                                                 country=country,
-                                                username=username,
-                                                password=password1
                                                 )
                 if role == "farmer":
                     user.is_farmer = True
