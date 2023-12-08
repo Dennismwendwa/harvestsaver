@@ -78,6 +78,21 @@ def register(request):
 
     return render(request, "accounts/register.html")
 
+def login_helper(username, password, request):
+    """This function is for login in users"""
+    user = auth.authenticate(username=username, password=password)
+
+    if user is not None:
+        auth.login(request, user)
+        if user.is_farmer:
+            return "farmer"
+        elif user.is_equipment_owner:
+            return "equipment"
+        else:
+            return "success"
+    else:
+        messages.warning(request, f"Wrong password or username")
+        return redirect("accounts:login")
 
 def login(request):
     """This is login view
@@ -93,14 +108,16 @@ def login(request):
             messages.warning(request, f"Please enter both username and password")
             return redirect("accounts:login")
 
-        user = auth.authenticate(username=username, password=password)
         next_param = request.GET.get('next', '')
-        if user is not None:
-            auth.login(request, user)
-            return redirect(next_param if next_param else "farm:home")
+        status = login_helper(username, password, request)
+        if next_param:
+            return redirect(next_param)
+        elif status == "farmer":
+            return redirect("farm:farmer_dashboard")
+        elif status == "equipment":
+            return redirect("farm:equipment_dashboard")
         else:
-            messages.warning(request, f"Wrong password or username")
-            return redirect("accounts:login")
+            return redirect("farm:home")
 
     return render(request, "accounts/login.html")
 
