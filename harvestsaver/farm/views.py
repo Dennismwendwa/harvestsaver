@@ -15,7 +15,7 @@ from django.core.paginator import Paginator
 from payment.models import order_payment
 from .models import Category, Product, Cart, Order, OrderItem
 from .models import EquipmentCategory, Equipment
-from .forms import ProductForm
+from .forms import ProductForm, EquipmentForm
 
 
 def succes_page(request):
@@ -289,7 +289,6 @@ def farmer_dashboard(request):
     """
 
     if not request.user.has_perm("farm.view_product"):
-        print("home")
         messages.error(request, (
                                 f"You do not have permission to access "
                                 f"the page you requested.")
@@ -302,7 +301,6 @@ def farmer_dashboard(request):
     if area_coodinates:
         latitude = area_coodinates[0]
         longitude = area_coodinates[1]
-        print(area_coodinates)
     else:
         latitude = 51.51
         longitude = -0.13
@@ -358,19 +356,34 @@ def get_lat_long(location_name):
         return None
 
 
+@login_required
+def equipment_dashboard(request):
+    
+    equipments = Equipment.objects.all()
 
+    if not request.user.has_perm("transit.view_equipment"):
+        messages.error(request, (f"You do not have permission to access "
+                                 f"the requested page"
+                                ))
+        return redirect("farm:home")
+        
+    if request.method == "POST":
+        form = EquipmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Equipment saved successfully")
+            return redirect("farm:equipment_dashboard")
+        else:
+            return render(request, "farm/equipment_dashboard.html",
+                          {"form": form})
+    
+    form = EquipmentForm(user=request.user)
 
-
-
-
-
-
-
-
-
-
-
-
+    context = {
+        "equipments": equipments,
+        "form": form,
+    }
+    return render(request, "farm/equipment_dashboard.html", context)
 
 
 

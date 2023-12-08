@@ -171,6 +171,10 @@ class Equipment(models.Model):
                 f"{self.location}"
                 )
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
 
 class Review(models.Model):
     """This models stores reviews of products"""

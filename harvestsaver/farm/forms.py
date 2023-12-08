@@ -37,6 +37,64 @@ class ProductForm(forms.ModelForm):
         if name:
             slug = slugify(name)
             cleaned_data["slug"] = slug
-            print(slug)
         
-        return cleaned_data 
+        return cleaned_data
+
+class EquipmentForm(forms.ModelForm):
+    class Meta:
+        model = Equipment
+        exclude = ["slug", "is_available"]
+        labals = {
+            "name": _("Equipment name"),
+            "description": _("Product description"),
+            "category": _("Category"),
+            "image": _("Image"),
+            "location": _("location"),
+            "price": _("price per hour"),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            self.fields["owner"].queryset = User.objects.filter(pk=user.pk)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+
+        if name:
+            slug = slugify(name)
+            cleaned_data["slug"] = slug
+
+        return cleaned_data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
