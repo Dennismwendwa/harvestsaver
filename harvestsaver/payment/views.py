@@ -173,14 +173,18 @@ def stripe_webhook(request):
     elif event["type"] == "charge.succeeded":
         charge = event["data"]["object"]
 
-        charge_id = charge["id"]
-        amount_received = charge["amount_received"]
-        payment_method = charge["payment_method"]
+        charge_id = charge['id']
+        amount_received = charge['amount_captured']
+        billing_details = charge['billing_details']
+        card_brand = charge['payment_method_details']['card']['brand']
+        last4_digits = charge['payment_method_details']['card']['last4']
+        status = charge['status']
 
         message = (f"Charge succeeded for Charge ID {charge_id}. " 
                    f"Amount received: {amount_received}. "
-                   f"Payment Method: {payment_method}."
+                   f"Payment Method: {card_brand}."
                    )
+        message ="Event processed successfully"
         return HttpResponse(message, status=200)
 
     return HttpResponse("Unhandled event type", status=200)
