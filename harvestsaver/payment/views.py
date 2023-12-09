@@ -186,6 +186,11 @@ def stripe_webhook(request):
                    )
         message ="Event processed successfully"
         return HttpResponse(message, status=200)
+    elif event["type"] == "charge.failed":
+        pass
+
+        message="Charge failed event processed successfully"
+        return HttpResponse(message, status=200)
 
     return HttpResponse("Unhandled event type", status=200)
 
