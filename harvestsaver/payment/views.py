@@ -183,7 +183,7 @@ def stripe_webhook(request):
                    )
         return HttpResponse(message, status=200)
 
-    return HttpResponse(status=200)
+    return HttpResponse("Unhandled event type", status=200)
 
 
 class StripeIntentView(View):
