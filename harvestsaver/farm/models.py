@@ -1,6 +1,7 @@
+import uuid
 from django.db import models
 from django.utils import timezone
-import uuid
+from django.utils.text import slugify
 
 from accounts.models import User
 
@@ -17,7 +18,7 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-
+  
 class Product(models.Model):
     """Model for all products availble in our site"""
     owner = models.ForeignKey(User,
@@ -44,6 +45,10 @@ class Product(models.Model):
     def __str__(self):
         return f"product: {self.name} Owner: {self.owner.username}"
 
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+        
 
 class Cart(models.Model):
     """This models stores the products added to cart"""
@@ -165,6 +170,29 @@ class Equipment(models.Model):
                 f"Equipment: {self.name} "
                 f"{self.location}"
                 )
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+class EquipmentInquiry(models.Model):
+    """This model for equipments inquiry"""
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    customer = models.CharField(max_length=100)
+    email = models.EmailField()
+    date = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+    subject = models.CharField(max_length=100)
+    admin_responded = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Equipment Inquiry"
+        verbose_name_plural = "Equipments Inquiry"
+        ordering = ("-pk",)
+    def __str__(self):
+        return (
+                f"Inquiry by {self.customer} about equipment "
+                f"{self.equipment.name}")
 
 
 class Review(models.Model):
