@@ -158,10 +158,30 @@ def stripe_webhook(request):
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
 
-        ssession_id = session["id"]
-        ammount_total = session["amount_total"]
+        session_id = session["id"]
+        amount_total = session["amount_total"]
         customer_email = session["customer_details"]["email"]
         product_id = session["metadata"]["product_id"]
+        
+        message = (
+                    f"Webhook received for session ID {session_id}. "
+                    f"Amount: {amount_total}. Customer: "
+                    f"{customer_email}. Product ID: {product_id}."
+                    )
+        return HttpResponse(message, status=200)
+    
+    elif event["type"] == "charge.succeeded":
+        charge = event["data"]["object"]
+
+        charge_id = charge["id"]
+        amount_received = charge["amount_received"]
+        payment_method = charge["payment_method"]
+
+        message = (f"Charge succeeded for Charge ID {charge_id}. " 
+                   f"Amount received: {amount_received}. "
+                   f"Payment Method: {payment_method}."
+                   )
+        return HttpResponse(message, status=200)
 
     return HttpResponse(status=200)
 
