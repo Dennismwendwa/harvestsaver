@@ -175,6 +175,25 @@ class Equipment(models.Model):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+class EquipmentInquiry(models.Model):
+    """This model for equipments inquiry"""
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
+    customer = models.CharField(max_length=100)
+    email = models.EmailField()
+    date = models.DateTimeField(auto_now_add=True)
+    message = models.TextField()
+    subject = models.CharField(max_length=100)
+    admin_responded = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Equipment Inquiry"
+        verbose_name_plural = "Equipments Inquiry"
+        ordering = ("-pk",)
+    def __str__(self):
+        return (
+                f"Inquiry by {self.customer} about equipment "
+                f"{self.equipment.name}")
+
 
 class Review(models.Model):
     """This models stores reviews of products"""

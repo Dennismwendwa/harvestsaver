@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth.models import auth, Group
+from django.contrib.auth.models import auth, Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 
 from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
@@ -56,17 +57,13 @@ def register(request):
                     user.is_staff = True
                 user.save()
 
-                role = role.capitalize()
-                try:
-                    group = Group.objects.get(name=role)
-                except Group.DoesNotExist:
-                    group = Group.objects.create(name=role)
-                
-                group.user_set.add(user)
-                user = auth.authenticate(username=username, password=password1)
-                
-                if user is not None:
-                    auth.login(request, user)
+                create_group_and_permission(role, user)
+                status = login_helper(username, password1, request)
+                if status == "farmer":
+                    return redirect("farm:farmer_dashboard")
+                elif status == "equipment":
+                    return redirect("farm:equipment_dashboard")
+                elif status == "success":
                     return redirect("farm:home")
 
         elif len(password1) < 8:
@@ -78,8 +75,46 @@ def register(request):
 
     return render(request, "accounts/register.html")
 
+
+def create_group_and_permission(role, user):
+    """
+    We are creating group, and
+    add permissions to the group
+    and we add user to the group
+    """
+    if role == "farmer":
+        model = "product"
+        app_name = "farm"
+    elif role == "equipment owner":
+        model = "equipment"
+        app_name = "farm"
+    
+    role = role.capitalize()
+    try:
+        group = Group.objects.get(name=role)
+    except Group.DoesNotExist:
+        group = Group.objects.create(name=role)
+
+    content_type = ContentType.objects.get(app_label=app_name, model=model)
+
+    try:
+        view_permission = Permission.objects.get(
+            codename=f"view_{model.lower()}",
+            content_type=content_type
+            )
+    except Permission.DoesNotExist:
+        view_permission = Permission.objects.create(
+            codename=f"view_{model.lower()}",
+            name=f"Can view {model}",
+            content_type=content_type,
+            )
+    group.permissions.add(view_permission)
+    group.user_set.add(user)
+
+    
+
 def login_helper(username, password, request):
-    """This function is for login in users"""
+    """This function is for login users"""
     user = auth.authenticate(username=username, password=password)
 
     if user is not None:
@@ -93,6 +128,7 @@ def login_helper(username, password, request):
     else:
         messages.warning(request, f"Wrong password or username")
         return redirect("accounts:login")
+
 
 def login(request):
     """This is login view
@@ -116,7 +152,7 @@ def login(request):
             return redirect("farm:farmer_dashboard")
         elif status == "equipment":
             return redirect("farm:equipment_dashboard")
-        else:
+        elif status == "success":
             return redirect("farm:home")
 
     return render(request, "accounts/login.html")

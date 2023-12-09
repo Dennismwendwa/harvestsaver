@@ -13,16 +13,21 @@ from django.core.paginator import Paginator
 
 
 from payment.models import order_payment
-from .models import Category, Product, Cart, Order, OrderItem
-from .models import EquipmentCategory, Equipment
-from .forms import ProductForm, EquipmentForm
+from .models import Category, Product, Cart
+from .models import EquipmentCategory, Equipment, EquipmentInquiry
+from .forms import ProductForm, EquipmentForm, EquipmentInquiryForm
 
 
 def succes_page(request):
+    """This is success page after successfull payment"""
     return render(request, "farm/success_page.html")
 
 
 def home(request):
+    """
+    This is the home page view
+    data is passed through context processor
+    """
 
     context = {}
     return render(request, "farm/index.html", context)
@@ -233,8 +238,17 @@ def equipment_detail(request, slug):
         email = request.POST.get("email")
         subject = request.POST.get("subject")
         message = request.POST.get("message")
-
+        
         equipment_name = equipment.name
+
+        EquipmentInquiry.objects.create(
+            equipment=equipment,
+            customer=customer_name,
+            email=email,
+            message=message,
+            subject=subject,
+        )
+        
 
         email_message = (
                          f"Name: {customer_name}\nEmail: "
@@ -330,6 +344,7 @@ def farmer_dashboard(request):
 
 
 def get_agro_weather(api_key, latitude, longitude):
+    """This function sends request to get weather data"""
 
     base_url = "https://api.agromonitoring.com/agro/1.0/weather/forecast"
 
@@ -347,6 +362,10 @@ def get_agro_weather(api_key, latitude, longitude):
         return None
 
 def get_lat_long(location_name):
+    """
+    This function use the city name to get its latitude
+    and longitude
+    """
     geolocator = Nominatim(user_agent="my_geocoder")
     location = geolocator.geocode(location_name)
 
@@ -358,10 +377,12 @@ def get_lat_long(location_name):
 
 @login_required
 def equipment_dashboard(request):
-    
+    """This is equipment onwers dash board view"""
     equipments = Equipment.objects.all()
 
-    if not request.user.has_perm("transit.view_equipment"):
+    inquiry = EquipmentInquiry.objects.filter(admin_responded=False).all()
+
+    if not request.user.has_perm("farm.view_equipment"):
         messages.error(request, (f"You do not have permission to access "
                                  f"the requested page"
                                 ))
@@ -382,10 +403,15 @@ def equipment_dashboard(request):
     context = {
         "equipments": equipments,
         "form": form,
+        "inquiry": inquiry,
     }
     return render(request, "farm/equipment_dashboard.html", context)
 
 
+def Equipment_inquiry_respond(request, slug):
+    
+    context = {}
+    return render(request, "farm/equipment_inquiry_respond.html", context)
 
 
 

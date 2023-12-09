@@ -28,4 +28,6 @@ urlpatterns = [
     path("farm/dashboard", views.farmer_dashboard, name="farmer_dashboard"),
     path("equipment/dashboard", views.equipment_dashboard,
          name="equipment_dashboard"),
+    path("inquiry-for-<str:slug>", views.Equipment_inquiry_respond,
+         name="equipment_inquiry"),
 ]
