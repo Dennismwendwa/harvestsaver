@@ -129,7 +129,7 @@ def login_helper(username, password, request):
     else:
         messages.warning(request, f"Wrong password or username")
         return redirect("accounts:login")
-
+        
 
 def login(request):
     """This is login view
@@ -147,6 +147,7 @@ def login(request):
 
         next_param = request.GET.get('next', '')
         status = login_helper(username, password, request)
+
         if next_param:
             return redirect(next_param)
         elif status == "farmer":
@@ -194,6 +195,8 @@ def contact(request):
 
             messages.success(request, f"Your message has been sent. Thank you")
             return redirect("accounts:contact")
+        else:
+            return render(request, "accounts/conatact.html", {"form": form})
     else:
         form = ContactForm()
 
