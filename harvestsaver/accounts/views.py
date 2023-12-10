@@ -56,8 +56,9 @@ def register(request):
                 elif role == "staff":
                     user.is_staff = True
                 user.save()
-
-                create_group_and_permission(role, user)
+                
+                if role == "farmer" or role == "equipment owner":
+                    create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
                 if status == "farmer":
                     return redirect("farm:farmer_dashboard")
