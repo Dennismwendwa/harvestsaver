@@ -64,7 +64,6 @@ def create_checkoutfarmpayment(request, pk):
 
             return redirect("payment:success")
         except Exception as e:
-            print("Error block for checkout")
             transport.delete()
             order_items.delete()
             messages.error(request, f"Error processing payment: {str(e)}")

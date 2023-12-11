@@ -95,7 +95,17 @@ class TestAllProductsListingview(TestCase):
         self.assertIsInstance(response.context["cat_products"], QuerySet)
         self.assertGreater(len(response.context["cat_products"]), 0)
 
+    def test_search_product_view(self):
+        search_url = reverse("farm:search")
 
+        data = {"query": "good"}
+
+        response = self.client.post(search_url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.context)
+        self.assertContains(response, "good")
+        self.assertTemplateUsed(response, "farm/search.html")
 
 class TestEquipmentviews(TestCase):
     def setUp(self):
@@ -182,8 +192,8 @@ class TestEquipmentviews(TestCase):
         self.assertGreater(len(response.context["equipments"]), 0)
 
 
-class CheckoutViewTest(TestCase):
-    def setUp(self):
+class CommonTestSetupMixin:
+    def common_setup(self):
         self.all_products_url = reverse("farm:all_products")
         self.register_url = reverse("accounts:register")
 
@@ -224,6 +234,19 @@ class CheckoutViewTest(TestCase):
                 customer=self.owner, quantity=1
             )
 
+        data = {
+            "address": "msa",
+            "payment_method": "card",
+            "transport_option": "express",
+            "pickup_location": "malindi",
+        }
+
+
+class CheckoutViewTest(CommonTestSetupMixin, TestCase):
+    def setUp(self):
+        super().common_setup()
+
+
     def test_checkout_view(self):
         checkout_url = reverse("farm:checkout")
          
@@ -241,19 +264,16 @@ class CheckoutViewTest(TestCase):
         
 
     def test_checkout_view_with_post(self):
-        checkout_url = reverse("farm:checkout")
-
         data = {
             "address": "msa",
             "payment_method": "card",
             "transport_option": "express",
             "pickup_location": "malindi",
         }
+        checkout_url = reverse("farm:checkout")
 
         response = self.client.post(checkout_url, data)
-
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Order.objects.count(), 1)
         self.assertEqual(OrderItem.objects.count(), 4)
         self.assertEqual(TransportBooking.objects.count(), 1)
-
