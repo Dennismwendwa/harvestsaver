@@ -228,6 +228,7 @@ class CommonTestSetupMixin:
         self.client.post(self.register_url, self.user)
         self.client.login(username="dennismwendwa", password="securepassword")
         self.owner = User.objects.get(username="dennismwendwa")
+
         cat = Category.objects.create(name="fruits", slug="fruits")
         
         file_path = os.path.join(os.path.dirname(

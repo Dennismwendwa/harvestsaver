@@ -37,3 +37,40 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
         self.assertEqual(order.status, "payed")
         self.assertEqual(account.total_payment, order.total_amount)
         self.assertTrue(account.last_transaction_date < timezone.now())
+
+    def test_service_payment_view(self):
+        landing_url = reverse("payment:servicepayment", args=(self.order.pk,))
+        
+        response = self.client.post(landing_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "payment/landing.html")
+        self.assertContains(response, self.order.total_amount)
+        self.assertIn("STRIPE_PUBLIC_KEY", response.context)
+
+    def test_stripe_payment_view(self):
+        pay_url = reverse("payment:create-checkout-session", args=(self.order.pk,))
+
+        response = self.client.post(pay_url)
+        cart_items = Cart.objects.filter(customer=self.owner).count()
+        order = Order.objects.get(pk=1)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(order.status, "payed")
+        self.assertEqual(cart_items, 0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
