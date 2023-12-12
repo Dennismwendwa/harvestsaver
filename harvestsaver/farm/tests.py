@@ -4,8 +4,11 @@ from django.shortcuts import reverse
 from django.core.paginator import Page
 from django.db.models.query import QuerySet
 from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core import mail
+from PIL import Image
 import os
+import io
 
 from accounts.models import User
 from .models import Product, Equipment, Category, EquipmentCategory
@@ -46,8 +49,13 @@ class TestAllProductsListingview(TestCase):
                 description="Very good",location="nairobi",
                 harvest_date=timezone.now(),
             )
+            image_data = io.BytesIO()
+            image = Image.new("RGB", (100, 100), "white")
+            image.save(image_data, format="JPEG")
+            image_data.seek(0)
             product.image.save(f"sample_image{p}.jpg", 
-                               File(open(file_path, "rb")))
+                               SimpleUploadedFile("sample_image.jpg", image_data.read()))
+            
 
     def test_getting_all_product_view(self):
         response = self.client.get(self.all_products_url)
@@ -139,7 +147,15 @@ class TestEquipmentviews(TestCase):
                 owner=owner, location="shimba hills", price_per_hour=4000,
             )
             equipment.image.save(f"sample_image{e}.jpg", File(open(file_path, "rb")))
+            image_data = io.BytesIO()
+            image = Image.new("RGB", (100, 100), "white")
+            image.save(image_data, format="JPEG")
+            image_data.seek(0)
 
+            equipment.image.save(f"sample_image{e}.jpg",
+                                 SimpleUploadedFile("sample_image.jpg", image_data.read()))
+
+            
     def test_all_equipments_view(self):
         response = self.client.get(self.all_equipments_url)
 

@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MY_ENVIRONMENT: development
+      DJANGO_SETTINGS_MODULE: harvestsaver.settings_github
     strategy:
       max-parallel: 4
       matrix:
