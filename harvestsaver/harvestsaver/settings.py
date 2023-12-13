@@ -21,7 +21,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-dgu5*^9cexga$udi7@__0lwjbhm3lrkm7@c$320l!!)drw*onu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "18.210.13.40", "54.237.207.136",
                  "www.pysoftware.tech", "pysoftware.tech"]
@@ -156,28 +155,6 @@ STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
-# AWS Bucket settings
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_SIGNATURE_NAME = os.environ.get("AWS_S3_SIGNATURE_NAME")
-AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
-AWS_S3_FILE_OVERWRITE = os.environ.get("AWS_S3_FILE_OVERWRITE")
-AWS_DEFAULT_ACL = None
-AWS_S3_VERITY = os.environ.get("AWS_S3_VERITY")
-DEFAULT_FILE_STORAGE = os.environ.get("DEFAULT_FILE_STORAGE")
-
-if DEBUG:
-    YOUR_DOMAIN = "http://127.0.0.1:8000"
-    DATABASES = {
-            'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
-else:
-    SECRET_KEY = os.environ.get("SECRET_KEY")
-    YOUR_DOMAIN = "https://pysoftware.tech"
 
 
 # Default primary key field type
