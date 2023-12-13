@@ -58,19 +58,3 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(order.status, "payed")
         self.assertEqual(cart_items, 0)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

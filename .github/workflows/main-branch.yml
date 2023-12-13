@@ -13,6 +13,8 @@ jobs:
     env:
       MY_ENVIRONMENT: production
       DJANGO_SETTINGS_MODULE: harvestsaver.settings_actions
+      SECRET_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
     strategy:
       max-parallel: 4
       matrix:
@@ -46,7 +48,6 @@ jobs:
     - name: Decrypt .env file
       run: |
         cd harvestsaver
-        echo "Decryption Key: ${{ secrets.DECRYPTION_KEY }}"
         openssl aes-256-cbc -d -a -in harvestsaver/.env.enc -out harvestsaver/.env -k "${{ secrets.DECRYPTION_KEY }}" -pbkdf2
 
     - name: Install SSH Key
