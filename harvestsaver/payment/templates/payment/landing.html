@@ -173,13 +173,14 @@ button:disabled {
   <body>
     <section>
 
-      <div class="product">
+      <div class="product mt-4">
+        {% if product.image.url %}
         <img
           src="{{product.image.url }}"
           width="400"
           class="rounded p-1"
           alt="{%if product.alt%}{{product.alt}}{%else%}image of the {{product.name}}{%endif%}"
-        />
+        />{% endif%}
         <div class="description">
           <h3>{{ product.product.name }}</h3>
           <h5>$ {{ product.total_amount }}</h5>

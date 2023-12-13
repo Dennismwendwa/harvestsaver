@@ -43,6 +43,7 @@ def transporthome(request):
                                        f"Your quote request has been sent "
                                        f"successfully. Thank you!")
                                        )
+
             return redirect("transit:transportquote")
         else:
             print(form.errors)

@@ -1,7 +1,6 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib import messages
 from django.shortcuts import reverse
 from django.core import mail
 from django.contrib.messages import get_messages
@@ -36,8 +35,10 @@ class RegisterViewTest(TestCase):
         }
 
     def test_register_view_with_valid_data(self):
+        self.client.post(self.register_url, self.second_user)
         response = self.client.post(self.register_url, self.valid_data)
         user = User.objects.get(username="dennismwendwa")
+        user2 = User.objects.get(username="mwendwa")
         self.assertEqual(response.status_code, 302)
         self.assertTrue(User.objects.filter(username="dennismwendwa").exists())
         self.assertTrue(Group.objects.filter(name="Farmer").exists())
@@ -45,6 +46,10 @@ class RegisterViewTest(TestCase):
         self.assertTrue(Account.objects.filter(user=user).exists())
         self.assertTrue(FarmerProfile.objects.filter(user=user).exists()) 
         self.assertTrue(user.has_perm("farm.view_product"))
+
+        self.assertTrue(Group.objects.filter(name="Equipment owner").exists())
+        self.assertTrue(EquipmentOwnerProfile.objects.filter(user=user2).exists())
+        self.assertTrue(user2.has_perm("farm.view_equipment"))
 
     
     def test_register_view_with_existing_username(self):
