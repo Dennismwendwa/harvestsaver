@@ -11,10 +11,10 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
     def setUp(self):
         super().common_setup()
         
-        self.produts_url = reverse("api:products_api")
+        self.products_url = reverse("api:products_api")
 
     def test_get_all_product(self):
         response = self.client.get(self.products_url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_ok)
-        self.assertEqual(response.data, 10)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 10)
