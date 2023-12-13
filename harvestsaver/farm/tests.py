@@ -16,8 +16,8 @@ from .models import EquipmentInquiry, Cart, Order, OrderItem
 from transit.models import TransportBooking
 
 
-class TestAllProductsListingview(TestCase):
-    def setUp(self):
+class ProductsTestSetupMixin:
+    def common_setup(self):
         self.all_products_url = reverse("farm:all_products")
         self.register_url = reverse("accounts:register")
 
@@ -56,6 +56,63 @@ class TestAllProductsListingview(TestCase):
             product.image.save(f"sample_image{p}.jpg", 
                                SimpleUploadedFile("sample_image.jpg", image_data.read()))
             
+
+class CommonTestSetupMixin:
+    def common_setup(self):
+        self.all_products_url = reverse("farm:all_products")
+        self.register_url = reverse("accounts:register")
+
+        self.user = {
+            "first_name": "Dennis",
+            "last_name": "Mwendwa",
+            "username": "dennismwendwa",
+            "email": "dennis@gamil.com",
+            "password1": "securepassword",
+            "password2": "securepassword",
+            "role": "farmer",
+            "phone_number": "123456789",
+            "gender": "male",
+            "country": "kenya",
+        }
+        self.client.post(self.register_url, self.user)
+        self.client.login(username="dennismwendwa", password="securepassword")
+        self.owner = User.objects.get(username="dennismwendwa")
+
+        cat = Category.objects.create(name="fruits", slug="fruits")
+        
+        file_path = os.path.join(os.path.dirname(
+                                 os.path.dirname(
+                                 os.path.abspath(__file__))),
+                                 "media", "profile.png")
+        for p in range(10):
+            product = Product.objects.create(
+                owner=self.owner, name=f"mango {p}", slug=f"mango {p}",
+                category=cat, price=400,
+                quantity=200, unit_of_measurement="kg",
+                description="Very good",location="nairobi",
+                harvest_date=timezone.now(),
+            )
+            product.image.save(f"sample_image{p}.jpg", 
+                               File(open(file_path, "rb")))
+        for c in range(4):
+            Cart.objects.create(
+                product=Product.objects.get(pk=c+1), 
+                customer=self.owner, quantity=1
+            )
+
+        data = {
+            "address": "msa",
+            "payment_method": "card",
+            "transport_option": "express",
+            "pickup_location": "malindi",
+        }
+        return data
+
+
+class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
+    def setUp(self):
+        super().common_setup()
+        
 
     def test_getting_all_product_view(self):
         response = self.client.get(self.all_products_url)
@@ -207,56 +264,6 @@ class TestEquipmentviews(TestCase):
         self.assertContains(response, self.cat.name)
         self.assertGreater(len(response.context["equipments"]), 0)
 
-
-class CommonTestSetupMixin:
-    def common_setup(self):
-        self.all_products_url = reverse("farm:all_products")
-        self.register_url = reverse("accounts:register")
-
-        self.user = {
-            "first_name": "Dennis",
-            "last_name": "Mwendwa",
-            "username": "dennismwendwa",
-            "email": "dennis@gamil.com",
-            "password1": "securepassword",
-            "password2": "securepassword",
-            "role": "farmer",
-            "phone_number": "123456789",
-            "gender": "male",
-            "country": "kenya",
-        }
-        self.client.post(self.register_url, self.user)
-        self.client.login(username="dennismwendwa", password="securepassword")
-        self.owner = User.objects.get(username="dennismwendwa")
-
-        cat = Category.objects.create(name="fruits", slug="fruits")
-        
-        file_path = os.path.join(os.path.dirname(
-                                 os.path.dirname(
-                                 os.path.abspath(__file__))),
-                                 "media", "profile.png")
-        for p in range(10):
-            product = Product.objects.create(
-                owner=self.owner, name=f"mango {p}", slug=f"mango {p}",
-                category=cat, price=400,
-                quantity=200, unit_of_measurement="kg",
-                description="Very good",location="nairobi",
-                harvest_date=timezone.now(),
-            )
-            product.image.save(f"sample_image{p}.jpg", 
-                               File(open(file_path, "rb")))
-        for c in range(4):
-            Cart.objects.create(
-                product=Product.objects.get(pk=c+1), 
-                customer=self.owner, quantity=1
-            )
-
-        data = {
-            "address": "msa",
-            "payment_method": "card",
-            "transport_option": "express",
-            "pickup_location": "malindi",
-        }
 
 
 class CheckoutViewTest(CommonTestSetupMixin, TestCase):

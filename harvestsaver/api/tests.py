@@ -1,3 +1,20 @@
-from django.test import TestCase
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.shortcuts import reverse
 
-# Create your tests here.
+from farm.models import Product
+from farm.tests import ProductsTestSetupMixin
+from .serializers import ProductSerializer
+
+
+class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
+    def setUp(self):
+        super().common_setup()
+        
+        self.produts_url = reverse("api:products_api")
+
+    def test_get_all_product(self):
+        response = self.client.get(self.products_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_ok)
+        self.assertEqual(response.data, 10)

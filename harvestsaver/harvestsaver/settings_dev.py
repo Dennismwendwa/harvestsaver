@@ -1,13 +1,6 @@
 from .settings import *
 DEBUG = True
 
-YOUR_DOMAIN = "http://127.0.0.1:8000"
-DATABASES = {
-        'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
 
 # AWS Bucket settings
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")

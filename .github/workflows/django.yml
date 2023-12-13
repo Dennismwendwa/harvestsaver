@@ -35,7 +35,6 @@ jobs:
       run: |
         cd harvestsaver
         export SECRET_KEY="$SECRET_KEY"
-        echo "SECRECT_KEY: $SECRET_KEY "
         python manage.py test
 
   deploy:
