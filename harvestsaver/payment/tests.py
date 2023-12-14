@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from farm.tests import CommonTestSetupMixin
+from farm.classmaxin import CommonTestSetupMixin
 from farm.models import Product, Order, Cart, OrderItem
 from transit.models import TransportBooking
 from .models import Payment, Account
@@ -21,7 +21,7 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
         }
 
         self.client.post(checkout_url, data)
-        self.order = Order.objects.get(pk=1)
+        self.order = Order.objects.first()
         self.account = self.owner.account.account_balance
 
     def test_payment_by_farmpay_service_view(self):
@@ -29,7 +29,9 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
          
         
         response = self.client.post(payment_url)
-        order = Order.objects.get(pk=1)
+        for f in Order.objects.all():
+            print(f, f.pk)
+        order = Order.objects.first()
         account = Account.objects.get(user=self.owner)
 
         self.assertEqual(response.status_code, 302)
@@ -53,7 +55,10 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
 
         response = self.client.post(pay_url)
         cart_items = Cart.objects.filter(customer=self.owner).count()
-        order = Order.objects.get(pk=1)
+        for k in Order.objects.all():
+            print("Last test")
+            print(k, k.pk)
+        order = Order.objects.first()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(order.status, "payed")

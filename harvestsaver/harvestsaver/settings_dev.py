@@ -1,7 +1,7 @@
 from .settings import *
 DEBUG = True
 
-
+YOUR_DOMAIN = "http://127.0.0.1:8000"
 # AWS Bucket settings
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
