@@ -1,7 +1,7 @@
 # Harvestsaver Network
 
 <div align="center">
-  <a href="https://www.pysoftware.com" style="background-color:#4CAF50;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;border-radius:4px;">Live site</a>
+  <a href="https://www.pysoftware.tech" style="background-color:#4CAF50;color:white;padding:10px 20px;text-align:center;text-decoration:none;display:inline-block;font-size:16px;margin:4px 2px;cursor:pointer;border-radius:4px;">Live site</a>
 </div>
 
 ![landin](readme-img/hero.png)
@@ -50,7 +50,7 @@ with other systems or build custom applications.
 
 
 ## Live Demo
-[Live Demo](https://www.pysoftware.com)
+[Live Demo](https://www.pysoftware.tech)
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
