@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.shortcuts import reverse
 from django.utils import timezone
 
-from farm.tests import CommonTestSetupMixin
+from farm.classmaxin import CommonTestSetupMixin
 from farm.models import Product, Order, Cart, OrderItem
 from transit.models import TransportBooking
 from .models import Payment, Account

@@ -1,113 +1,16 @@
 from django.test import TestCase
-from django.utils import timezone
 from django.shortcuts import reverse
 from django.core.paginator import Page
 from django.db.models.query import QuerySet
-from django.core.files import File
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core import mail
-from PIL import Image
-import os
-import io
 
-from accounts.models import User
-from .models import Product, Equipment, Category, EquipmentCategory
+from .classmaxin import *
+from .models import Product, Equipment, Category
 from .models import EquipmentInquiry, Cart, Order, OrderItem
 from transit.models import TransportBooking
 
 
-class ProductsTestSetupMixin:
-    def common_setup(self):
-        self.all_products_url = reverse("farm:all_products")
-        self.register_url = reverse("accounts:register")
-
-        self.valid_data = {
-            "first_name": "Dennis",
-            "last_name": "Mwendwa",
-            "username": "dennismwendwa",
-            "email": "dennis@gamil.com",
-            "password1": "securepassword",
-            "password2": "securepassword",
-            "role": "farmer",
-            "phone_number": "123456789",
-            "gender": "male",
-            "country": "kenya",
-        }
-        self.client.post(self.register_url, self.valid_data)
-        owner = User.objects.get(username="dennismwendwa")
-        cat = Category.objects.create(name="fruits", slug="fruits")
         
-        file_path = os.path.join(os.path.dirname(
-                                 os.path.dirname(
-                                 os.path.abspath(__file__))),
-                                 "media", "profile.png")
-        for p in range(10):
-            product = Product.objects.create(
-                owner=owner, name=f"mango {p}", slug=f"mango {p}",
-                category=cat, price=400,
-                quantity=200, unit_of_measurement="kg",
-                description="Very good",location="nairobi",
-                harvest_date=timezone.now(),
-            )
-            image_data = io.BytesIO()
-            image = Image.new("RGB", (100, 100), "white")
-            image.save(image_data, format="JPEG")
-            image_data.seek(0)
-            product.image.save(f"sample_image{p}.jpg", 
-                               SimpleUploadedFile("sample_image.jpg", image_data.read()))
-            
-
-class CommonTestSetupMixin:
-    def common_setup(self):
-        self.all_products_url = reverse("farm:all_products")
-        self.register_url = reverse("accounts:register")
-
-        self.user = {
-            "first_name": "Dennis",
-            "last_name": "Mwendwa",
-            "username": "dennismwendwa",
-            "email": "dennis@gamil.com",
-            "password1": "securepassword",
-            "password2": "securepassword",
-            "role": "farmer",
-            "phone_number": "123456789",
-            "gender": "male",
-            "country": "kenya",
-        }
-        self.client.post(self.register_url, self.user)
-        self.client.login(username="dennismwendwa", password="securepassword")
-        self.owner = User.objects.get(username="dennismwendwa")
-
-        cat = Category.objects.create(name="fruits", slug="fruits")
-        
-        file_path = os.path.join(os.path.dirname(
-                                 os.path.dirname(
-                                 os.path.abspath(__file__))),
-                                 "media", "profile.png")
-        for p in range(10):
-            product = Product.objects.create(
-                owner=self.owner, name=f"mango {p}", slug=f"mango {p}",
-                category=cat, price=400,
-                quantity=200, unit_of_measurement="kg",
-                description="Very good",location="nairobi",
-                harvest_date=timezone.now(),
-            )
-            product.image.save(f"sample_image{p}.jpg", 
-                               File(open(file_path, "rb")))
-        for c in range(4):
-            Cart.objects.create(
-                product=Product.objects.get(pk=c+1), 
-                customer=self.owner, quantity=1
-            )
-
-        data = {
-            "address": "msa",
-            "payment_method": "card",
-            "transport_option": "express",
-            "pickup_location": "malindi",
-        }
-        return data
-
 
 class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
     def setUp(self):
@@ -149,7 +52,6 @@ class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
 
     def test_product_category_view(self):
         cat = Category.objects.get(name="fruits")
-        product = Product.objects.filter(category=cat).all()
         cat_url = reverse("farm:products_category", args=(cat.slug,))
         response = self.client.get(cat_url)
 
@@ -172,45 +74,9 @@ class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
         self.assertContains(response, "good")
         self.assertTemplateUsed(response, "farm/search.html")
 
-class TestEquipmentviews(TestCase):
+class TestEquipmentviews(EquipmentTestSetupMixin, TestCase):
     def setUp(self):
-        self.all_equipments_url = reverse("farm:all_equipments")
-        self.cat = EquipmentCategory.objects.create(name="tractor", slug="tractor")
-        
-        self.register_url = reverse("accounts:register")
-        self.valid_data = {
-            "first_name": "Dennis",
-            "last_name": "Mwendwa",
-            "username": "dennismwendwa",
-            "email": "dennis@gamil.com",
-            "password1": "securepassword",
-            "password2": "securepassword",
-            "role": "farmer",
-            "phone_number": "123456789",
-            "gender": "male",
-            "country": "kenya",
-        }
-        self.client.post(self.register_url, self.valid_data)
-        owner = User.objects.get(username="dennismwendwa")
-        
-        file_path = os.path.join(os.path.dirname(
-                                 os.path.dirname(
-                                 os.path.abspath(__file__))),
-                                 "media", "profile.png")
-        for e in range(10):
-            equipment = Equipment.objects.create(
-                name=f"harvester_tractor {e}", slug=f"harvester_tractor {e}",
-                description="very good tractor", category=self.cat,
-                owner=owner, location="shimba hills", price_per_hour=4000,
-            )
-            equipment.image.save(f"sample_image{e}.jpg", File(open(file_path, "rb")))
-            image_data = io.BytesIO()
-            image = Image.new("RGB", (100, 100), "white")
-            image.save(image_data, format="JPEG")
-            image_data.seek(0)
-
-            equipment.image.save(f"sample_image{e}.jpg",
-                                 SimpleUploadedFile("sample_image.jpg", image_data.read()))
+        super().common_setup()
 
             
     def test_all_equipments_view(self):
@@ -269,7 +135,6 @@ class TestEquipmentviews(TestCase):
 class CheckoutViewTest(CommonTestSetupMixin, TestCase):
     def setUp(self):
         super().common_setup()
-
 
     def test_checkout_view(self):
         checkout_url = reverse("farm:checkout")

@@ -12,9 +12,6 @@ class TestTransitAppViews(CommonTestSetupMixin, TestCase):
         super().common_setup()
         checkout_url = reverse("farm:checkout")
 
-        #self.owner = User.objects.get(username="dennismwendwa")
-
-
         self.data = {
             "departure": "Nairobi",
             "delivery": "simbar",

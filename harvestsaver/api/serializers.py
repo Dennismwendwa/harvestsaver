@@ -29,7 +29,7 @@ class EquipmentCategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for Product model"""
-    owner_details = OwnerSerializer(source="owner", read_only=True)
+    owner_details = OwnerSerializer(read_only=True)
     category_details = CategorySerializer(source="category", read_only=True)
 
     class Meta:
@@ -43,8 +43,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerilizer(serializers.ModelSerializer):
     """Serializer for Product model"""
-    owner = OwnerSerializer(source="owner", read_only=True)
-    category = CategorySerializer(source="category", read_only=True)
+    owner = OwnerSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Product
