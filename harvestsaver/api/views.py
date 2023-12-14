@@ -25,6 +25,7 @@ class ProductAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -46,6 +47,8 @@ class ProductDetailView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
+            else:
+                print(serializer.errors)
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
         except Product.DoesNotExist:
@@ -85,6 +88,7 @@ def equipment_detail(request, pk):
     try:
         equipment = Equipment.objects.get(pk=pk)
     except Equipment.DoesNotExist:
+        print("error from equipment get")
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == "GET":
@@ -94,13 +98,15 @@ def equipment_detail(request, pk):
     elif request.method == "DELETE":
         equipment.delete()
         return Response({"detail": "Equipment deleted successfully"},
-                        status=status.HTTP_204_NO_CONTENT)
+                        status=status.HTTP_200_OK)
 
     elif request.method == "PUT":
         serializer = EquipmentSerializer(equipment, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        else:
+            print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

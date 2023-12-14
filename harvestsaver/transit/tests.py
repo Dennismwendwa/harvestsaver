@@ -12,9 +12,6 @@ class TestTransitAppViews(CommonTestSetupMixin, TestCase):
         super().common_setup()
         checkout_url = reverse("farm:checkout")
 
-        #self.owner = User.objects.get(username="dennismwendwa")
-
-
         self.data = {
             "departure": "Nairobi",
             "delivery": "simbar",
@@ -34,7 +31,7 @@ class TestTransitAppViews(CommonTestSetupMixin, TestCase):
         }
 
         self.client.post(checkout_url, data)
-        self.order = Order.objects.get(pk=1)
+        self.order = Order.objects.first()
 
         return data
 
@@ -51,15 +48,6 @@ class TestTransitAppViews(CommonTestSetupMixin, TestCase):
         self.assertIn((f"Your quote request has been sent "
                        f"successfully. Thank you!"), messages)
     
-    def test_all_transport_view(self):
-        all_url = reverse("transit:transporthome")
-
-        response = self.client.post(all_url)
-
-        #self.assertEqual(response.status_code, 200)
-        #self.assertEqual(TransportBooking.objects.count(), 1)
-        #self.assertTemplateUsed(response, "transit/all_transport.html")
-
 
 
 

@@ -15,6 +15,12 @@ class ProductAdmin(admin.ModelAdmin):
                     )
     prepopulated_fields = {"slug": ("name",)}
 
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        "customer", "order_date", "status", "total_amount",
+        "shipping_address", "transaction_id", "payment_method"
+    )
+
 class EquipmentCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
@@ -26,7 +32,7 @@ class EquipmentAdmin(admin.ModelAdmin):
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart)
-admin.site.register(Order)
+admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
 admin.site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin.site.register(Equipment, EquipmentAdmin)
