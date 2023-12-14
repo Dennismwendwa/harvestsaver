@@ -16,7 +16,6 @@ class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
     def setUp(self):
         super().common_setup()
         
-
     def test_getting_all_product_view(self):
         response = self.client.get(self.all_products_url)
 
@@ -26,9 +25,10 @@ class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
         self.assertIsInstance(response.context["page_object"], Page)
         self.assertEqual(len(response.context["page_object"].object_list), 4)
         self.assertEqual(response.context["page_object"].paginator.count, 10)
-
+    
     def test_product_detail_view(self):
-        product = Product.objects.get(pk=2)
+        
+        product = Product.objects.first()
         detail_url = reverse("farm:product_details",
                              args=[product.slug, product.pk])
         
@@ -39,9 +39,9 @@ class TestAllProductsListingview(ProductsTestSetupMixin, TestCase):
         self.assertContains(response, product.name)
         self.assertIn("product", response.context)
         self.assertContains(response, '<div class="product_details">')
-
+    
     def test_product_detail_view_with_not_found(self):
-        non_product_pk = 99
+        non_product_pk = 1000
         detail_url = reverse("farm:product_details",
                               args=("non_produt", non_product_pk))
 
@@ -89,9 +89,10 @@ class TestEquipmentviews(EquipmentTestSetupMixin, TestCase):
         self.assertEqual(len(response.context["page_object"].object_list), 4)
         self.assertEqual(response.context["page_object"].paginator.count, 10)
 
-
+    
     def test_equipment_details_view(self):
-        equipment = Equipment.objects.get(pk=3)
+
+        equipment = Equipment.objects.first()
         details_url = reverse("farm:equipment_detail", args=(equipment.slug,))
         
         response = self.client.get(details_url)
@@ -100,9 +101,11 @@ class TestEquipmentviews(EquipmentTestSetupMixin, TestCase):
         self.assertTemplateUsed(response, "farm/equipment_detail.html")
         self.assertContains(response, equipment.name)
         self.assertIn("equipment", response.context)
-
+    
+    
     def test_equipment_details_view_with_post_data(self):
-        equipment = Equipment.objects.get(pk=3)
+
+        equipment = Equipment.objects.first()
         details_url = reverse("farm:equipment_detail", args=(equipment.slug,))
         
         data = {
@@ -117,7 +120,7 @@ class TestEquipmentviews(EquipmentTestSetupMixin, TestCase):
         self.assertEqual(EquipmentInquiry.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("Name: django", mail.outbox[0].body)
-
+    
     def test_equipment_category_view(self):
         category_url = reverse("farm:equipment_category", args=(self.cat.slug,))
 
@@ -129,7 +132,7 @@ class TestEquipmentviews(EquipmentTestSetupMixin, TestCase):
         self.assertIn("category", response.context)
         self.assertContains(response, self.cat.name)
         self.assertGreater(len(response.context["equipments"]), 0)
-
+    
 
 
 class CheckoutViewTest(CommonTestSetupMixin, TestCase):

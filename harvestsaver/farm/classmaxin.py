@@ -93,7 +93,7 @@ class ProductsTestSetupMixin:
             product.image.save(f"sample_image{p}.jpg", 
                                SimpleUploadedFile("sample_image.jpg", image_data.read()))
         
-            
+     
 class CommonTestSetupMixin:
     def common_setup(self):
         self.all_products_url = reverse("farm:all_products")
@@ -131,11 +131,11 @@ class CommonTestSetupMixin:
             )
             product.image.save(f"sample_image{p}.jpg", 
                                File(open(file_path, "rb")))
-
+        for p in Product.objects.all():
+            print(p, p.pk)
         for c in range(4):
-            print("C", c)
             Cart.objects.create(
-                product=Product.objects.get(pk=c+1), 
+                product=Product.objects.get(name=f"mango {c}"), 
                 customer=self.owner, quantity=1
             )
 
