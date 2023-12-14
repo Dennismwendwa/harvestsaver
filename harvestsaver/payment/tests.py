@@ -27,10 +27,7 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
     def test_payment_by_farmpay_service_view(self):
         payment_url = reverse("payment:checkout_payment", args=(self.order.pk,))
          
-        
         response = self.client.post(payment_url)
-        for f in Order.objects.all():
-            print(f, f.pk)
         order = Order.objects.first()
         account = Account.objects.get(user=self.owner)
 
@@ -44,7 +41,6 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
         landing_url = reverse("payment:servicepayment", args=(self.order.pk,))
         
         response = self.client.post(landing_url)
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "payment/landing.html")
         self.assertContains(response, self.order.total_amount)
@@ -55,9 +51,6 @@ class TestPaymentViews(CommonTestSetupMixin, TestCase):
 
         response = self.client.post(pay_url)
         cart_items = Cart.objects.filter(customer=self.owner).count()
-        for k in Order.objects.all():
-            print("Last test")
-            print(k, k.pk)
         order = Order.objects.first()
 
         self.assertEqual(response.status_code, 200)
