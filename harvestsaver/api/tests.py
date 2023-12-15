@@ -143,14 +143,12 @@ class TestEquipmentAPIViews(EquipmentTestSetupMixin, APITestCase):
         self.image_file = SimpleUploadedFile(name="image.jpg",
                                         content=open(file_path, "rb").read(),
                                         content_type="image/jpeg")
-        
         self.new_data = {
                 "name": "JCB", "slug": "JCB",
                 "description": "good", "category": self.cat.pk,
                 "owner": self.owner.pk, "location": "wote",
                 "price_per_hour": 600, "image": self.image_file,
         }
-
         
     def test_get_all_equipents(self):
         equipments_url = reverse("api:equipments_api")
@@ -161,7 +159,6 @@ class TestEquipmentAPIViews(EquipmentTestSetupMixin, APITestCase):
         self.assertEqual(len(response.data), 10)
         self.assertEqual(response.data[9]["name"], "harvester_tractor 0")
         
-
     def test_get_single_equipment(self):
         equipment = Equipment.objects.get(name="harvester_tractor 9")
         equipment_url = reverse("api:equipment_deatil_api",
