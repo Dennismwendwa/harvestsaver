@@ -4,7 +4,8 @@
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <link href="{% static 'assets/img/welearncodes_logo.jpg' %}" rel="icon" />
+    <link href="{% static 'assets/img/favicon.png' %}" rel="icon">
+    <link href="{% static 'assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
 
     <title>HarvestSaver | Payment</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
@@ -169,6 +170,9 @@ button:disabled {
   }
 }
     </style>
+    <script>
+      var STRIPE_PUBLIC_KEY = "{{ STRIPE_PUBLIC_KEY }}";
+  </script>
   </head>
   <body>
     <section>
@@ -188,6 +192,7 @@ button:disabled {
       </div>
 
       <button type="button" id="checkout-button">Checkout</button>
+      <div id="checkout-btn-url" data-checkout-url="{% url 'payment:create-checkout-session' product.id %}"></div>
 
       <hr />
       <h2>Checkout using Farmpay App</h2>
@@ -214,7 +219,6 @@ button:disabled {
 
     </section>
     {% csrf_token %}
-
 
     <script src="{% static 'assets/js/more.js' %}"></script>
   </body>

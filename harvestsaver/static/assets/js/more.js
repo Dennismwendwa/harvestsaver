@@ -70,17 +70,21 @@ farmcheckoutButton.addEventListener("click", function () {
 
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 // Create an instance of the Stripe object with your publishable API key
-var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+var stripe = Stripe(STRIPE_PUBLIC_KEY);
 var checkoutButton = document.getElementById("checkout-button");
-checkoutButton.addEventListener("click", function () {
 
-  fetch("{% url 'payment:create-checkout-session' product.id %}", {
+var payUrl = document.getElementById("checkout-btn-url")
+var checkoutUrl = payUrl.dataset.checkoutUrl;
+checkoutButton.addEventListener("click", function () {
+console.log(checkoutUrl)
+  fetch(checkoutUrl, {
     method: "POST",
     headers: {
         'X-CSRFToken': csrftoken
     }
   })
     .then(function (response) {
+      console.log("Server Response:", response); // Log the response
       return response.json();
     })
     .then(function (session) {
