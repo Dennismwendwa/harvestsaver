@@ -18,9 +18,11 @@ from .models import EquipmentCategory, Equipment, EquipmentInquiry
 from .forms import ProductForm, EquipmentForm, EquipmentInquiryForm
 
 
+
 def succes_page(request):
     """This is success page after successfull payment"""
     return render(request, "farm/success_page.html")
+
 
 
 def home(request):
@@ -31,6 +33,7 @@ def home(request):
 
     context = {}
     return render(request, "farm/index.html", context)
+
 
 
 def all_products(request):
