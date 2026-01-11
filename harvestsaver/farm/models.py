@@ -21,8 +21,21 @@ class Category(models.Model):
   
 class Product(models.Model):
     """Model for all products availble in our site"""
+    UNIT_CHOICES = [
+        ("kg", "Kilogram"),           # grains, beans, vegetables
+        ("g", "Gram"),                # small quantities for retail
+        ("ton", "Tonne"),             # bulk harvests (maize, wheat, rice)
+        ("l", "Liter"),               # milk, honey, juice
+        ("ml", "Milliliter"),         # small liquid packaging
+        ("pcs", "Pieces"),            # cabbage, pumpkin, watermelon
+        ("bag", "Bag"),               # maize, rice, beans (50kg / 90kg)
+        ("crate", "Crate"),           # tomatoes, oranges, mangoes
+        ("bundle", "Bundle"),         # onions, spinach, herbs tied together
+        ("dozen", "Dozen"),           # eggs, seedlings
+        ("box", "Box"),               # sometimes fruits / seedlings
+    ]
     owner = models.ForeignKey(User,
-                              limit_choices_to={"is_farmer": True},
+                              limit_choices_to={"role": User.Role.FARMER},
                               on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
@@ -30,7 +43,14 @@ class Product(models.Model):
                                  on_delete=models.SET_NULL)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    unit_of_measurement = models.CharField(max_length=20)
+    unit_quantity = models.DecimalField(max_digits=8, decimal_places=2,
+                                        null=True, blank=True,
+                                        help_text="Quantity per unit, e.g., 50 for a 50kg bag"
+    )
+    unit_quantity_type = models.CharField(max_length=10, null=True,blank=True,
+                                          choices=UNIT_CHOICES,
+                                          help_text="Unit type of the quantity"
+    )
     description = models.TextField()
     image = models.ImageField(upload_to="products")
     location = models.CharField(max_length=100)
@@ -153,7 +173,7 @@ class Equipment(models.Model):
     category = models.ForeignKey(EquipmentCategory,
                                  on_delete=models.SET_NULL, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
-                              limit_choices_to={"is_equipment_owner": True})
+                              limit_choices_to={"role": User.Role.EQUIPMENT_OWNER})
     location = models.CharField(max_length=100)
     price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
     is_available = models.BooleanField(default=True)
@@ -172,6 +192,7 @@ class Equipment(models.Model):
                 )
 
     def save(self, *args, **kwargs):
+        self.name = self.name.title()
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 

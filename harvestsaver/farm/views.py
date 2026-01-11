@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
+from django.http import JsonResponse
 
 
 from payment.models import order_payment
@@ -77,7 +78,7 @@ def prodcuts_category(request, slug):
     return render(request, "farm/category.html", context)
 
 
-@login_required
+#@login_required
 def product_details(request, slug, pk):
     """Show the deatils of one product at a time"""
     
@@ -90,7 +91,7 @@ def product_details(request, slug, pk):
     }
     return render(request, "farm/product_detail.html", context)
 
-
+@login_required
 def add_to_cart(request, pk):
     """Add the product to the cart"""
     product = get_object_or_404(Product, pk=pk)
@@ -119,6 +120,7 @@ def add_to_cart(request, pk):
     return redirect("farm:product_details", product.slug, product.pk)
 
 
+@login_required
 def remove_from_cart(request, pk):
     """
     Removes product from the cart
@@ -144,6 +146,7 @@ def remove_from_cart(request, pk):
 
     return redirect("farm:product_details", product.slug, product.pk)
 
+@login_required
 def delete_from_cart(request, pk):
     """Delete the product from the cart"""
     product = get_object_or_404(Product, pk=pk)
@@ -248,7 +251,6 @@ def equipment_detail(request, slug):
             message=message,
             subject=subject,
         )
-        
 
         email_message = (
                          f"Name: {customer_name}\nEmail: "
@@ -264,6 +266,7 @@ def equipment_detail(request, slug):
                               "dennissoftware3@gmail.com",],
             fail_silently = False,
             )
+        return JsonResponse({"success": True})
 
     context = {
         "equipment": equipment,

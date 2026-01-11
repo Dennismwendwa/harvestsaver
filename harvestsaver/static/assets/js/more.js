@@ -15,14 +15,14 @@ document.addEventListener("DOMContentLoaded", function () {
             method: form.method,
             body: new FormData(form),
         })
-        .then(response => {
-            if (response.ok) {
-                form.reset();
-                overlayContainer.style.display = "none";
-            } else {
-                //
-            }
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+              form.reset();
+              overlayContainer.style.display = "none";
+          }
         })
+        .catch(err => console.error(err));
     });
 
     document.body.addEventListener("click", function (event) {
@@ -39,33 +39,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 var farmcheckoutButton = document.getElementById("farm-pay");
-farmcheckoutButton.addEventListener("click", function () {
+if (farmcheckoutButton) {
+  farmcheckoutButton.addEventListener("click", function () {
 
-  fetch("{% url 'payment:checkout_payment' product.pk %}", {
-    method: "POST",
-    headers: {
-        'X-CSRFToken': csrftoken
-    }
-  })
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (session) {
-      console.log("Redirecting to success page");
-      return stripe.redirectToCheckout({ sessionId: session.id });
-    })
-    .then(function (result) {
-      // If redirectToCheckout fails due to a browser or network
-      // error, you should display the localized error message to your
-      // customer using error.message.
-      if (result.error) {
-        alert(result.error.message);
+    fetch("{% url 'payment:checkout_payment' product.pk %}", {
+      method: "POST",
+      headers: {
+          'X-CSRFToken': csrftoken
       }
     })
-    .catch(function (error) {
-      console.error("Error:", error);
-    });
-});
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (session) {
+        console.log("Redirecting to success page");
+        return stripe.redirectToCheckout({ sessionId: session.id });
+      })
+      .then(function (result) {
+        // If redirectToCheckout fails due to a browser or network
+        // error, you should display the localized error message to your
+        // customer using error.message.
+        if (result.error) {
+          alert(result.error.message);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error:", error);
+      });
+  });
+}
 
 
 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;

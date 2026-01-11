@@ -1,5 +1,5 @@
 from .settings import *
-DEBUG = False
+DEBUG = True
 
 YOUR_DOMAIN = "http://127.0.0.1:8000"
 DATABASES = {

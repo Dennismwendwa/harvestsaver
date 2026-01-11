@@ -43,19 +43,20 @@ def register(request):
                                                 phone_number=phone_number,
                                                 gender=gender,
                                                 country=country,
+                                                role=role,
                                                 )
-                if role == "farmer":
-                    user.is_farmer = True
+                if role == User.Role.FARMER:
                     FarmerProfile.objects.create(user=user)
-                elif role == "equipment owner":
-                    user.is_equipment_owner = True
+
+                elif role == User.Role.EQUIPMENT_OWNER:
                     EquipmentOwnerProfile.objects.create(user=user)
-                elif role == "customer":
-                    user.is_customer = True
+
+                elif role == User.Role.CUSTOMER:
                     BuyerProfile.objects.create(user=user)
-                elif role == "staff":
+
+                elif role == User.Role.STAFF:
                     user.is_staff = True
-                user.save()
+                    user.save(update_fields=["is_staff"])
                 
                 if role == "farmer" or role == "equipment owner":
                     create_group_and_permission(role, user)

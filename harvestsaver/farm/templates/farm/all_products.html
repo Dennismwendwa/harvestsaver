@@ -12,7 +12,7 @@ HarvestSaver Nextwork - Product
         <h2>Products</h2>
       </div>
 
-      <div class="row gy-4">
+      <div class="row gy-4 mb-2">
         {% for product in page_object %}
         <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
           <div class="card">
@@ -29,7 +29,7 @@ HarvestSaver Nextwork - Product
         {% endfor %}
       </div>
 
-      <nav aria-label="Page navigation example">
+      <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             {% if page_object.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">1</a></a></li>

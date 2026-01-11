@@ -25,7 +25,7 @@ urlpatterns = [
     path("products/search", views.search, name="search"),
     path("all-products", views.all_products, name="all_products"),
     path("all-equipments", views.all_equipments, name="all_equipments"),
-    path("farm/dashboard", views.farmer_dashboard, name="farmer_dashboard"),
+    path("farm/dashboard/", views.farmer_dashboard, name="farmer_dashboard"),
     path("equipment/dashboard", views.equipment_dashboard,
          name="equipment_dashboard"),
     path("inquiry-for-<str:slug>", views.Equipment_inquiry_respond,

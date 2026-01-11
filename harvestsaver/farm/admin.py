@@ -9,8 +9,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "price", "quantity",
-                    "unit_of_measurement", "location", "harvest_date",
+    list_display = ("name", "category", "price", "quantity","unit_quantity",
+                    "unit_quantity_type", "location", "harvest_date",
                     "is_available",
                     )
     prepopulated_fields = {"slug": ("name",)}

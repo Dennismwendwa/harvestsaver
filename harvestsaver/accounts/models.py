@@ -3,11 +3,14 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    is_staff = models.BooleanField("Is staff", default=False)
-    is_farmer = models.BooleanField("Is farmer", default=False)
-    is_equipment_owner = models.BooleanField("is_equipment_owner",
-                                              default=False)
-    is_customer = models.BooleanField("is_customer", default=False)
+    class Role(models.TextChoices):
+        FARMER = "farmer", "Farmer"
+        CUSTOMER = "customer", "Customer"
+        EQUIPMENT_OWNER = "equipment_owner", "Equipment Owner" #equipment owner
+        STAFF = "staff", "Staff"
+
+    role = models.CharField(max_length=30,choices=Role.choices,
+                            default=Role.CUSTOMER)
     gender = models.CharField(max_length=20)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     country = models.CharField(max_length=50)
@@ -17,7 +20,19 @@ class User(AbstractUser):
         verbose_name_plural = "Users"
 
     def __str__(self):
-        return f"username {self.username}"
+        return f"{self.username}"
+    
+    @property
+    def is_farmer(self):
+        return self.role == self.Role.FARMER
+    
+    @property
+    def is_equipment_owner(self):
+        return self.role == self.Role.EQUIPMENT_OWNER
+    
+    @property
+    def is_customer(self):
+        return self.role == self.Role.CUSTOMER
 
 
 class Profile(models.Model):
@@ -82,7 +97,6 @@ class EquipmentOwnerProfile(models.Model):
 
     def __str__(self):
         return f"Owner: {self.user.username}"
-
 
 
 class Contact(models.Model):

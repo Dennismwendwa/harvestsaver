@@ -14,7 +14,9 @@ Equipment home
         <div class="col-md-4 border-end card m-2 p-2">
             <h4 class="text-center bg-light">Add new equipment</h4>
             {% for message in messages %}
-            <h5 class="p-2 bg-green">{{message}}</h5>
+            <div class="alert alert-success">
+                {{message}}
+            </div>
             {%endfor%}
             <form action="{% url 'farm:equipment_dashboard' %}" method="post"
             enctype="multipart/form-data">
