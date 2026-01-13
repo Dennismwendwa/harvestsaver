@@ -11,7 +11,8 @@ from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-
+from django.utils import timezone
+from django.conf import settings
 
 from payment.models import order_payment
 from .models import Category, Product, Cart
@@ -23,7 +24,6 @@ from .forms import ProductForm, EquipmentForm, EquipmentInquiryForm
 def succes_page(request):
     """This is success page after successfull payment"""
     return render(request, "farm/success_page.html")
-
 
 
 def home(request):
@@ -416,13 +416,43 @@ def equipment_dashboard(request):
     return render(request, "farm/equipment_dashboard.html", context)
 
 
-def Equipment_inquiry_respond(request, slug):
+def equipment_inquiry_respond(request, slug, pk):
+    """view to respond to equipment inquary"""
+    user = request.user
+    inquiry = get_object_or_404(EquipmentInquiry,
+        pk=pk, equipment__owner=user,
+    )
+
+    if inquiry.admin_responded:
+        messages.warning(request, "This inquiry has already been responded to.")
+        return redirect(
+            "farm:equipment_inquiry",
+            args=(inquiry.equipment.slug, inquiry.pk))
     
-    context = {}
+    if request.method == "POST":
+        response = request.POST.get("response")
+
+        if not response:
+            messages.error(request, "Response message cannot be empty.")
+            return redirect(request.path)
+        
+        inquiry.response = response
+        inquiry.admin_responded = True
+        inquiry.responded_at = timezone.now()
+        inquiry.save()
+
+        send_mail(
+            subject=f"Response to your inquiry: {inquiry.subject}",
+            message=response,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[inquiry.email],
+            fail_silently=False,
+        )
+        messages.success(request, "Inquiry responded successfully.")
+        return redirect("farm:equipment_dashboard")
+    
+    context = {
+        "inquiry": inquiry,
+    }
     return render(request, "farm/equipment_inquiry_respond.html", context)
-
-
-
-
-
 

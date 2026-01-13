@@ -168,7 +168,7 @@ class EquipmentCategory(models.Model):
 class Equipment(models.Model):
     """This model store all current equitmwnr"""
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
     category = models.ForeignKey(EquipmentCategory,
                                  on_delete=models.SET_NULL, null=True)
@@ -201,9 +201,13 @@ class EquipmentInquiry(models.Model):
     equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
     customer = models.CharField(max_length=100)
     email = models.EmailField()
-    date = models.DateTimeField(auto_now_add=True)
-    message = models.TextField()
     subject = models.CharField(max_length=100)
+    message = models.TextField()
+
+    response = models.TextField(blank=True, null=True)
+
+    date = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(blank=True, null=True)
     admin_responded = models.BooleanField(default=False)
 
     class Meta:
@@ -212,8 +216,7 @@ class EquipmentInquiry(models.Model):
         ordering = ("-pk",)
     def __str__(self):
         return (
-                f"Inquiry by {self.customer} about equipment "
-                f"{self.equipment.name}")
+                f"Inquiry by {self.customer} - {self.equipment.name}")
 
 
 class Review(models.Model):

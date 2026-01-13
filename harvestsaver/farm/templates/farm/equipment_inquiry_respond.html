@@ -1,14 +1,53 @@
 {% extends "accounts/layout.html" %}
-{% load static %}
 
-{% block title%}
-Equipment inquiry update
-{% endblock %}
+{% block title %}Inquiry Response{% endblock %}
 
 {% block category %}
-<div class="container mt-4">
-    <h4 clas="">Inquiry update</h4>
-    <div >
+<div class="container mt-5">
+    <h4>Equipment Inquiry</h4>
+    <div class="">
+        <a href="{% url 'farm:equipment_dashboard' %}" class="btn btn-outline-secondary mb-3">
+            ← Back
+        </a>
     </div>
+
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Equipment:</strong> {{ inquiry.equipment.name }}</p>
+            <p><strong>Customer:</strong> {{ inquiry.customer }}</p>
+            <p><strong>Email:</strong> {{ inquiry.email }}</p>
+            <p><strong>Subject:</strong> {{ inquiry.subject }}</p>
+            <p><strong>Message:</strong></p>
+            <div class="border p-3 bg-light">
+                {{ inquiry.message }}
+            </div>
+        </div>
+    </div>
+
+    {% if inquiry.admin_responded %}
+        <div class="alert alert-success">
+            <strong>Response sent on:</strong> {{ inquiry.responded_at }}
+            <hr>
+            {{ inquiry.response }}
+        </div>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Your Response</label>
+                <textarea name="response" class="form-control" rows="6" required></textarea>
+            </div>
+
+            <button class="btn btn-primary">
+                Send Response
+            </button>
+        </form>
+    {% endif %}
 </div>
 {% endblock %}
