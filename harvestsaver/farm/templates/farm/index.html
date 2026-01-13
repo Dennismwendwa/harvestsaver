@@ -257,17 +257,22 @@
                 <div class="testimonial-item">
 
                   {% if review.customer.profile.image %}
-                    <img src="{{ review.customer.profile.image.url }}" class="testimonial-img" alt="">
+                    <img src="{{ review.customer.profile.image.url }}" class="testimonial-img" alt="profile">
                   {% else %}
-                    <img src="{% static 'assets/img/default-avatar.png' %}" class="testimonial-img" alt="">
+                    <img src="{% static 'assets/img/default-avatar.png' %}" class="testimonial-img"
+                      alt="profile default">
                   {% endif %}
 
                   <h3>{{ review.customer.first_name }} {{ review.customer.last_name }}</h3>
 
                   <div class="stars">
-                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
-                    <i class="bi bi-star-fill"></i>
+                    {% for i in "12345" %}
+                      {% if forloop.counter <= review.rating %}
+                        <i class="bi bi-star-fill"></i>
+                      {% else %}
+                        <i class="bi bi-star"></i>
+                      {% endif %}
+                    {% endfor %}
                   </div>
 
                   <p>

@@ -230,7 +230,7 @@ def equipment_category(request, slug):
     }
     return render(request, "farm/category.html", context)
 
-
+from .services.inquiries import send_inquiry_email_async
 def equipment_detail(request, slug):
     """This view is for equipment details inquiry"""
     
@@ -258,14 +258,14 @@ def equipment_detail(request, slug):
                          f"\n\n{message}"
                          )
 
-        send_mail(
-            subject = f"Contacting about machine {equipment_name}",
-            message = email_message,
-            from_email = email,
-            recipient_list = ["dennismusembi2@gmail.com",
-                              "dennissoftware3@gmail.com",],
-            fail_silently = False,
-            )
+        send_inquiry_email_async(
+            equipment_name=equipment.name,
+            owner_email=equipment.owner.email,
+            customer_name=customer_name,
+            customer_email=email,
+            subject=subject,
+            message=message,
+        )
         return JsonResponse({"success": True})
 
     context = {
@@ -381,9 +381,11 @@ def get_lat_long(location_name):
 @login_required
 def equipment_dashboard(request):
     """This is equipment onwers dash board view"""
-    equipments = Equipment.objects.all()
+    user = request.user
+    equipments = Equipment.objects.filter(owner=user)
 
-    inquiry = EquipmentInquiry.objects.filter(admin_responded=False).all()
+    inquiry = EquipmentInquiry.objects.filter(admin_responded=False,
+                                              equipment__in=equipments)
 
     if not request.user.has_perm("farm.view_equipment"):
         messages.error(request, (f"You do not have permission to access "

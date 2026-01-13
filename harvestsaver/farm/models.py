@@ -217,25 +217,76 @@ class EquipmentInquiry(models.Model):
 
 
 class Review(models.Model):
-    """This models stores reviews of products"""
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                related_name='reviews')
     review = models.TextField()
+    rating = models.PositiveSmallIntegerField(default=5)
     review_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Review"
-        verbose_name_plural = "Reviews"
-        ordering = ("-pk",)
+        abstract = True
+        ordering = ("-review_date",)
 
     def __str__(self):
-        return f"{self.customer.username} {self.product.name}"
+        return f"Review by {self.customer}"
+    
+class ProductReview(Review):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
 
-    @classmethod
-    def all_product_review(cls, product):
-        """Returns all reviews of a product"""
-        return cls.objects.filter(product=product)
+    class Meta:
+        verbose_name = "Product Review"
+        verbose_name_plural = "Product Reviews"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer", "product"],
+                name="unique_product_review"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.customer} → {self.product.name}"
+
+class EquipmentReview(Review):
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+
+    class Meta:
+        verbose_name = "Equipment Review"
+        verbose_name_plural = "Equipment Reviews"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer", "equipment"],
+                name="unique_equipment_review"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.customer} → {self.equipment.name}"
+
+class PlatformReview(Review):
+    category = models.CharField(
+        max_length=50,
+        choices=[
+            ("trust", "Trust"),
+            ("usability", "Usability"),
+            ("support", "Support"),
+        ],
+        default="trust",
+    )
+
+    class Meta:
+        verbose_name = "Platform Review"
+        verbose_name_plural = "Platform Reviews"
+
+    def __str__(self):
+        return f"{self.customer} → Platform"
+
 
 
 class FrequentQuestion(models.Model):

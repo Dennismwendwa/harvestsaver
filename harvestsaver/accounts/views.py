@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth.models import auth, Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
+from django.contrib.auth.models import auth
 
 from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
 from .models import Contact
 from .forms import ContactForm
+
+from .utils.functions import create_group_and_permission
 
 
 def register(request):
@@ -58,7 +59,7 @@ def register(request):
                     user.is_staff = True
                     user.save(update_fields=["is_staff"])
                 
-                if role == "farmer" or role == "equipment owner":
+                if role == "farmer" or role == "equipment_owner":
                     create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
                 if status == "farmer":
@@ -76,42 +77,6 @@ def register(request):
             return redirect("accounts:register")
 
     return render(request, "accounts/register.html")
-
-
-def create_group_and_permission(role, user):
-    """
-    We are creating group, and
-    add permissions to the group
-    and we add user to the group
-    """
-    if role == "farmer":
-        model = "product"
-        app_name = "farm"
-    elif role == "equipment owner":
-        model = "equipment"
-        app_name = "farm"
-    
-    role = role.capitalize()
-    try:
-        group = Group.objects.get(name=role)
-    except Group.DoesNotExist:
-        group = Group.objects.create(name=role)
-
-    content_type = ContentType.objects.get(app_label=app_name, model=model)
-
-    try:
-        view_permission = Permission.objects.get(
-            codename=f"view_{model.lower()}",
-            content_type=content_type
-            )
-    except Permission.DoesNotExist:
-        view_permission = Permission.objects.create(
-            codename=f"view_{model.lower()}",
-            name=f"Can view {model}",
-            content_type=content_type,
-            )
-    group.permissions.add(view_permission)
-    group.user_set.add(user)
 
     
 

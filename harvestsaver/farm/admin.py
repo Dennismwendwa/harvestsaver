@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Category, Product, Cart, Order, OrderItem
-from .models import EquipmentCategory, Equipment, Review, FrequentQuestion
+from .models import (EquipmentCategory, Equipment, ProductReview, FrequentQuestion,
+                     EquipmentReview, PlatformReview)
 from .models import EquipmentInquiry
 
 
@@ -27,6 +28,15 @@ class EquipmentCategoryAdmin(admin.ModelAdmin):
 
 class EquipmentAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
+
+class ProductReviewAdmin(admin.ModelAdmin):
+    list_display = ("customer", "review", "rating", "review_date", "product")
+
+class PlatformReviewAdmin(admin.ModelAdmin):
+    list_display = ("customer", "review", "rating", "review_date", "category")
+
+class EquipmentReviewAdmin(admin.ModelAdmin):
+    list_display = ("customer", "review", "rating", "review_date", "equipment")
     
 
 admin.site.register(Category, CategoryAdmin)
@@ -36,6 +46,8 @@ admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
 admin.site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin.site.register(Equipment, EquipmentAdmin)
-admin.site.register(Review)
 admin.site.register(FrequentQuestion)
 admin.site.register(EquipmentInquiry)
+admin.site.register(ProductReview, ProductReviewAdmin)
+admin.site.register(EquipmentReview, EquipmentReviewAdmin)
+admin.site.register(PlatformReview, PlatformReviewAdmin)

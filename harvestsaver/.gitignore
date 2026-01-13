@@ -6,6 +6,8 @@ harvestsaver.log
 db.sqlite3
 *.pyc
 
+staticfiles/
+
 harvestsaver/__pycache__/
 
 accounts/__pycache__/

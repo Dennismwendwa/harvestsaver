@@ -1,7 +1,9 @@
 from django.utils import timezone
+from random import shuffle
 from django.db.models import Sum
 from farm.models import Category, Product, Cart, Equipment, EquipmentCategory
-from farm.models import Review, FrequentQuestion
+from farm.models import (ProductReview, FrequentQuestion, PlatformReview,
+                         EquipmentReview)
 
 
 def common_variables(request):
@@ -9,7 +11,7 @@ def common_variables(request):
     categories = Category.objects.all()[:5]
     products = Product.objects.all()[:8]
 
-    reviews = Review.objects.all()[:5]
+    reviews = PlatformReview.objects.all()[:5]
     questions = FrequentQuestion.objects.all()[:5]
 
     if request.user.is_authenticated:
