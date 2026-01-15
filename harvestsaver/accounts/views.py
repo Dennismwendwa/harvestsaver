@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.models import auth
 
-from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
+from .models import (User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile,
+                     Profile)
 from .models import Contact
-from .forms import ContactForm
+from .forms import ContactForm, FarmerProfileForm, BuyerProfileForm, EquipmentOwnerProfileForm
 
 from .utils.functions import create_group_and_permission
 
@@ -46,16 +47,8 @@ def register(request):
                                                 country=country,
                                                 role=role,
                                                 )
-                if role == User.Role.FARMER:
-                    FarmerProfile.objects.create(user=user)
 
-                elif role == User.Role.EQUIPMENT_OWNER:
-                    EquipmentOwnerProfile.objects.create(user=user)
-
-                elif role == User.Role.CUSTOMER:
-                    BuyerProfile.objects.create(user=user)
-
-                elif role == User.Role.STAFF:
+                if role == User.Role.STAFF:
                     user.is_staff = True
                     user.save(update_fields=["is_staff"])
                 
@@ -78,8 +71,6 @@ def register(request):
 
     return render(request, "accounts/register.html")
 
-    
-
 def login_helper(username, password, request):
     """This function is for login users"""
     user = auth.authenticate(username=username, password=password)
@@ -94,8 +85,7 @@ def login_helper(username, password, request):
             return "success"
     else:
         messages.warning(request, f"Wrong password or username")
-        return redirect("accounts:login")
-        
+        return redirect("accounts:login")    
 
 def login(request):
     """This is login view
@@ -124,7 +114,6 @@ def login(request):
             return redirect("farm:home")
 
     return render(request, "accounts/login.html")
-
 
 def logout(request):
     """This is logout view"""
@@ -169,6 +158,46 @@ def contact(request):
     context = {"form": form,}
     return render(request, "accounts/conatact.html", context)
 
-
 def aboutus(request):
     return render(request, "accounts/aboutus.html")
+
+def get_profile_and_form(user):
+    if hasattr(user, "farmerprofile"):
+        return user.farmerprofile, FarmerProfileForm
+    elif hasattr(user, "buyerprofile"):
+        return user.buyerprofile, BuyerProfileForm
+    elif hasattr(user, "equipmentownerprofile"):
+        return user.equipmentownerprofile, EquipmentOwnerProfileForm
+    else:
+        raise Exception("User has no profile")
+
+def profile(request):
+    """
+    Docstring for profile
+    
+    This view is for updating and rendering user profile
+    """
+    user = request.user
+    profile, form_class = get_profile_and_form(user)
+
+    if request.method == "POST":
+        form = form_class(
+            request.POST,
+            request.FILES,
+            instance=profile
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully")
+            return redirect("accounts:profile")
+    else:
+        form = form_class(instance=profile)
+
+    context = {
+        "form": form,
+        "profile": profile,
+    }
+
+    return render(request, "accounts/profile.html", context)
+
+

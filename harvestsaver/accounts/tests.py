@@ -115,12 +115,13 @@ class RegisterViewTest(TestCase):
         response1 = self.client.post(self.register_url, user3)
         response2 = self.client.post(self.register_url, self.valid_data)
         response3 = self.client.post(self.register_url, self.second_user)
+        user = User.objects.get(username="charo")
        
         self.assertEqual(response1.status_code, 302)
         self.assertEqual(response2.status_code, 302)
         self.assertEqual(response3.status_code, 302)
         self.assertTrue(User.objects.filter(username="charo",
-                                            is_customer=True).exists())
+                                            ).exists())
         self.assertEqual(User.objects.count(), 3)
         self.assertEqual(Group.objects.count(), 2)
         

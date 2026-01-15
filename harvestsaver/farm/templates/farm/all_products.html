@@ -12,22 +12,7 @@ HarvestSaver Nextwork - Product
         <h2>Products</h2>
       </div>
 
-      <div class="row gy-4 mb-2">
-        {% for product in page_object %}
-        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-          <div class="card">
-            <div class="card-img">
-              <a href="{% url 'farm:product_details' product.slug product.pk %}">
-              <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
-              </a>
-            </div>
-            <h5 class="text-center"><a href="{% url 'farm:products_category' product.category.slug %}" class="">{{product.category.name}}</a></h5>
-            <h3>{{product.name}}</h3>
-            <p>{{product.description}}</p>
-          </div>
-        </div><!-- End Card Item -->
-        {% endfor %}
-      </div>
+      {% include "farm/products.html" %}
 
       <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">

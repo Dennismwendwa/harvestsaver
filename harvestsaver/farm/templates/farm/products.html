@@ -1,16 +1,54 @@
-<div class="row gy-4">
+<div class="row g-3">
     {% for product in products %}
-    <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-      <div class="card">
-        <div class="card-img">
-          <a href="{% url 'farm:product_details' product.slug product.pk %}">
-          <img src="{{product.image.url}}" alt="{% if product.alt%}{{product.alt}}{%else%}product image{%endif%}" class="img-fluid">
-          </a>
+    <div class="col-md-4 data-aos="fade-up" data-aos-delay="100"">
+        <div class="card h-100 shadow-sm">
+
+            <!-- Image -->
+            <div class="card-img">
+            <a href="{% url 'farm:product_details' product.slug product.pk %}">
+            <img src="{{ product.image.url }}"
+                class="card-img-top"
+                style="height: 200px; object-fit: cover;"
+                alt="{{ product.name }}">
+            </a>
+            </div>
+            <div class="card-body">
+                <!-- Title -->
+                <h5 class="card-title fw-bold">
+                    {{ product.name }}
+                </h5>
+
+                <!-- Category -->
+                <span class="badge bg-secondary mb-2">
+                    <a href="{% url 'farm:products_category' product.category.slug %}" class="">
+                    {{ product.category.name }}
+                    </a>
+                </span>
+
+                <!-- Description -->
+                <p class="card-text small text-muted">
+                    {{ product.description|truncatechars:80 }}
+                </p>
+
+                <!-- Info -->
+                <ul class="list-unstyled small mb-2">
+                    <li>
+                        <i class="bi bi-geo-alt"></i>
+                        {{ product.location }}
+                    </li>
+                </ul>
+
+                <!-- Availability -->
+                {% if product.is_available %}
+                    <span class="badge bg-success">Available</span>
+                {% else %}
+                    <span class="badge bg-danger">Unavailable</span>
+                {% endif %}
+            </div>
+
         </div>
-        <h5 class="text-center"><a href="{% url 'farm:products_category' product.category.slug %}" class="">{{product.category.name}}</a></h5>
-        <h3>{{product.name}}</h3>
-        <p>{{product.description|slice:"0:350"}}</p>
-      </div>
-    </div><!-- End Card Item -->
+    </div>
+    {% empty %}
+    <p class="text-center text-muted">No equipment added yet.</p>
     {% endfor %}
-  </div>
+</div>

@@ -1,5 +1,4 @@
 from django.utils import timezone
-from random import shuffle
 from django.db.models import Sum
 from farm.models import Category, Product, Cart, Equipment, EquipmentCategory
 from farm.models import (ProductReview, FrequentQuestion, PlatformReview,
@@ -33,3 +32,5 @@ def common_variables(request):
             "reviews": reviews,
             "questions": questions,
             }
+
+
