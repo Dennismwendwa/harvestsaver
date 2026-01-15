@@ -1,0 +1,126 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}
+My Profile
+{% endblock %}
+
+{% block accounts %}
+<div class="container mt-5">
+
+    <!-- ================= PROFILE HEADER ================= -->
+    <div class="card mb-4">
+        <div class="card-body d-flex align-items-center">
+            <img
+                src="{{ profile.image.url }}"
+                class="rounded-circle me-3"
+                width="90"
+                height="90"
+                alt="Profile image"
+            >
+            <div>
+                <h4 class="mb-0">{{ request.user.username }}</h4>
+                <small class="text-muted">
+                    {{ request.user.email }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {%for message in messages%}
+    <div class="alert alert-{{message.tags}}">
+        {{message}}
+    </div>
+    {%endfor%}
+
+    <div class="row">
+        <!-- ================= CURRENT DETAILS ================= -->
+        <div class="col-md-5">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Current Details</h6>
+                </div>
+                <div class="card-body">
+
+                    <p><strong>Bio:</strong><br>
+                        {{ profile.bio|default:"—" }}
+                    </p>
+
+                    {% if profile.location %}
+                        <p><strong>Location:</strong> {{ profile.location }}</p>
+                    {% endif %}
+
+                    {% if profile.farm_name %}
+                        <p><strong>Farm Name:</strong> {{ profile.farm_name }}</p>
+                        <p><strong>Farm Size:</strong> {{ profile.farm_size }}</p>
+                        <p><strong>Crop Types:</strong> {{ profile.crop_types }}</p>
+                    {% endif %}
+
+                    {% if profile.preferred_categories %}
+                        <p><strong>Preferred Categories:</strong>
+                            {{ profile.preferred_categories }}
+                        </p>
+                    {% endif %}
+
+                    <hr>
+
+                    <p>
+                        <strong>Facebook:</strong>
+                        {{ profile.facebook_username|default:"—" }}
+                    </p>
+
+                    <p>
+                        <strong>Instagram:</strong>
+                        {{ profile.instagram_username|default:"—" }}
+                    </p>
+
+                    <p>
+                        <strong>Notifications:</strong>
+                        {% if profile.notification %}
+                            Enabled
+                        {% else %}
+                            Disabled
+                        {% endif %}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= UPDATE PROFILE ================= -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Update Profile</h6>
+                </div>
+                <div class="card-body">
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {{ form.non_field_errors }}
+
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <button type="submit" class="btn btn-primary">
+                            Save Changes
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
