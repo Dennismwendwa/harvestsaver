@@ -16,7 +16,7 @@ from django.conf import settings
 
 from payment.models import order_payment
 from .models import Category, Product, Cart
-from .models import EquipmentCategory, Equipment, EquipmentInquiry
+from .models import EquipmentCategory, Equipment, EquipmentInquiry, EquipmentRental
 from .forms import ProductForm, EquipmentForm, EquipmentInquiryForm
 
 
@@ -236,41 +236,28 @@ def equipment_category(request, slug):
 from .services.inquiries import send_inquiry_email_async
 def equipment_detail(request, slug):
     """This view is for equipment details inquiry"""
-    
+    user = request.user
     equipment = get_object_or_404(Equipment, slug=slug)
     
     if request.method == "POST":
-        customer_name = request.POST.get("name")
-        email = request.POST.get("email")
-        subject = request.POST.get("subject")
+        requested_start_date = request.POST.get("requested_start_date")
+        requested_end_date = request.POST.get("requested_end_date")
         message = request.POST.get("message")
         
         equipment_name = equipment.name
 
         EquipmentInquiry.objects.create(
             equipment=equipment,
-            customer=customer_name,
-            email=email,
+            requester=user,
             message=message,
-            subject=subject,
+            requested_start_date=requested_start_date,
+            requested_end_date=requested_end_date,
         )
 
-        email_message = (
-                         f"Name: {customer_name}\nEmail: "
-                         f"{email}\nSubject: {subject} "
-                         f"\n\n{message}"
-                         )
-
-        send_inquiry_email_async(
-            equipment_name=equipment.name,
-            owner_email=equipment.owner.email,
-            customer_name=customer_name,
-            customer_email=email,
-            subject=subject,
-            message=message,
-        )
         return JsonResponse({"success": True})
-
+    print()
+    print(f"owner: {equipment.owner}")
+    print()
     context = {
         "equipment": equipment,
     }
@@ -387,7 +374,7 @@ def equipment_dashboard(request):
     user = request.user
     equipments = Equipment.objects.filter(owner=user)
 
-    inquiry = EquipmentInquiry.objects.filter(admin_responded=False,
+    inquiry = EquipmentInquiry.objects.filter((Q(status="pending")),
                                               equipment__in=equipments)
 
     if not request.user.has_perm("farm.view_equipment"):
@@ -423,31 +410,35 @@ def equipment_inquiry_respond(request, slug, pk):
         pk=pk, equipment__owner=user,
     )
 
-    if inquiry.admin_responded:
+    if request.method == "POST" and inquiry.status != "pending":
         messages.warning(request, "This inquiry has already been responded to.")
         return redirect(
             "farm:equipment_inquiry",
-            args=(inquiry.equipment.slug, inquiry.pk))
+            slug = inquiry.equipment.slug,
+            pk = inquiry.pk
+            )
     
     if request.method == "POST":
         response = request.POST.get("response")
+        status = "responded"
 
         if not response:
             messages.error(request, "Response message cannot be empty.")
             return redirect(request.path)
         
         inquiry.response = response
-        inquiry.admin_responded = True
+        inquiry.status = status
         inquiry.responded_at = timezone.now()
         inquiry.save()
 
+        """
         send_mail(
             subject=f"Response to your inquiry: {inquiry.subject}",
             message=response,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[inquiry.email],
             fail_silently=False,
-        )
+        )"""
         messages.success(request, "Inquiry responded successfully.")
         return redirect("farm:equipment_dashboard")
     

@@ -3,7 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 
-from accounts.models import User
+from accounts.models import User, BuyerProfile
+from .validators import validate_file_is_pdf, validate_date_is_not_past
 
 
 class Category(models.Model):
@@ -197,27 +198,45 @@ class Equipment(models.Model):
         super().save(*args, **kwargs)
 
 class EquipmentInquiry(models.Model):
-    """This model for equipments inquiry"""
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
-    customer = models.CharField(max_length=100)
-    email = models.EmailField()
-    subject = models.CharField(max_length=100)
+    """Inquiry before an equipment rental agreement"""
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("responded", "Responded"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+        ("expired", "Expired"),
+    ]
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE, related_name="inquiries")
+    requester = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name="equipment_inquiries")
     message = models.TextField()
-
+    requested_start_date = models.DateField(validators=[validate_date_is_not_past],
+                                            null=True, blank=True)
+    requested_end_date = models.DateField(validators=[validate_date_is_not_past],
+                                          null=True, blank=True)
     response = models.TextField(blank=True, null=True)
-
-    date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
     responded_at = models.DateTimeField(blank=True, null=True)
-    admin_responded = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Equipment Inquiry"
-        verbose_name_plural = "Equipments Inquiry"
-        ordering = ("-pk",)
+        verbose_name_plural = "Equipment Inquiries"
+        ordering = ("-created_at",)
+
     def __str__(self):
         return (
-                f"Inquiry by {self.customer} - {self.equipment.name}")
-
+            f"Inquiry by {self.requester.username} "
+            f"for {self.equipment.name}"
+        )
+    
+    @property
+    def is_responded_to(self):
+        return self.status != "pending"
 
 class Review(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -290,6 +309,26 @@ class PlatformReview(Review):
     def __str__(self):
         return f"{self.customer} → Platform"
 
+class EquipmentRental(models.Model):
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE,
+        related_name="rentals"
+    )
+    renter = models.ForeignKey(
+        BuyerProfile,
+        on_delete=models.CASCADE,
+        related_name="rentals"
+    )
+    start_date = models.DateField()
+    end_date = models.DateField()
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Equipment Rental"
+        verbose_name_plural = "Equipment Rentals"
+        ordering = ("created_at",)
 
 
 class FrequentQuestion(models.Model):

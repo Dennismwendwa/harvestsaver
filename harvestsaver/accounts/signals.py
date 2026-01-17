@@ -21,6 +21,11 @@ def create_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def save_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    if instance.is_farmer:
+        instance.farmer_profile.save()
+    elif instance.is_customer:
+        instance.buyer_profile.save()
+    elif instance.is_equipment_owner:
+        instance.equipment_owner_profile.save()
     instance.account.save()
 

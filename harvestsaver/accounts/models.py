@@ -53,6 +53,11 @@ class FarmerProfile(Profile):
     farm_size = models.CharField(max_length=100, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     crop_types = models.CharField(max_length=200, blank=True, null=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="farmer_profile"
+    )
 
     class Meta:
         verbose_name = "Farmer Profile"
@@ -68,16 +73,22 @@ class BuyerProfile(Profile):
     location = models.CharField(max_length=100, blank=True)
     preferred_categories = models.CharField(max_length=200, blank=True,
                                             null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,
+                                related_name="buyer_profile")
 
     class Meta:
         verbose_name = "Buyer Profile"
         verbose_name_plural = "Buyer Profiles"
 
     def __str__(self):
-        return f"Buyer: {self.user.username} location: {self.location}"
+        return f"Buyer: ({self.pk}) {self.user.username} location: {self.location}"
 
 class EquipmentOwnerProfile(Profile):
-    pass
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="equipment_owner_profile"
+    )
 
     class Meta:
         verbose_name = "Equipment Owner Profile"

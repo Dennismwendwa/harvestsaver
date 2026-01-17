@@ -4,7 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 
 from accounts.models import User
-from .models import Product, Equipment, EquipmentInquiry
+from .models import (Product, Equipment, EquipmentInquiry,
+                     )
 
 
 class ProductForm(forms.ModelForm):
@@ -75,6 +76,8 @@ class EquipmentInquiryForm(forms.ModelForm):
     class Meta:
         model = EquipmentInquiry
         exclude = ["date", "admin_responded",]
+
+
 
 
 

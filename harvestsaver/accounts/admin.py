@@ -11,3 +11,5 @@ admin.site.register(User, UserAdmin)
 admin.site.register(BuyerProfile)
 admin.site.register(FarmerProfile)
 admin.site.register(EquipmentOwnerProfile)
+
+

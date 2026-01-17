@@ -20,9 +20,9 @@
     <div class="card mb-4">
         <div class="card-body">
             <p><strong>Equipment:</strong> {{ inquiry.equipment.name }}</p>
-            <p><strong>Customer:</strong> {{ inquiry.customer }}</p>
-            <p><strong>Email:</strong> {{ inquiry.email }}</p>
-            <p><strong>Subject:</strong> {{ inquiry.subject }}</p>
+            <p><strong>Customer:</strong> {{ inquiry.requester.get_full_name }}</p>
+            <p><strong>Start Date:</strong> {{ inquiry.requested_start_date}} </p>
+            <p><strong>End Date:</strong> {{ inquiry.requested_end_date}} </p>
             <p><strong>Message:</strong></p>
             <div class="border p-3 bg-light">
                 {{ inquiry.message }}
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    {% if inquiry.admin_responded %}
+    {% if inquiry.is_responded_to %}
         <div class="alert alert-success">
             <strong>Response sent on:</strong> {{ inquiry.responded_at }}
             <hr>
