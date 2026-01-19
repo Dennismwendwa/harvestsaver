@@ -60,6 +60,7 @@ class Product(models.Model):
     location = models.CharField(max_length=100)
     harvest_date = models.DateField()
     is_available = models.BooleanField(default=True)
+    is_perishable = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Product"

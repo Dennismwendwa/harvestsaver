@@ -88,3 +88,51 @@ class Quote(models.Model):
 
     def __str_(self):
         return f"Qoute from {self.name} email is {self.email}"
+    
+
+class VehicleCategory(models.Model):
+    name = models.CharField(max_length=50, help_text="e.g Pickup, 3-Ton Truck")
+    base_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_per_km = models.DecimalField(max_digits=10, decimal_places=2)
+    max_capacity_kg = models.IntegerField()
+
+    class Meta:
+        verbose_name = "Vehicle Category"
+        verbose_name_plural = "Vehicle Categories"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
+    
+
+class TerrainAdjustment(models.Model):
+    ZONE_CHOICES = [
+        ("tarmac", "Highway/Tarmac"),
+        ("rural", "Rural/Muruam"),
+        ("difficult", "Off-road/Muddy"),
+    ]
+    zone_type = models.CharField(max_length=20, choices=ZONE_CHOICES, unique=True)
+    multiplier = models.DecimalField(max_digits=4, decimal_places=2, default=100)
+
+    class Meta:
+        verbose_name = "Terrain Adjustment"
+        verbose_name_plural = "Terrain Adjustments"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"{self.zone_type} ({self.multiplier}x)"
+
+
+class Location(models.Model):
+    name = models.CharField(max_length=255, unique=True, help_text="Molo Market")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    class Meta:
+        verbose_name = "Location"
+        verbose_name_plural = "Locations"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
+

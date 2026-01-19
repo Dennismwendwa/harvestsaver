@@ -87,14 +87,10 @@ class CustomerSession(models.Model):
 
 def order_payment(shipping_address,payment_method, transport, pickup_location, request):
 
-    cart_items = Cart.objects.filter(customer=request.user).all()
+    cart_items = Cart.objects.filter(customer=request.user)
     products_instances = [cart_item.product for cart_item in cart_items]
-    
-    if cart_items:
-        total = 0
-        for item in cart_items:
-            subtotal = item.calculate_total_cost
-            total += subtotal
+
+    total = Cart.total_cart_price(request.user)
         
     shipping = round((Decimal(3 / 100) * total), 2)
     total_cost = (total + shipping)

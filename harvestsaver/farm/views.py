@@ -17,6 +17,7 @@ from payment.models import order_payment
 from .models import Category, Product, Cart
 from .models import EquipmentCategory, Equipment, EquipmentInquiry, EquipmentRental
 from .forms import ProductForm, EquipmentForm, EquipmentInquiryForm
+from transit.services import cart_deliery_type
 
 
 
@@ -203,6 +204,7 @@ def checkout(request):
     the items for transport upon successfull payment
     """
     user = request.user
+    cart_items = Cart.objects.filter(customer=user)
     total = Cart.total_cart_price(user)
         
     shipping = round((Decimal(3 / 100) * total), 2)
@@ -226,6 +228,7 @@ def checkout(request):
         "total": total,
         "shipping": shipping,
         "total_cost": total_cost,
+        "delivery_type": cart_deliery_type(cart_items),
     }
     return render(request, "farm/chackout.html", context)
 
