@@ -16,7 +16,7 @@ def common_variables(request):
     if request.user.is_authenticated:
         current_user_total_quantity = Cart.objects.filter(
             customer=request.user).aggregate(
-                total_quantity=Sum("quantity"))["total_quantity"]
+                total_quantity=Sum("quantity"))["total_quantity"] or 0
     else:
         current_user_total_quantity = 0
 

@@ -2,9 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.models import auth
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import (User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile,
-                     Profile)
+from .models import (User)
 from .models import Contact
 from .forms import ContactForm, FarmerProfileForm, BuyerProfileForm, EquipmentOwnerProfileForm
 
@@ -162,14 +162,18 @@ def aboutus(request):
     return render(request, "accounts/aboutus.html")
 
 def get_profile_and_form(user):
-    if hasattr(user, "farmerprofile"):
-        return user.farmerprofile, FarmerProfileForm
-    elif hasattr(user, "buyerprofile"):
-        return user.buyerprofile, BuyerProfileForm
-    elif hasattr(user, "equipmentownerprofile"):
-        return user.equipmentownerprofile, EquipmentOwnerProfileForm
-    else:
-        raise Exception("User has no profile")
+    try:
+        if user.is_farmer:
+            return user.farmer_profile, FarmerProfileForm
+        elif user.is_customer:
+            return user.buyer_profile, BuyerProfileForm
+        elif user.is_equipment_owner:
+            return user.equipment_owner_profile, EquipmentOwnerProfileForm
+    except ObjectDoesNotExist:
+        pass
+
+    raise Exception("User has no profile")
+
 
 def profile(request):
     """

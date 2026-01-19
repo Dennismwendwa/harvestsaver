@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
+          
           if (data.success) {
               form.reset();
               overlayContainer.style.display = "none";

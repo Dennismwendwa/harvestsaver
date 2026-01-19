@@ -2,6 +2,9 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+from django.db.models import F, Sum, DecimalField
+from django.db.models.functions import Coalesce
+from decimal import Decimal
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
@@ -90,15 +93,21 @@ class Cart(models.Model):
                 f"product: {self.product.name} "
                 f"Quantity: {self.quantity}"
                 )
-    @property
-    def calculate_total_cost(self):
-        """This method calculates the total cost of item in cart
-           cost per item times the number of such items in cart
-        """
-        if self.product and self.quantity:
-            return self.product.price * self.quantity
+    
+    @classmethod
+    def total_cart_price(cls, user):
+        cart_items = cls.objects.filter(customer=user)
+        total = cart_items.aggregate(
+            total=Coalesce(
+                Sum(
+                    F("quantity") * F("product__price"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                ),
+                Decimal("0.00"),
+            )
+        )["total"]
+        return total
 
-        return 0.0
 
 
 class Order(models.Model):

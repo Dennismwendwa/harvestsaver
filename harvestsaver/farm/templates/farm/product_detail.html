@@ -1,90 +1,118 @@
 {% extends "accounts/layout.html" %}
 {% load static %}
+{% load humanize %}
+
 
 {% block title %}
     HarvestSaver - Shopping
 {% endblock %}
 
+  {%block javascript%}
+  <script src="{% static 'assets/js/cart.js' %}"></script>
+  {%endblock%}
+
 {% block category %}
-    <section>
-        <div class="container">
-            <div>
-                {% for message in messages %}
-                    <p class="p-2 bg-danger text-white">{{message}}</p>
-                {%endfor%}
+<section>
+    <div class="container">
+        {% csrf_token %}
+
+        {% for message in messages %}
+            <p class="p-2 bg-danger text-white">{{ message }}</p>
+        {% endfor %}
+
+        <div class="row">
+
+            <!-- Product Image -->
+            <div class="col-md-5 border">
+                <img
+                    src="{{ product.image.url }}"
+                    class="img-fluid"
+                    alt="{{ product.alt|default:'product image' }}"
+                >
             </div>
-            <div class="row">
-                <div class="col-md-5 border">
-                    <img src="{{product.image.url}}" class="img-fluid"
-                        alt="{%if product.alt%}{{product.alt}}{%else%}product image{%endif%}">
-                </div>
-                <div class="col-md-4">
-                    <h3>{{ product.name }}</h3>
-                    <p>{{ product.description }}</p>
 
-                    <small class="text-muted">
-                        Farmer: {{ product.owner.get_full_name }}
-                    </small>
+            <!-- Product Info -->
+            <div class="col-md-4">
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description }}</p>
 
-                    <p class="mt-2">
-                        <strong>Available Stock:</strong>
-                        {{ product.quantity }} {{ product.unit_quantity_type }}(s)
-                    </p>
+                <small class="text-muted">
+                    Farmer: {{ product.owner.get_full_name }}
+                </small>
 
-                    <p>
-                        <strong>Unit Price:</strong>
-                        KES {{ product.price }} per {{ product.unit_quantity }} {{product.unit_quantity_type}}
-                    </p>
+                <p class="mt-2">
+                    <strong>Available Stock:</strong>
+                    {{ product.quantity }} {{ product.unit_quantity_type }}(s)
+                </p>
 
-                    <p>
-                        <strong>Status:</strong>
-                        {% if product.is_available %}
-                            <span class="text-success">Available</span>
-                        {% else %}
-                            <span class="text-danger">Out of stock</span>
-                        {% endif %}
-                    </p>
-                </div>
+                <p>
+                    <strong>Unit Price:</strong>
+                    KES {{ product.price }} per
+                    {{ product.unit_quantity }} {{ product.unit_quantity_type }}
+                </p>
 
-                <div class="col-md-3">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
+                <p>
+                    <strong>Status:</strong>
+                    {% if product.is_available %}
+                        <span class="text-success">Available</span>
+                    {% else %}
+                        <span class="text-danger">Out of stock</span>
+                    {% endif %}
+                </p>
+            </div>
 
-                            <form action="{% url 'farm:add_to_cart' product.pk %}" method="post">
-                                {% csrf_token %}
+            <!-- Cart Controls -->
+            <div class="col-md-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
 
-                                <label class="form-label">Select Quantity</label>
-                                <input
-                                    type="number"
-                                    name="quantity"
-                                    class="form-control"
-                                    min="1"
-                                    max="{{ product.quantity }}"
-                                    value="1"
-                                    required
-                                >
+                        <label class="form-label">Quantity in Cart</label>
+                        <p id="cart_item_quantity">
+                            {{ cart_item.quantity|default:0 }}
+                        </p>
 
-                                <p class="mt-3">
-                                    <strong>Total Price:</strong><br>
-                                    <span id="total-price">
-                                        KES {{ product.price }}
-                                    </span>
-                                </p>
+                        <p class="mt-3">
+                            <strong>Total Price:</strong><br>
+                            <span id="total-price">
+                                KES {{ total_price|floatformat:2|intcomma }}
+                            </span>
+                        </p>
 
-                                <button class="btn btn-primary w-100 mt-2">
-                                    Add to Cart
-                                </button>
-                            </form>
-
-                            <a href="{% url 'farm:cart_items' %}" class="btn btn-outline-primary w-100 mt-2">
-                                Buy Now
-                            </a>
+                        <div id="cart-buttons"
+                            data-product-id="{{ product.pk }}"
+                            data-unit-price="{{ product.price }}">
+                            {% if cart_item %}
+                                <div class="d-flex gap-2">
+                                    <button type="button" id="increment-btn" class="btn btn-primary flex-fill">+</button>
+                                    <button type="button" id="decrement-btn" class="btn btn-danger flex-fill">-</button>
+                                </div>
+                            {% else %}
+                                <button type="button" id="add-to-cart-btn" class="btn btn-primary w-100">Add to Cart</button>
+                            {% endif %}
                         </div>
+
+
+                        <a
+                            href="{% url 'farm:cart_items' %}"
+                            class="btn btn-outline-primary w-100 mt-2"
+                        >
+                            view cart
+                        </a>
+
+                        <a
+                            href="{% url 'farm:cart_items' %}"
+                            class="btn btn-outline-warning w-100 mt-2"
+                        >
+                            Continue shopping
+                        </a>
+
+
+
                     </div>
                 </div>
-
             </div>
-        </div>
-    </section>
-{% endblock %}
 
+        </div>
+    </div>
+</section>
+{% endblock %}

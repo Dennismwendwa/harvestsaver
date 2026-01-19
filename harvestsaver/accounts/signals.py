@@ -20,7 +20,9 @@ def create_profile(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
+def save_profile(sender, instance, created, **kwargs):
+    if not created:
+        return
     if instance.is_farmer:
         instance.farmer_profile.save()
     elif instance.is_customer:

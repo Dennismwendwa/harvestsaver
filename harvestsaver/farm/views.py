@@ -1,18 +1,17 @@
 from datetime import datetime
 from decimal import Decimal
 import requests
+import json
 from geopy.geocoders import Nominatim
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.db.models import F, Q, Sum
-from django.db import IntegrityError
+from django.db.models.functions import Coalesce
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
-from django.conf import settings
 
 from payment.models import order_payment
 from .models import Category, Product, Cart
@@ -86,42 +85,57 @@ def product_details(request, slug, pk):
     """Show the deatils of one product at a time"""
     
     product = Product.objects.get(pk=pk)
+    cart_item = None
+    total_price = 0
+
+    if request.user.is_authenticated:
+        cart_item = Cart.objects.filter(
+            customer=request.user,
+            product=product
+        ).first()
+
+    if cart_item:
+        total_price = product.price * cart_item.quantity
 
     # to add recommentations here
 
     context = {
         "product": product,
+        "cart_item": cart_item,
+        "total_price": total_price,
     }
     return render(request, "farm/product_detail.html", context)
 
-@login_required
+#@login_required
 def add_to_cart(request, pk):
     """Add the product to the cart"""
-    product = get_object_or_404(Product, pk=pk)
 
-    quantity = request.POST.get("quantity")
+    product = get_object_or_404(Product, pk=pk)
     
     try:
         cart_product = Cart.objects.get(product=product, customer=request.user)
-        cart_product.quantity = F("quantity") + quantity
+        cart_product.quantity = F("quantity") + 1
         cart_product.save()
         cart_product.refresh_from_db()
+
     except Cart.DoesNotExist:
-        Cart.objects.create(product=product,
+        cart_product = Cart.objects.create(product=product,
                             customer=request.user,
-                            quantity=quantity
+                            quantity=1
                             )
+
     except Cart.IntegrityError as e:
-        print("Error while adding to cart", e)
-        messages.error(request, f"Adding to cart failed. Try agin")
-        return redirect("farm:product_details", product.slug, product.pk)
-
+        return JsonResponse({"success": False})
+    
     current_user_total_quantity = Cart.objects.filter(
-        customer=request.user).aggregate(
-            total_quantity=Sum("quantity"))["total_quantity"]
-     
-    return redirect("farm:product_details", product.slug, product.pk)
+            customer=request.user).aggregate(
+                total_quantity=Sum("quantity"))["total_quantity"]
 
+
+    return JsonResponse({
+        "quantity": cart_product.quantity,
+        "total_cart_quantity": current_user_total_quantity if current_user_total_quantity else 0,
+    })
 
 @login_required
 def remove_from_cart(request, pk):
@@ -130,33 +144,36 @@ def remove_from_cart(request, pk):
     When its the only product in the cart it delates the whole cart
     """
     product = get_object_or_404(Product, pk=pk)
-
-    quantity = int(request.POST.get("quantity"))
-
+    
     try:
-        cart_product = Cart.objects.get(product=product)
+        cart_product = Cart.objects.get(product=product, customer=request.user)
+        cart_product.quantity = F("quantity") - 1
+        cart_product.save()
+        cart_product.refresh_from_db()
 
-        if cart_product.quantity > quantity:
-            cart_product.quantity = F("quantity") - quantity
-            cart_product.save()
-            cart_product.refresh_from_db()
-        elif cart_product.quantity <= quantity:
+        if cart_product.quantity <= 0:
             cart_product.delete()
-    except Cart.DoesNotExist as c:
-        print("Could not remove from cart, no such product", c)
-    except IntegrityError as e:
-        print(e)
-
-    return redirect("farm:product_details", product.slug, product.pk)
+            return JsonResponse({"quantity": 0})
+        
+        current_user_total_quantity = Cart.objects.filter(
+            customer=request.user).aggregate(
+                total_quantity=Sum("quantity"))["total_quantity"]
+        return JsonResponse({
+            "quantity": cart_product.quantity,
+            "total_cart_quantity": current_user_total_quantity,
+            })
+    except Cart.DoesNotExist:
+        return JsonResponse({"quantity": 0})
 
 @login_required
 def delete_from_cart(request, pk):
     """Delete the product from the cart"""
     product = get_object_or_404(Product, pk=pk)
 
-    item = Cart.objects.get(product=product)
-
-    item.delete()
+    Cart.objects.filter(
+        customer=request.user,
+        product=product
+    ).delete()
 
     return redirect("farm:cart_items")
 
@@ -164,17 +181,17 @@ def delete_from_cart(request, pk):
 @login_required
 def cart_items(request):
     """List all items in the cart"""
-    items = Cart.objects.filter(customer=request.user)
+    user = request.user
+    items = Cart.objects.filter(customer=user)
     
-    total = 0
-    for item in items:
-        subtotal = item.calculate_total_cost
-        total += subtotal
+    total_price = Cart.total_cart_price(user)
+
+    total_quantity = items.aggregate(total=Coalesce(Sum("quantity"), 0))["total"]
 
     context = {
         "items": items,
-        "total": total,
-        "number_of_items": items.count(),
+        "total": total_price,
+        "number_of_items": total_quantity,
     }
     return render(request, "farm/cart_items.html", context)
 
@@ -185,13 +202,8 @@ def checkout(request):
     Collects details about the shipping, payment type and prepair
     the items for transport upon successfull payment
     """
-    cart_items = Cart.objects.filter(customer=request.user).all()
-    
-    if cart_items:
-        total = 0
-        for item in cart_items:
-            subtotal = item.calculate_total_cost
-            total += subtotal
+    user = request.user
+    total = Cart.total_cart_price(user)
         
     shipping = round((Decimal(3 / 100) * total), 2)
     total_cost = (total + shipping)
