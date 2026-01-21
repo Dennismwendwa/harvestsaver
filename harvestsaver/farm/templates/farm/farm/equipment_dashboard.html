@@ -1,0 +1,181 @@
+{% extends "accounts/layout.html"%}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Equipment home
+{% endblock %}
+
+{%block javascript%}
+<script src="{% static 'assets/js/equipment_dash.js' %}"></script>
+{%endblock%}
+
+{% block category %}
+<div class="container mt-4">
+    <div>
+    <div class="dashboard-header bg-white">
+    <div class="container-fluid py-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <!-- Left: Title & breadcrumb -->
+            <div>
+                <h4 class="mb-0 fw-bold">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </h4>
+                <small class="text-muted">
+                Manage your equipment and inquiries
+                </small>
+            </div>
+
+            <!-- Right: Actions -->
+            <div class="d-flex gap-2 me-5 pe-5">
+                <button class="btn btn-outline-primary btn-sm"
+                        onclick="showSection('section-all')">
+                    All Equipment
+                </button>
+
+                <button class="btn btn-outline-primary btn-sm"
+                        onclick="showSection('section-inquiries')">
+                    <i class="bi bi-envelope me-1"></i> Inquiries
+                </button>
+
+                <button class="btn btn-outline-primary btn-sm"
+                        onclick="showSection('section-add')">
+                    <i class="bi bi-plus-circle me-1"></i> Add Equipment
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    </div>
+    
+    <div class="">
+
+    <div id="section-add" class="dashboard-section">
+        <div class="col-md-10 border-end card m-2 p-2">
+            <h4 class="text-center bg-light">Add new equipment</h4>
+
+            {% for message in messages %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+            {% endfor %}
+
+            <form action="{% url 'farm:equipment_dashboard' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="p-2">
+                    <button type="submit" class="btn btn-info">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="section-inquiries" class="dashboard-section d-none">
+        <div class="col-md-12 card ms-1">
+            <div class="m-2">
+                <h4 class="p-2 mt-1 bg-light text-center">Pending Inquiries</h4>
+            </div>
+
+            <div class="row border-bottom mb-1">
+                <p class="col-md-3">Equipment</p>
+                <p class="col-md-2">Customer</p>
+                <p class="col-md-2">Date</p>
+                <p class="col-md-2">Subject</p>
+                <p class="col-md-1"></p>
+            </div>
+
+            {% for object in inquiry %}
+            <div class="row  py-1 pe-1">
+                <p class="col-md-3">{{ object.equipment.name|slice:":20" }}</p>
+                <p class="col-md-2">{{ object.requester.get_full_name }}</p>
+                <p class="col-md-2">{{ object.created_at }}</p>
+                <p class="col-md-2">{{ object.message|slice:":20" }}...</p>
+
+                <a class="col-md-1" href="{% url 'farm:equipment_inquiry' object.equipment.slug object.pk %}">
+                    <button type="button" class="btn btn-primary btn-sm">Respond</button>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="section-all" class="dashboard-section d-none">
+        <div class="card p-3">
+            <h4 class="text-center bg-light p-2 mb-3">All Equipment</h4>
+
+            <div class="row g-3">
+                {% for equipment in equipments %}
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm">
+
+                        <!-- Image -->
+                        <img src="{{ equipment.image.url }}"
+                            class="card-img-top"
+                            style="height: 200px; object-fit: cover;"
+                            alt="{{ equipment.name }}">
+
+                        <div class="card-body">
+                            <!-- Title -->
+                            <h5 class="card-title fw-bold">
+                                {{ equipment.name }}
+                            </h5>
+
+                            <!-- Category -->
+                            <span class="badge bg-secondary mb-2">
+                                {{ equipment.category }}
+                            </span>
+
+                            <!-- Description -->
+                            <p class="card-text small text-muted">
+                                {{ equipment.description|truncatechars:80 }}
+                            </p>
+
+                            <!-- Info -->
+                            <ul class="list-unstyled small mb-2">
+                                <li>
+                                    <i class="bi bi-geo-alt"></i>
+                                    {{ equipment.location }}
+                                </li>
+                                <li>
+                                    <i class="bi bi-cash-stack"></i>
+                                    KES {{ equipment.price_per_hour }}/hr
+                                </li>
+                            </ul>
+
+                            <!-- Availability -->
+                            {% if equipment.is_available %}
+                                <span class="badge bg-success">Available</span>
+                            {% else %}
+                                <span class="badge bg-danger">Unavailable</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="card-footer bg-white d-flex justify-content-between">
+                            <a href="{% url 'farm:equipment_detail' equipment.slug %}"
+                            class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+
+                            <a href=""
+                            class="btn btn-sm btn-outline-secondary">
+                                Inquiries
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted">No equipment added yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+
+    </div>
+</div>
+
+{% endblock %}

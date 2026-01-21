@@ -1,0 +1,51 @@
+{% extends "accounts/layout.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}
+Dash board
+{% endblock %}
+
+{% block category %}
+<div class="container mt-4">
+    <h4 class="border-bottom">Dash board</h4>
+    <div class="p-2">
+        {% for message in messages %}
+        <p class="bg-{{message.tags}}">{{message}}</p>
+        {% endfor %}
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <form action="{% url 'farm:farmer_dashboard' %}" method="post"
+                enctype="multipart/form-data">
+                {% csrf_token%}
+                {{ form|crispy }}
+                <div class="">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+        {%comment%}
+        <div class="col-md-8">
+            <h5 class="text-center">Weather forecast</h5>
+            
+            {% for weather_data_item in weather_data_list %}
+            <div class="p-1 d-flex justify-content-between">
+                <p>Date&Time: {{ weather_data_item.dt|date:"F j, Y H:i" }}</p>
+                {% for weather_info in weather_data_item.weather %}
+                <p>Weather: {{ weather_info.main }}</p>
+                <p>Description: {{ weather_info.description }}</p>
+                {% endfor %}
+    
+                
+                <p>Temperature: {{ weather_data_item.main.temp }}</p>
+                <p>pressure: {{ weather_data_item.main.pressure }}</p>
+                <p>Humidity: {{ weather_data_item.main.humidity }}</p>
+
+            </div>
+            {% endfor %}
+        </div>
+        {%endcomment%}
+    </div>
+</div>
+{% endblock %}

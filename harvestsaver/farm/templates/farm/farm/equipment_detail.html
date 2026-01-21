@@ -1,0 +1,99 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}
+    HarvestSaver - {{equipment.name}}
+{% endblock %}
+
+{% block category %}
+<div class="container bg-white mt-4">
+    <div class="row py-2">
+        <div class="col-md-5">
+            <img src="{{equipment.image.url}}" class="img-fluid"
+                alt="{%if equipment.alt%}{{equipment.alt}}{%else%}equipment image{%endif%}">
+        </div>
+        <div class="col-md-7 my-2">
+            <h2 class="text-center">{{equipment.name}}</h2>
+            <p class="">{{equipment.description}}</p>
+            <div class="d-flex">
+                <p class="pe-2 border-end">Owner: {{equipment.owner.username}}</p>
+                <p class="px-2 border-end border-start">Contact: <strong>{{equipment.owner.phone_number}}</strong></p>
+                <p class="px-2 border-end border-start bg-warning">Availabilty: {% if equipment.is_available%}Available{%else%}Unavailable{%endif%}</p>
+                <p class="px-2 border-start"> Location: {{equipment.location}}</p>
+            </div>
+            <div class="text-center">
+                <h5 class="py-2 bg-info rounded-pill">Price: ksh {{equipment.price_per_hour}} per hour</h5>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary btn-lg rounded-pill contact_owner">Contact Owner</button>
+            </div>
+        </div>
+    </div>
+    
+<section id="contact" class="contact">
+  <div class="container overlay-container mt-3 border" id="overlayContainer" data-aos="fade-up">
+    <div class="overlay mt-4" id="overlay">
+
+      <div class="m-3">
+        <p class="ms-3">
+          Owner: {{ equipment.owner.first_name }} {{ equipment.owner.last_name }}
+        </p>
+      </div>
+
+      <div>
+        <form
+          action="{% url 'farm:equipment_detail' equipment.slug %}"
+          method="post"
+          role="form"
+          class="contact_owner_form"
+        >
+          {% csrf_token %}
+
+          <!-- Requested rental dates -->
+          <div class="row">
+            <div class="col-md-6 form-group">
+              <input
+                type="date"
+                name="requested_start_date"
+                class="form-control"
+                required
+              >
+            </div>
+
+            <div class="col-md-6 form-group mt-3 mt-md-0">
+              <input
+                type="date"
+                name="requested_end_date"
+                class="form-control"
+                required
+              >
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group mt-3">
+            <textarea
+              class="form-control"
+              name="message"
+              rows="5"
+              placeholder="Write your inquiry message here..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="text-center mt-2">
+            <button class="btn btn-primary" type="submit">
+              Send Inquiry
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</div>
+
+{% endblock %}

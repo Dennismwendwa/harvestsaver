@@ -1,0 +1,21 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title %}Transport - options{% endblock %}
+
+{% block category %}
+<section id="equipment" class="services pt-0">
+    <div class="container mt-4" data-aos="fade-up">
+
+        <div class="section-header">
+            <h2>Equipments</h2>
+        </div>
+
+        {% include "farm/partials/equipment_grid.html" with equipments=page_object %}
+
+        {% include "farm/partials/pagination.html" with page_object=page_object %}
+
+    </div>
+</section>
+{% endblock %}
+

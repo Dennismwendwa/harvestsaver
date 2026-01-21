@@ -1,0 +1,44 @@
+{% extends "accounts/layout.html" %}
+
+{% block title %}
+Product search
+{% endblock %}
+
+{% block category %}
+<div class="container mt-3">
+    <div class="bg-white p-2">
+        <h3>Search Results | query {{query}}</h3>
+        <div>
+            {% for product in results %}
+            <div class="card mb-1">
+                <div class="card-body row">
+                    <div class="col-md-3">
+                        <a href="{% url 'farm:product_details' product.slug product.pk %}">
+                            <img src="{{product.image.url}}" class="img-fluid"
+                                alt="{%if product.alt%}{{product.alt}}{%else%}product image{%endif%}">
+                        </a>
+                    </div>
+                    <div class="col-md-9">
+                        <a href="{% url 'farm:product_details' product.slug product.pk %}">
+                            <h3>{{product.name}}</h3>
+                        </a>
+                        <p>{{product.description}}</p>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="p-2">Farmer: {{product.owner.first_name}} {{product.owner.last_name}}</h6>
+                            <p class="p-2 ">Location: {{product.location}}</p>
+                            <p class="p-2 bg-warning">Quantity: {{product.quantity}} bags</p>
+                            <p class="p-2 bg-warning">Product: {% if product.is_available%}Available{%else%}Out of stock{%endif%}</p>
+                        </div>
+                        <hr>
+                        <h4>Plice: ksh {{product.price}} per bag</h4>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No any match for your query.
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
