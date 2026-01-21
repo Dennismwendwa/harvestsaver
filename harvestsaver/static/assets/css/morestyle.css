@@ -42,3 +42,18 @@
     padding: 20px;
     border-radius: 10px;
   }
+
+.profile-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #d0d7de;
+  cursor: pointer;
+}
+
+.icon-sm {
+  width: 14px;
+  font-size: 14px;
+  text-align: center;
+}

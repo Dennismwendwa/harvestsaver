@@ -19,7 +19,7 @@ My Profile
                 alt="Profile image"
             >
             <div>
-                <h4 class="mb-0">{{ request.user.username }}</h4>
+                <h4 class="mb-0">{{ request.user.get_full_name|default:request.user.username }}</h4>
                 <small class="text-muted">
                     {{ request.user.email }}
                 </small>

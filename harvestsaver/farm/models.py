@@ -9,6 +9,47 @@ from decimal import Decimal
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
 
+class Hub(models.Model):
+    name = models.CharField(max_length=100)
+    latitude = models.CharField()
+    longitude = models.FloatField()
+    country = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    radius_km = models.IntegerField(default=30)
+
+    class Meta:
+        verbose_name = "Hub"
+        verbose_name_plural = "Hubs"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
+
+
+class Farm(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE,
+                              limit_choices_to={"role": "farmer"},
+                              related_name="farms")
+    name = models.CharField(max_length=100)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    address = models.TextField()
+
+    hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                            related_name="farms", null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Farm"
+        verbose_name_plural = "Farms"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        if self.owner.first_name:
+            return f"{self.name} ({self.owner.get_full_name})"
+        return f"{self.name} ({self.owner})"
+
 
 class Category(models.Model):
     """This is all products categories"""
@@ -22,7 +63,7 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name}"
 
-  
+
 class Product(models.Model):
     """Model for all products availble in our site"""
     UNIT_CHOICES = [
@@ -38,9 +79,9 @@ class Product(models.Model):
         ("dozen", "Dozen"),           # eggs, seedlings
         ("box", "Box"),               # sometimes fruits / seedlings
     ]
-    owner = models.ForeignKey(User,
-                              limit_choices_to={"role": User.Role.FARMER},
-                              on_delete=models.CASCADE)
+    farm = models.ForeignKey(Hub, on_delete=models.CASCADE,
+                             null=True, blank=True,
+                             related_name="products")
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
     category = models.ForeignKey(Category, null=True,
@@ -57,7 +98,6 @@ class Product(models.Model):
     )
     description = models.TextField()
     image = models.ImageField(upload_to="products")
-    location = models.CharField(max_length=100)
     harvest_date = models.DateField()
     is_available = models.BooleanField(default=True)
     is_perishable = models.BooleanField(default=False)
@@ -68,7 +108,7 @@ class Product(models.Model):
         ordering = ("-pk",)
     
     def __str__(self):
-        return f"product: {self.name} Owner: {self.owner.username}"
+        return f"product: {self.name} farm: {self.farm.name}"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
@@ -108,8 +148,6 @@ class Cart(models.Model):
             )
         )["total"]
         return total
-
-
 
 class Order(models.Model):
     """This model stores the products add to cart"""
