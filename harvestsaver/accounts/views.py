@@ -55,12 +55,15 @@ def register(request):
                 if role == "farmer" or role == "equipment_owner":
                     create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
+
                 if status == "farmer":
                     return redirect("farm:farmer_dashboard")
                 elif status == "equipment":
                     return redirect("farm:equipment_dashboard")
                 elif status == "success":
                     return redirect("farm:home")
+                elif status == "staff":
+                    return redirect("farm:admin_dashboard")
 
         elif len(password1) < 8:
             messages.warning(request, f"Passward must have 8 or more characters")
@@ -81,6 +84,8 @@ def login_helper(username, password, request):
             return "farmer"
         elif user.is_equipment_owner:
             return "equipment"
+        elif user.is_system_staff:
+            return "staff"
         else:
             return "success"
     else:
@@ -112,6 +117,8 @@ def login(request):
             return redirect("farm:equipment_dashboard")
         elif status == "success":
             return redirect("farm:home")
+        elif status == "staff":
+            return redirect("farm:admin_dashboard")
 
     return render(request, "accounts/login.html")
 

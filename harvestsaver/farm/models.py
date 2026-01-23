@@ -8,12 +8,13 @@ from decimal import Decimal
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
+from utils.constants import UserRole
 
 class Hub(models.Model):
     name = models.CharField(max_length=100)
     latitude = models.CharField()
     longitude = models.FloatField()
-    country = models.CharField(max_length=100)
+    county = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     radius_km = models.IntegerField(default=30)
 
@@ -222,7 +223,7 @@ class Equipment(models.Model):
     category = models.ForeignKey(EquipmentCategory,
                                  on_delete=models.SET_NULL, null=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
-                              limit_choices_to={"role": User.Role.EQUIPMENT_OWNER})
+                              limit_choices_to={"role": UserRole.EQUIPMENT_OWNER})
     location = models.CharField(max_length=100)
     price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
     is_available = models.BooleanField(default=True)

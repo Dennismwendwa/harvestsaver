@@ -1,14 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from utils.constants import UserRole as Role
 
 
 class User(AbstractUser):
-    class Role(models.TextChoices):
-        FARMER = "farmer", "Farmer"
-        CUSTOMER = "customer", "Customer"
-        EQUIPMENT_OWNER = "equipment_owner", "Equipment Owner" #equipment owner
-        STAFF = "staff", "Staff"
-
     role = models.CharField(max_length=30,choices=Role.choices,
                             default=Role.CUSTOMER)
     gender = models.CharField(max_length=20)
@@ -24,15 +19,19 @@ class User(AbstractUser):
     
     @property
     def is_farmer(self):
-        return self.role == self.Role.FARMER
+        return self.role == Role.FARMER
     
     @property
     def is_equipment_owner(self):
-        return self.role == self.Role.EQUIPMENT_OWNER
+        return self.role == Role.EQUIPMENT_OWNER
     
     @property
     def is_customer(self):
-        return self.role == self.Role.CUSTOMER
+        return self.role == Role.CUSTOMER
+    
+    @property
+    def is_system_staff(self):
+        return self.role == Role.STAFF
 
 class Profile(models.Model):
     """This is general profile for every user"""

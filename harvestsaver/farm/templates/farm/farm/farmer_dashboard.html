@@ -3,49 +3,178 @@
 {% load static %}
 
 {% block title %}
-Dash board
+Farmer Dashboard
 {% endblock %}
 
 {% block category %}
 <div class="container mt-4">
-    <h4 class="border-bottom">Dash board</h4>
+    <h4 class="border-bottom mb-3">Farmer Dashboard</h4>
+
+    <!-- FLASH MESSAGES -->
     <div class="p-2">
         {% for message in messages %}
-        <p class="bg-{{message.tags}}">{{message}}</p>
+        <p class="alert alert-{{message.tags}}">{{message}}</p>
         {% endfor %}
     </div>
-    <div class="row">
-        <div class="col-md-4">
-            <form action="{% url 'farm:farmer_dashboard' %}" method="post"
-                enctype="multipart/form-data">
-                {% csrf_token%}
-                {{ form|crispy }}
-                <div class="">
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-            </form>
-        </div>
-        {%comment%}
-        <div class="col-md-8">
-            <h5 class="text-center">Weather forecast</h5>
-            
-            {% for weather_data_item in weather_data_list %}
-            <div class="p-1 d-flex justify-content-between">
-                <p>Date&Time: {{ weather_data_item.dt|date:"F j, Y H:i" }}</p>
-                {% for weather_info in weather_data_item.weather %}
-                <p>Weather: {{ weather_info.main }}</p>
-                <p>Description: {{ weather_info.description }}</p>
-                {% endfor %}
-    
-                
-                <p>Temperature: {{ weather_data_item.main.temp }}</p>
-                <p>pressure: {{ weather_data_item.main.pressure }}</p>
-                <p>Humidity: {{ weather_data_item.main.humidity }}</p>
 
+    <!-- TABS -->
+    <ul class="nav nav-tabs" id="farmerTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview">Overview</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#farm">My Farm</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#products">Products</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orders">Orders</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#inventory">Inventory</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#weather">Weather</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#payments">Payments</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#messages">Messages</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reports">Reports</button>
+        </li>
+    </ul>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content mt-4">
+
+        <!-- OVERVIEW -->
+        <div class="tab-pane fade show active" id="overview">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="card p-3 shadow-sm">
+                        <h6>Total Products</h6>
+                        <h4>{{ total_products }}</h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 shadow-sm">
+                        <h6>Total Orders</h6>
+                        <h4>{{ total_orders }}</h4>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card p-3 shadow-sm">
+                        <h6>Total Sales</h6>
+                        <h4>KES {{ total_sales }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FARM PROFILE -->
+        <div class="tab-pane fade" id="farm">
+            <div class="col-md-6">
+                <h5>Farm Details</h5>
+                <form action="{% url 'farm:farmer_dashboard' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <div class="tab-pane fade" id="products">
+            <a href="" class="btn btn-success mb-3">+ Add Product</a>
+            {% for product in products %}
+                <div class="card p-2 mb-2">
+                    {{ product.name }} - KES {{ product.price }}
+                </div>
+            {% empty %}
+                <p>No products yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- ORDERS -->
+        <div class="tab-pane fade" id="orders">
+            {% for order in orders %}
+            <div class="card p-2 mb-2">
+                Order #{{ order.id }} - {{ order.status }} - KES {{ order.total }}
+            </div>
+            {% empty %}
+            <p>No orders yet.</p>
+            {% endfor %}
+        </div>
+
+        <!-- INVENTORY -->
+        <div class="tab-pane fade" id="inventory">
+            {% for item in inventory %}
+            <div class="d-flex justify-content-between border p-2 mb-1">
+                <span>{{ item.product.name }}</span>
+                <span>{{ item.quantity }} units</span>
             </div>
             {% endfor %}
         </div>
-        {%endcomment%}
+
+        <!-- WEATHER -->
+        <div class="tab-pane fade" id="weather">
+            <h5 class="mb-3">Next 24 Hours Forecast</h5>
+
+            <div class="row">
+                {% for w in weather_data_list %}
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card text-center shadow-sm p-3">
+
+                        <small class="text-muted">
+                            {{ w.dt_readable|date:"D, H:i" }}
+                        </small>
+
+                        <img 
+                            src="https://openweathermap.org/img/wn/{{ w.icon }}@2x.png"
+                            alt="icon"
+                            width="60"
+                        >
+
+                        <h4>{{ w.temp_c }}°C</h4>
+
+                        <p class="mb-1">{{ w.condition }}</p>
+
+                        <small class="text-muted">
+                            Humidity: {{ w.humidity }}%
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
+        <!-- PAYMENTS -->
+        <div class="tab-pane fade" id="payments">
+            <h5>Wallet</h5>
+            <p>Available Balance: KES {{ wallet.balance }}</p>
+            <a href="#" class="btn btn-outline-primary">Request Payout</a>
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="tab-pane fade" id="messages">
+            {% for msg in inquiries %}
+            <div class="card p-2 mb-2">
+                {{ msg.buyer }}: {{ msg.message }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- REPORTS -->
+        <div class="tab-pane fade" id="reports">
+            <h5>Analytics</h5>
+            <p>Sales trends, charts, and performance KPIs go here.</p>
+        </div>
+
     </div>
 </div>
 {% endblock %}

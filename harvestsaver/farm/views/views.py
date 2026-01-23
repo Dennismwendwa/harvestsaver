@@ -1,8 +1,5 @@
-from datetime import datetime
+
 from decimal import Decimal
-import requests
-import json
-from geopy.geocoders import Nominatim
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.db.models import F, Q, Sum
@@ -15,9 +12,10 @@ from django.utils import timezone
 
 from payment.models import order_payment
 from ..models import Category, Product, Cart
-from ..models import EquipmentCategory, Equipment, EquipmentInquiry, EquipmentRental
-from ..forms import ProductForm, EquipmentForm, EquipmentInquiryForm
+from ..models import EquipmentCategory, Equipment, EquipmentInquiry
+from ..forms import ProductForm, EquipmentForm
 from transit.services import cart_deliery_type
+from .utils import weather_data
 
 
 
@@ -34,7 +32,6 @@ def home(request):
 
     context = {}
     return render(request, "farm/farm/index.html", context)
-
 
 
 def all_products(request):
@@ -307,28 +304,17 @@ def farmer_dashboard(request):
     Contains activites which are only for farmers
     like uploading products
     """
+    city = "Mombasa"
+    country = "kenya"
 
     if not request.user.has_perm("farm.view_product"):
         messages.error(request, (
                                 f"You do not have permission to access "
                                 f"the page you requested.")
                                 )
-
         return redirect(reverse_lazy("farm:home"))
-    area_coodinates = get_lat_long("Mombasa, kenya")
-
-    api_key ="4fa8a6b1e4dd7a76b125ed99fd728ce3"
-    if area_coodinates:
-        latitude = area_coodinates[0]
-        longitude = area_coodinates[1]
-    else:
-        latitude = 51.51
-        longitude = -0.13
-
-    agro_weather_data = get_agro_weather(api_key, latitude, longitude)
-    for weather_data_item in agro_weather_data:
-        timestamp = weather_data_item.get('dt', 0)
-        weather_data_item['dt'] = datetime.utcfromtimestamp(timestamp)
+    
+    weather_data_list = weather_data(city, country)
 
 
     if request.method == "POST":
@@ -340,45 +326,13 @@ def farmer_dashboard(request):
         else:
             return render(request, "farm/farmer_dashboard.html", {"form": form})
     
-    form = ProductForm(user=request.user)
+    form = ProductForm()
     context = {
         "form": form,
-        "weather_data_list": agro_weather_data,
-        'agro_weather_data': agro_weather_data,
+        "total_products": 10,
+        "weather_data_list": weather_data_list,
         }
     return render(request, "farm/farm/farmer_dashboard.html", context)
-
-
-def get_agro_weather(api_key, latitude, longitude):
-    """This function sends request to get weather data"""
-
-    base_url = "https://api.agromonitoring.com/agro/1.0/weather/forecast"
-
-    params = {
-        "lat": latitude,
-        "lon": longitude,
-        "appid": api_key,
-    }
-    response = requests.get(base_url, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
-        return None
-
-def get_lat_long(location_name):
-    """
-    This function use the city name to get its latitude
-    and longitude
-    """
-    geolocator = Nominatim(user_agent="my_geocoder")
-    location = geolocator.geocode(location_name)
-
-    if location:
-        return location.latitude, location.longitude
-    else:
-        return None
 
 
 @login_required
