@@ -1,0 +1,152 @@
+{% extends "accounts/layout.html"%}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block category %}
+<section class="py-4">
+  <div class="container">
+
+    <h3 class="mb-4">Logistics Control Center</h3>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#farms">
+          🌾 Farms
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#create">
+          ➕ Create Farm
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#hubs">
+          🚚 Hubs Map
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#create-hub">
+            ➕ Create Hub
+        </button>
+      </li>
+    </ul>
+
+    {%for message in messages%}
+      <div class="alert alert-{{message.tags}}">
+        {{message}}
+      </div>
+    {%endfor%}
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content">
+
+      <!-- FARMS LIST -->
+      <div class="tab-pane fade show active" id="farms">
+        <div class="card">
+          <div class="card-body">
+            <h5>All Farms</h5>
+
+            <table class="table table-hover mt-3">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Owner</th>
+                  <th>Hub</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for farm in farms %}
+                <tr>
+                  <td>{{ farm.name }}</td>
+                  <td>{{ farm.owner.email }}</td>
+                  <td>{{ farm.hub.name }}</td>
+                  <td>
+                    {% if farm.is_verified %}
+                      <span class="badge bg-success">Verified</span>
+                    {% else %}
+                      <span class="badge bg-warning">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATE FARM -->
+      <div class="tab-pane fade" id="create">
+        <div class="card">
+          <div class="card-body">
+            <h5>Create New Farm</h5>
+
+            <form method="post">
+              {% csrf_token %}
+              {{ form|crispy }}
+
+              <button class="btn btn-success mt-3">
+                Create Farm
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- HUBS MAP -->
+      <div class="tab-pane fade" id="hubs">
+        <div class="card">
+          <div class="card-body">
+            <h5>Hub Network</h5>
+            <div id="map" style="height:650px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATE HUB -->
+      <div class="tab-pane fade" id="create-hub">
+        <div class="card">
+          <div class="card-body">
+            <h5>Create New Hub</h5>
+
+          <form method="post" id="hub-form">
+              {% csrf_token %}
+              {{ hub_form.name|as_crispy_field }}
+              {{ hub_form.county|as_crispy_field }}
+              {{ hub_form.radius_km|as_crispy_field }}
+
+              <!-- FORCE GEO INPUTS -->
+              <input type="hidden" name="latitude" id="id_latitude" required>
+              <input type="hidden" name="longitude" id="id_longitude" required>
+
+              <label class="mt-3 fw-bold">Select Hub Location</label>
+              <div id="hub-map" style="height:400px;"></div>
+
+              <button type="submit" class="btn btn-primary mt-3">
+                  Create Hub
+              </button>
+          </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LEAFLET -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- DJANGO DATA -->
+  {{ hubs_data|json_script:"hubs-data" }}
+
+  <!-- YOUR JS (MUST BE LAST) -->
+  <script src="{% static 'assets/js/admin_dashboard.js' %}"></script>
+
+</section>
+{% endblock %}
