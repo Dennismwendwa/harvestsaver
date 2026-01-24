@@ -1,11 +1,14 @@
 import requests
 import hashlib
 from datetime import datetime
+from math import sqrt
 
 from django.conf import settings
 from django.core.cache import cache
 
 from geopy.geocoders import Nominatim
+
+from farm.models import Hub
 
 def make_cache_key(prefix, value):
     """This function makes safe cache keys"""
@@ -82,3 +85,21 @@ def weather_data(city, country):
 
     cache.set(cache_key, weather_ui_data, timeout=60 * 15) # 15 min
     return weather_ui_data
+
+
+def assign_hub_to_farm(farm):
+    hubs = Hub.objects.filter(is_active=True)
+
+    farm_lat = float(farm.latitude)
+    farm_lng = float(farm.longitude)
+
+    def distance(h):
+        return sqrt(
+            (float(h.latitude) - farm_lat) ** 2 +
+            (float(h.longitude) - farm_lng) ** 2
+        )
+    
+    nearest = min(hubs, key=distance)
+    farm.hub = nearest
+    farm.save()
+

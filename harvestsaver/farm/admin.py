@@ -10,12 +10,22 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("farm", "name", "category", "price", "quantity",
+    list_display = ("farm_name", "hub_name", "name", "category", "price", "quantity",
                     "unit_quantity",
                     "unit_quantity_type", "harvest_date",
                     "is_available",
                     )
     prepopulated_fields = {"slug": ("name",)}
+
+    def farm_name(self, obj):
+        return obj.farm.name if obj.farm else "-"
+    farm_name.short_description = "Farm"
+
+    def hub_name(self, obj):
+        return obj.farm.name if obj.hub else "-"
+    hub_name.short_description = "Hub"
+
+
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = (

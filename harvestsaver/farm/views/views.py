@@ -9,13 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from payment.models import order_payment
-from ..models import Category, Product, Cart
+from ..models import Category, Product, Cart, Farm, OrderItem
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
-from ..forms import ProductForm, EquipmentForm
+from ..forms import ProductForm, EquipmentForm, FarmForm
 from transit.services import cart_deliery_type
-from .utils import weather_data
+from .utils import weather_data, assign_hub_to_farm
 
 
 
@@ -304,6 +305,7 @@ def farmer_dashboard(request):
     Contains activites which are only for farmers
     like uploading products
     """
+    user = request.user
     city = "Mombasa"
     country = "kenya"
 
@@ -313,6 +315,16 @@ def farmer_dashboard(request):
                                 f"the page you requested.")
                                 )
         return redirect(reverse_lazy("farm:home"))
+    
+    farms = user.farms.all()
+    current_farmer_products = Product.objects.filter(farm__owner=user)
+
+    order_items = OrderItem.objects.filter(
+        product__farm__owner=request.user
+    ).select_related("order", "product")
+
+    for item in order_items:
+        item.subtotal = item.quantity * item.product.price
     
     weather_data_list = weather_data(city, country)
 
@@ -327,13 +339,77 @@ def farmer_dashboard(request):
             return render(request, "farm/farmer_dashboard.html", {"form": form})
     
     form = ProductForm()
+    new_farm_form = FarmForm()
+    products_form = ProductForm(user=user)
+
     context = {
         "form": form,
-        "total_products": 10,
+        "farms": farms,
+        "new_farm_form": new_farm_form,
+        "products_form": products_form,
+
+        "total_products": current_farmer_products.count(),
+        "current_farmer_products": current_farmer_products,
+        "order_items": order_items,
         "weather_data_list": weather_data_list,
         }
     return render(request, "farm/farm/farmer_dashboard.html", context)
 
+def create_or_edit_farm(request):
+    user = request.user
+    farms = user.farms.all()  # all farms owned by this user
+
+    edit_form = None
+    new_farm_form = FarmForm()  # form for creating new farm
+
+    if request.method == "POST":
+        # Determine if this is edit or create form
+        if "farm_id" in request.POST:  # editing existing farm
+            farm_id = request.POST.get("farm_id")
+            try:
+                farm = farms.get(id=farm_id)
+            except Farm.DoesNotExist:
+                messages.error(request, "Invalid farm selected.")
+                return redirect("farm:farmer_dashboard")
+            
+            edit_form = FarmForm(request.POST, request.FILES, instance=farm)
+            if edit_form.is_valid():
+                edit_form.save()
+                messages.success(request, f"Farm '{farm.name}' updated!")
+                return redirect("farm:farmer_dashboard")
+        
+        else:  # creating new farm
+            new_farm_form = FarmForm(request.POST, request.FILES)
+            if new_farm_form.is_valid():
+                new_farm = new_farm_form.save(commit=False)
+                new_farm.owner = user
+                new_farm.save()
+                assign_hub_to_farm(new_farm)
+                messages.success(request, f"New farm '{new_farm.name}' created!")
+                return redirect("farm:farmer_dashboard")
+            
+
+    context = {
+        "farms": farms,
+        "edit_form": edit_form,
+        "new_farm_form": new_farm_form,
+    }
+    return render(request, "farm/dashboard.html", context)
+
+
+def create_product(request):
+    if request.method == "POST":
+        product_form = ProductForm(request.POST, request.FILES)
+        if product_form.is_valid():
+            new_product = product_form.save(commit=False)
+            farm = product_form.cleaned_data.get("farm")
+            new_product.hub = farm.hub
+
+            new_product.save()
+            messages.success(request, _("New product created successfully"))
+            return redirect("farm:farmer_dashboard")
+    else:
+        pass
 
 @login_required
 def equipment_dashboard(request):

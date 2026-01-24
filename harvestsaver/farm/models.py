@@ -57,7 +57,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
 
-    class meta:
+    class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
 
@@ -80,9 +80,12 @@ class Product(models.Model):
         ("dozen", "Dozen"),           # eggs, seedlings
         ("box", "Box"),               # sometimes fruits / seedlings
     ]
-    farm = models.ForeignKey(Hub, on_delete=models.CASCADE,
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE,
                              null=True, blank=True,
                              related_name="products")
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, 
+                            null=True, blank=True,
+                            related_name="hub_products")
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
     category = models.ForeignKey(Category, null=True,
@@ -109,7 +112,7 @@ class Product(models.Model):
         ordering = ("-pk",)
     
     def __str__(self):
-        return f"product: {self.name} farm: {self.farm.name}"
+        return f"product: {self.name} farm: "
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
@@ -153,7 +156,6 @@ class Cart(models.Model):
 class Order(models.Model):
     """This model stores the products add to cart"""
     customer = models.ForeignKey(User, on_delete = models.CASCADE)
-    products = models.ManyToManyField(Product)
     order_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, default="pending")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -187,7 +189,8 @@ def order_transaction_id():
 
 class OrderItem(models.Model):
     """This model stores the individual items within an order"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, related_name="items",
+                              on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
 

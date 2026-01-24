@@ -11,7 +11,14 @@ from .models import (Product, Equipment, EquipmentInquiry, Farm, Hub,
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        exclude = ["slug", "is_available", "farm",]
+        exclude = ["slug", "is_available", "hub",]
+        widgets = {
+            "description": forms.Textarea(attrs={
+                "rows": 2,
+                "placeholder": "Enter product description ...",
+                "class": "form-control mt-2",
+            }),
+        }
         labels = {
             "name": _("Product name"),
             "category": _("Category"),
@@ -25,8 +32,36 @@ class ProductForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.user = kwargs.pop("user", None)
+        super(ProductForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({"class": "form-control my-2",})
 
+        self.fields["harvest_date"].widget = forms.DateInput(
+            attrs={
+            "class": "form-control my-2",
+            "placeholder": "Select harvest date",
+            "type": "date",
+            }
+        )
+        
+        if self.user:
+            self.fields["farm"].queryset = Farm.objects.filter(owner=self.user,
+                                                               is_verified=True)
+
+    def clean_form(self):
+        farm = self.cleaned_dats.get("farm")
+
+        if not farm:
+            raise forms.ValidationError(_("You must select a farm"))
+        
+        if self.user and farm.owner != self.user:
+            raise forms.ValidationError(_("You do not own this farm"))
+        
+        if not farm.is_verified:
+            raise forms.ValidationError(_("This farm is not verified yet."))
+        
+        return farm
     
     def clean(self):
         cleaned_data = super().clean()
@@ -77,7 +112,21 @@ class EquipmentInquiryForm(forms.ModelForm):
 class FarmForm(forms.ModelForm):
     class Meta:
         model = Farm
-        fields = "__all__"
+        exclude = ["owner", "hub", "is_verified"]
+
+        widgets = {
+            "address": forms.Textarea(attrs={
+                "rows": 2,
+                "placeholder": "Enter farms address here...",
+                "class": "form-control mt-2",
+            }),
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        super(FarmForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({"class": "form-control my-2",})
 
 
 class HubForm(forms.ModelForm):

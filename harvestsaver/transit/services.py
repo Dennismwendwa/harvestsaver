@@ -1,5 +1,4 @@
 from decimal import Decimal
-from math import sqrt
 
 from geopy.geocoders import Nominatim
 
@@ -53,17 +52,4 @@ def cart_deliery_type(cart_items):
         return "perishable"
     return "non_perishable"
 
-
-def assign_hub_to_farm(farm):
-    hubs = Hub.objects.filter(is_active=True)
-
-    def distance(h):
-        return sqrt(
-            (h.latitude - farm.latitude) ** 2 +
-            (h.longitude - farm.longitude) ** 2
-        )
-    
-    nearest = min(hubs, key=distance)
-    farm.hub = nearest
-    farm.save()
 

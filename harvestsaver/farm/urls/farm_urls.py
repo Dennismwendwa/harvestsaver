@@ -28,4 +28,7 @@ urlpatterns = [
          name="equipment_dashboard"),
     path("inquiry-for-<str:slug>/<int:pk>/", views.equipment_inquiry_respond,
          name="equipment_inquiry"),
+    path("create-or-edit-farm/", views.create_or_edit_farm,
+         name="create_or_edit_farm"),
+    path("create/product/", views.create_product, name="create_product"),
 ]

@@ -7,6 +7,7 @@ Farmer Dashboard
 {% endblock %}
 
 {% block category %}
+<section>
 <div class="container mt-4">
     <h4 class="border-bottom mb-3">Farmer Dashboard</h4>
 
@@ -75,40 +76,122 @@ Farmer Dashboard
             </div>
         </div>
 
-        <!-- FARM PROFILE -->
+        <!-- FARM PROFILE TAB -->
         <div class="tab-pane fade" id="farm">
-            <div class="col-md-6">
-                <h5>Farm Details</h5>
-                <form action="{% url 'farm:farmer_dashboard' %}" method="post" enctype="multipart/form-data">
+            <h5>Your Farms</h5>
+
+            {% if farms %}
+                <div class="d-flex">
+                {% for farm in farms %}
+                    <div class="card mb-3 me-1 p-2 {%if not farm.is_verified %}bg-warning{%endif%}">
+                        <div class="card-body">
+                            <h6>{{ farm.name }}</h6>
+                            <p><strong>Owner:</strong> {{ farm.owner.get_full_name }}</p>
+                            <p><strong>Latitude:</strong> {{ farm.latitude }}</p>
+                            <p><strong>Longitude:</strong> {{ farm.longitude }}</p>
+                            <p><strong>Address:</strong> {{ farm.address }}</p>
+                            <p><strong>Hub:</strong> {{ farm.hub.name|default:"Not assigned" }}</p>
+                            <p><strong>Verified:</strong> {%if farm.is_verified %}Yes{%else%}No{%endif%}</p>
+                            <p><strong>Created At:</strong> {{ farm.created_at|date:"M d, Y" }}</p>
+
+                            <button class="btn btn-sm btn-primary" onclick="showForm({{ farm.id }})">Edit</button>
+
+                            <!-- Hidden edit form -->
+                            <div id="farm-form-{{ farm.id }}" style="display:none; margin-top: 10px;">
+                                <form action="{% url 'farm:farmer_dashboard' %}" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="farm_id" value="{{ farm.id }}">
+                                    {% if edit_form and edit_form.instance.id == farm.id %}
+                                        {{ edit_form|crispy }}
+                                    {% endif %}
+                                    <button type="submit" class="btn btn-success btn-sm">Save</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p>No farms available.</p>
+            {% endif %}
+
+            <h5 class="mt-4">Create New Farm</h5>
+            <div class="card p-3 col-md-6">
+                <form action="{% url 'farm:create_or_edit_farm' %}" method="post" enctype="multipart/form-data" id="new-farm-form">
                     {% csrf_token %}
-                    {{ form|crispy }}
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    {{ new_farm_form.name|as_crispy_field }}
+                    {{ new_farm_form.address|as_crispy_field }}
+
+                    <!-- Hidden latitude/longitude -->
+                    <input type="hidden" name="latitude" id="id_latitude" required>
+                    <input type="hidden" name="longitude" id="id_longitude" required>
+
+                    <label class="mt-3 fw-bold">Pick Farm Location</label>
+                    <div id="farm-map" style="height: 400px;"></div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Add Farm</button>
                 </form>
             </div>
         </div>
 
+
         <!-- PRODUCTS -->
         <div class="tab-pane fade" id="products">
-            <a href="" class="btn btn-success mb-3">+ Add Product</a>
-            {% for product in products %}
+            {% for product in current_farmer_products  %}
                 <div class="card p-2 mb-2">
                     {{ product.name }} - KES {{ product.price }}
                 </div>
             {% empty %}
                 <p>No products yet.</p>
             {% endfor %}
+            <div class="row">
+                <hr>
+                <div class="col-md-6">
+                    <form action="{% url 'farm:create_product' %}" method="POST" enctype="multipart/form-data">
+                        {%csrf_token%}
+                        {{products_form|crispy}}
+                        <div class="">
+                            <button class="btn btn-primary btn-lg" type="submit">
+                                Add Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- ORDERS -->
         <div class="tab-pane fade" id="orders">
-            {% for order in orders %}
-            <div class="card p-2 mb-2">
-                Order #{{ order.id }} - {{ order.status }} - KES {{ order.total }}
-            </div>
+            {% for item in order_items %}
+                <div class="card p-2 mb-2">
+                    <div>
+                        <strong>Order #{{ item.order.id }}</strong>
+                        ({{ item.order.status }})
+                    </div>
+
+                    <div>
+                        Buyer: {{ item.order.customer.username }}
+                    </div>
+
+                    <div>
+                        Product: {{ item.product.name }}
+                    </div>
+
+                    <div>
+                        Quantity: {{ item.quantity }}
+                    </div>
+
+                    <div>
+                        Subtotal: 
+                        {{ item.quantity|floatformat:2 }} × {{ item.product.price }} =
+                        <strong>KES {{ item.subtotal }}</strong>
+                    </div>
+                </div>
             {% empty %}
-            <p>No orders yet.</p>
+                <p>No orders for your products yet.</p>
             {% endfor %}
         </div>
+
 
         <!-- INVENTORY -->
         <div class="tab-pane fade" id="inventory">
@@ -177,4 +260,12 @@ Farmer Dashboard
 
     </div>
 </div>
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script src="{% static 'assets/js/farmer_dashboard.js' %}"></script>
+</section>
 {% endblock %}

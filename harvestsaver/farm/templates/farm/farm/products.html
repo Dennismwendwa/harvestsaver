@@ -30,6 +30,7 @@
                     {{ product.description|truncatechars:80 }}
                 </p>
 
+                {%comment%}
                 <!-- Info -->
                 <ul class="list-unstyled small mb-2">
                     <li>
@@ -37,6 +38,7 @@
                         {{ product.location }}
                     </li>
                 </ul>
+                {%endcomment%}
 
                 <!-- Availability -->
                 {% if product.is_available %}
@@ -49,6 +51,6 @@
         </div>
     </div>
     {% empty %}
-    <p class="text-center text-muted">No equipment added yet.</p>
+    <p class="text-center text-muted">No products added yet.</p>
     {% endfor %}
 </div>
