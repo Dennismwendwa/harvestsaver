@@ -48,6 +48,8 @@ class ProductForm(forms.ModelForm):
         if self.user:
             self.fields["farm"].queryset = Farm.objects.filter(owner=self.user,
                                                                is_verified=True)
+            
+        self.fields["farm"].label_from_instance = lambda obj: obj.name
 
     def clean_form(self):
         farm = self.cleaned_dats.get("farm")

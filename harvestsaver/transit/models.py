@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
-from farm.models import Order
+from farm.models import OrderItem
 from .validators import DimensionsValidator
 
 
@@ -25,6 +25,7 @@ class TransportBooking(models.Model):
     TRANSIT_OPTIONS = [
         ("Standard Delivery", "Standard Delivery"),
         ("Express Delivery", "Express Delivery"),
+        
     ]
     STATUS = [
         ("Pending", "Pending"),
@@ -32,8 +33,13 @@ class TransportBooking(models.Model):
         ("Delivered", "Delivered"),
     ]
     customer = models.ForeignKey(User, on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, on_delete=models.PROTECT)
+    order_item = models.OneToOneField(
+        OrderItem,
+        on_delete=models.PROTECT,
+        related_name="transport", blank=True, null=True
+    )
     pickup_location = models.CharField(max_length=200)
+    destination  = models.CharField(max_length=100, blank=True, null=True)
     transport_option = models.CharField(max_length=100, choices=TRANSIT_OPTIONS)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     pickup_date_time = models.DateTimeField()
@@ -43,7 +49,6 @@ class TransportBooking(models.Model):
     class Meta:
         verbose_name = "Transport Booking"
         verbose_name_plural = "Transport Bookings"
-        unique_together = ("customer", "order",)
         ordering = ("-pk","-delivery_dateTime",) 
 
     def __str__(self):

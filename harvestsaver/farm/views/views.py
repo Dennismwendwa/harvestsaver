@@ -11,8 +11,8 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from payment.models import order_payment
-from ..models import Category, Product, Cart, Farm, OrderItem
+from payment.models import process_order
+from ..models import Category, Product, Cart, Farm, OrderItem, Order
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
 from ..forms import ProductForm, EquipmentForm, FarmForm
 from transit.services import cart_deliery_type
@@ -205,18 +205,19 @@ def checkout(request):
     cart_items = Cart.objects.filter(customer=user)
     total = Cart.total_cart_price(user)
         
-    shipping = round((Decimal(3 / 100) * total), 2)
+    shipping = round((Decimal(9 / 100) * total), 2)
     total_cost = (total + shipping)
 
     if request.method == "POST":
         shipping_address = request.POST.get("address")
         payment_method = request.POST.get("payment_method", "card")
         transport = request.POST.get("transport_option")
-        pickup_location= request.POST.get("pickup_location")
+        delivery_destination= request.POST.get("delivery_destination")
+        upgrade_non_perishable_express = request.POST.get("upgrade_non_perishable_express")
 
         
-        payment_status, pk = order_payment(shipping_address,payment_method,
-                                       transport, pickup_location,
+        pk = process_order(shipping_address,payment_method,
+                                       transport, delivery_destination,
                                        request)
         
 
@@ -328,6 +329,22 @@ def farmer_dashboard(request):
     
     weather_data_list = weather_data(city, country)
 
+    orders = (
+        Order.objects
+        .filter(items__product__farm__owner=user)
+        .distinct()
+        .order_by("-order_date")
+    )
+
+    total_sales_per_farmer = OrderItem.total_sales_per_farmer(user)
+
+    inventory = Product.objects.filter(
+        farm__owner=request.user,
+        is_available=True
+    )
+
+    wallet_balance = OrderItem.total_payout_for_farmer(user) or Decimal("0.00")
+
 
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
@@ -352,6 +369,11 @@ def farmer_dashboard(request):
         "current_farmer_products": current_farmer_products,
         "order_items": order_items,
         "weather_data_list": weather_data_list,
+        "total_orders": orders.count(),
+        "total_sales_per_farmer": total_sales_per_farmer,
+        "total_paid": total_sales_per_farmer - wallet_balance,
+        "inventory": inventory,
+        "wallet_balance": wallet_balance,
         }
     return render(request, "farm/farm/farmer_dashboard.html", context)
 

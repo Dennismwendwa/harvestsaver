@@ -32,16 +32,17 @@ def farm_payment_landing(request, pk):
 
 def create_checkoutfarmpayment(request, pk):
     """This function processes payment in farm pay service"""
+    from utils.constants import Status
+
     order = Order.objects.get(pk=pk)
     current_account = request.user.account.account_number
-    cart_items = Cart.objects.filter(customer=request.user).all()
+    cart_items = Cart.objects.filter(customer=request.user)
     transport = TransportBooking.objects.get(order=order)
-    order_items = OrderItem.objects.filter(order=order).all()
+    order_items = OrderItem.objects.filter(order=order)
     
     if request.method == "POST":
         try:
             with transaction.atomic():
-    
                 Payment.objects.create(
                 customer=request.user,
                 order=order,
@@ -58,10 +59,11 @@ def create_checkoutfarmpayment(request, pk):
                     account.save()
                     account.refresh_from_db()
                 
-                order.status = "payed"
+                order.status = Status.PAID
                 order.save()
                 cart_items.delete()
-
+                messages.success(request, ("Payment was successfull. "
+                                           "Thanks for shopping with us."))
             return redirect("payment:success")
         except Exception as e:
             transport.delete()

@@ -2,13 +2,13 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db.models import F, Sum, DecimalField
+from django.db.models import F, Sum, DecimalField, Q
 from django.db.models.functions import Coalesce
 from decimal import Decimal
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
-from utils.constants import UserRole
+from utils.constants import UserRole, Status
 
 class Hub(models.Model):
     name = models.CharField(max_length=100)
@@ -157,7 +157,8 @@ class Order(models.Model):
     """This model stores the products add to cart"""
     customer = models.ForeignKey(User, on_delete = models.CASCADE)
     order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, default="pending")
+    status = models.CharField(max_length=20, choices=Status,
+                              default=Status.PENDING)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
     payment_method = models.CharField(max_length=50)
@@ -167,6 +168,13 @@ class Order(models.Model):
         verbose_name = "Order"
         verbose_name_plural = "Orders"
         ordering = ("-pk",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer"],
+                condition=Q(status="pending"),
+                name="one_pending_order_per_customer"
+            )
+        ]
 
     def __str__(self):
         return (
@@ -204,6 +212,58 @@ class OrderItem(models.Model):
                 f"Order: {self.order.transaction_id} "
                 f"Product: {self.product.name} Quantity: {self.quantity}"
                 )
+    
+    @classmethod
+    def total_sales_per_farmer(cls, farmer):
+        """
+        To return the total sales of the farmer including paid for items,
+        pending payment items
+        """
+        total_sales = (
+            OrderItem.objects
+            .filter(product__farm__owner=farmer)
+            .aggregate(
+                total=Coalesce(
+                    Sum(
+                        F("quantity") * F("product__price"),
+                        output_field=DecimalField(max_digits=12, decimal_places=2),
+                    ),
+                    Decimal("0.00")
+                )
+            )["total"]
+        )
+        return total_sales
+    
+    @classmethod
+    def total_payout_for_farmer(cls, farmer):
+        """
+        To return the amount the farmer is to be paid. Only completed items
+        and items not paid for before
+        """
+        from django.db.models.functions import Coalesce
+        from payment.models import PayoutItem
+        paid_order_ids = PayoutItem.objects.values("order_item_id")
+
+        available_balance = (
+            cls.objects
+            .filter(
+                product__farm__owner=farmer,
+                order__status=Status.COMPLETED
+            )
+            .exclude(id__in=paid_order_ids)
+            .aggregate(
+                total=Coalesce(
+                    Sum(F("quantity") * F("product__price")),
+                    Decimal("0.00")
+                )
+            )
+        )["total"]
+        return available_balance
+
+    @property
+    def get_shipping_cost(self):
+        shipping = round((Decimal(9 / 100) * self.product.price * self.quantity), 2)
+        return  max(shipping, Decimal(200))
 
 class EquipmentCategory(models.Model):
     """This model is for all equipment categories"""

@@ -16,7 +16,7 @@ class Account(models.Model):
     account_name = models.CharField(max_length=100)
     account_number = models.CharField(max_length=200, unique=True)
     account_balance = models.DecimalField(max_digits=12, decimal_places=2,
-                                          default=1000000)
+                                          default=0)
     opening_date = models.DateTimeField(auto_now_add=True)
 
     last_transaction_date = models.DateTimeField(null=True)
@@ -85,45 +85,80 @@ class CustomerSession(models.Model):
         ordering = ("-pk",)
 
 
-def order_payment(shipping_address,payment_method, transport, pickup_location, request):
+def process_order(shipping_address,payment_method, transport, delivery_destination, request):
+    from utils.constants import Status
+    user = request.user
 
     cart_items = Cart.objects.filter(customer=request.user)
-    products_instances = [cart_item.product for cart_item in cart_items]
 
     total = Cart.total_cart_price(request.user)
         
-    shipping = round((Decimal(3 / 100) * total), 2)
+    shipping = round((Decimal(9 / 100) * total), 2)
     total_cost = (total + shipping)
 
     transaction_id=order_transaction_id()
-    order = Order.objects.create(customer=request.user,
-                            total_amount=total_cost,
-                            transaction_id=transaction_id,
-                            shipping_address=shipping_address,
-                            payment_method=payment_method,
-                            status="pending",
-                            )
-    order.products.set(products_instances)
-        
-    for cart_item in cart_items:
-        OrderItem.objects.create(order=order,
-                                     product=cart_item.product,
-                                     quantity=cart_item.quantity)
+
+    order, created = Order.objects.get_or_create(
+        customer=user,
+        status=Status.PENDING,
+        defaults={
+            "total_amount": total_cost,
+            "transaction_id": transaction_id,
+            "shipping_address": shipping_address,
+            "payment_method": payment_method,
+        }
+    )
 
     today = timezone.now()
-    pickup_date_time = today + timedelta(days=4)
-        
-    try:
-        TransportBooking.objects.create(
-            customer=request.user,
-            order=order,
-            pickup_location=pickup_location,
-            transport_option=transport,
-            cost=shipping,
-            pickup_date_time=pickup_date_time,
-            )
-    except Exception as e:
-        print(e)
-        return "payment_error", None
+    if created:   
+        for cart_item in cart_items:
+            order_item = OrderItem.objects.create(order=order,
+                                        product=cart_item.product,
+                                        quantity=cart_item.quantity)
+
+            if order_item.product.is_perishable:
+                pickup_date_time = today + timedelta(days=1)
+            pickup_date_time = today + timedelta(days=4)
+                
+            try:
+                TransportBooking.objects.create(
+                    customer=request.user,
+                    order_item=order_item,
+                    pickup_location=order_item.product.farm.hub.name,
+                    destination=delivery_destination,
+                    transport_option=transport,
+                    cost=order_item.get_shipping_cost,
+                    pickup_date_time=pickup_date_time,
+                    )
+            except Exception as e:
+                print(e)
+                return None
     
-    return "payment_seccess", order.pk
+    return order.pk
+
+class Payout(models.Model):
+    farmer = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Payout"
+        verbose_name_plural = "Payouts"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Payout amount {self.amount} to {self.farmer.username}"
+
+class PayoutItem(models.Model):
+    payout = models.ForeignKey(Payout, related_name="items", on_delete=models.CASCADE)
+    order_item = models.OneToOneField(OrderItem, on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = "PayoutItem"
+        verbose_name_plural = "PayoutItems"
+        ordering = ("-pk",)
+    
+    def __str__(self):
+        return f"{self.payout} - {self.order_item}"
