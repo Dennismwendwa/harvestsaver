@@ -8,7 +8,7 @@ from farm.models import (ProductReview, FrequentQuestion, PlatformReview,
 def common_variables(request):
     
     categories = Category.objects.all()[:5]
-    products = Product.objects.all()[:8]
+    products = Product.objects.all()[:3]
 
     reviews = PlatformReview.objects.all()[:5]
     questions = FrequentQuestion.objects.all()[:5]
@@ -25,7 +25,7 @@ def common_variables(request):
 
     return {
             "categories": categories,
-            "products": products,
+            "page_object": products,
             "current_user_total_quantity": current_user_total_quantity,
             "equipment_categories": equipment_categories,
             "equipments": equipments,

@@ -1,3 +1,5 @@
+from itertools import groupby
+from operator import attrgetter
 
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
@@ -11,12 +13,13 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from payment.models import process_order
+from payment.models import process_order, Payout
 from ..models import Category, Product, Cart, Farm, OrderItem, Order
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
 from ..forms import ProductForm, EquipmentForm, FarmForm
 from transit.services import cart_deliery_type
 from .utils import weather_data, assign_hub_to_farm
+from farm.services.functions import reduce_stock_for_order
 
 
 
@@ -39,7 +42,7 @@ def all_products(request):
     """List all product with pagination of 4 per page"""
     products = Product.objects.all()
 
-    products_per_page = 4
+    products_per_page = 2
     page_number = request.GET.get("page")
     paginator = Paginator(products, products_per_page)
 
@@ -201,6 +204,7 @@ def checkout(request):
     Collects details about the shipping, payment type and prepair
     the items for transport upon successfull payment
     """
+    from utils.constants import PaymentMethod
     user = request.user
     cart_items = Cart.objects.filter(customer=user)
     total = Cart.total_cart_price(user)
@@ -216,12 +220,22 @@ def checkout(request):
         upgrade_non_perishable_express = request.POST.get("upgrade_non_perishable_express")
 
         
-        pk = process_order(shipping_address,payment_method,
+        order = process_order(shipping_address,payment_method,
                                        transport, delivery_destination,
                                        request)
         
-
-        return redirect("payment:servicepayment", pk)
+        if order.payment_method == PaymentMethod.PAY_ON_DELIVERY:
+            try:
+                reduce_stock_for_order(cart_items)
+            except ValueError as e:
+                messages.error(request, str(e))
+                return redirect("farm:checkout")
+            cart_items.delete()
+            order.is_checkout_active = False
+            order.save()
+            return redirect("farm:all_products")
+        
+        return redirect("payment:servicepayment", order.pk)
 
     context = {
         "total": total,
@@ -302,7 +316,7 @@ def search(request):
 @login_required
 def farmer_dashboard(request):
     """
-    This this farmers home page
+    This is farmers home page
     Contains activites which are only for farmers
     like uploading products
     """
@@ -311,21 +325,34 @@ def farmer_dashboard(request):
     country = "kenya"
 
     if not request.user.has_perm("farm.view_product"):
-        messages.error(request, (
-                                f"You do not have permission to access "
-                                f"the page you requested.")
-                                )
+        messages.error(request, _(f"You do not have permission to access "
+                                  f"the page you requested."))
         return redirect(reverse_lazy("farm:home"))
     
     farms = user.farms.all()
     current_farmer_products = Product.objects.filter(farm__owner=user)
 
-    order_items = OrderItem.objects.filter(
-        product__farm__owner=request.user
-    ).select_related("order", "product")
+    order_items = (
+        Order.objects
+        .filter(items__product__farm__owner=user)
+        .distinct()
+        .order_by("-order_date")
+        .prefetch_related("items__product")
+    )
+
+    order_items = (
+        OrderItem.objects
+        .filter(product__farm__owner=user)
+        .select_related("order", "product")
+        .order_by("-order__order_date")
+    )
 
     for item in order_items:
         item.subtotal = item.quantity * item.product.price
+
+    grouped_orders = []
+    for order, items in groupby(order_items, key=attrgetter("order")):
+        grouped_orders.append((order, list(items)))
     
     weather_data_list = weather_data(city, country)
 
@@ -343,8 +370,8 @@ def farmer_dashboard(request):
         is_available=True
     )
 
-    wallet_balance = OrderItem.total_payout_for_farmer(user) or Decimal("0.00")
-
+    wallet_balance = OrderItem.wallet_balance_for_farmer(user)
+    total_paid = Payout.total_paid(user)
 
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
@@ -367,11 +394,11 @@ def farmer_dashboard(request):
 
         "total_products": current_farmer_products.count(),
         "current_farmer_products": current_farmer_products,
-        "order_items": order_items,
+        "grouped_orders": grouped_orders,
         "weather_data_list": weather_data_list,
         "total_orders": orders.count(),
         "total_sales_per_farmer": total_sales_per_farmer,
-        "total_paid": total_sales_per_farmer - wallet_balance,
+        "total_paid": total_paid,
         "inventory": inventory,
         "wallet_balance": wallet_balance,
         }

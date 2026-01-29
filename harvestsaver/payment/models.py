@@ -4,11 +4,13 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from django.db import models, transaction
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
-from farm.models import order_transaction_id
 from accounts.models import User
 from farm.models import Order, Cart, OrderItem
 from transit.models import TransportBooking
+from utils.constants import PaymentStatus, Country
 
 
 class Account(models.Model):
@@ -29,30 +31,46 @@ class Account(models.Model):
         verbose_name_plural = "Accounts"
         ordering = ("-pk",)
 
+    @staticmethod
+    def generate_account_number(country_code: str) -> str:
+        """
+        Returns a unique, hard-to-guess account number.
+        Format: <COUNTRY>-<RANDOM4><SEQUENTIAL6>
+        Example: KE-A7F312-000123
+        """
+        from utils.constants import COUNTRY_NUMERIC, APP_CODE, PRODUCT_CODE
+        country_num = COUNTRY_NUMERIC.get(country_code, "000")
+        prefix = f"{country_num}{APP_CODE}{PRODUCT_CODE}"
+
+        last = Account.objects.filter(
+            account_number__startswith=prefix
+        ).order_by("-account_number").first()
+
+        if not last:
+            next_seq = 1
+        else:
+            last_seq = int(last.account_number[-10:])
+            next_seq = last_seq + 1
+
+        return f"{prefix}{next_seq:010d}"
+
+    def save(self, *args, **kwargs):
+        if not self.account_number:
+            self.account_number = self.generate_account_number(self.user.country)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} {self.account_number}"
 
 
-def accounts_number(user_id):
-     
-	string_part = "ACC"
-	randd = random.randint(1, 10)
-	
-	uuid_part = str(uuid.uuid4().hex[:8])
-	user_num = str(int(user_id) - sum(ord(char) for char in str(user_id))).replace("-", "")
-	user_num = int(user_num)
-	user_num = str(user_num - randd)
 
-	bank_account_number = string_part + uuid_part + user_num
-
-	ciphertext = bank_account_number.upper()
-
-	return ciphertext
 
 class Payment(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=50)
+    transaction_id = models.CharField(max_length=100, unique=True,)
+    provider = models.CharField(max_length=50)  # mpesa, stripe, wallet
+    status = models.CharField(max_length=20, choices=PaymentStatus,
+                              )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -85,56 +103,72 @@ class CustomerSession(models.Model):
         ordering = ("-pk",)
 
 
-def process_order(shipping_address,payment_method, transport, delivery_destination, request):
-    from utils.constants import Status
+@transaction.atomic
+def process_order(shipping_address, payment_method, transport, delivery_destination, request):
+    from utils.constants import PaymentStatus
+
     user = request.user
+    cart_items = Cart.objects.filter(customer=user)
 
-    cart_items = Cart.objects.filter(customer=request.user)
+    if not cart_items.exists():
+        return None
 
-    total = Cart.total_cart_price(request.user)
-        
-    shipping = round((Decimal(9 / 100) * total), 2)
-    total_cost = (total + shipping)
+    total = Cart.total_cart_price(user)
+    shipping = round(Decimal("0.09") * total, 2)
+    total_cost = total + shipping
 
-    transaction_id=order_transaction_id()
-
-    order, created = Order.objects.get_or_create(
+    order = Order.objects.filter(
         customer=user,
-        status=Status.PENDING,
-        defaults={
-            "total_amount": total_cost,
-            "transaction_id": transaction_id,
-            "shipping_address": shipping_address,
-            "payment_method": payment_method,
-        }
-    )
+        status=PaymentStatus.PENDING,
+        is_checkout_active=True
+    ).first()
+
+    if not order:
+        order = Order.objects.create(
+            customer=user,
+            status=PaymentStatus.PENDING,
+            is_checkout_active=True,
+            total_amount=total_cost,
+            shipping_address=shipping_address,
+            payment_method=payment_method,
+        )
+    else:
+        # Update totals if cart changed
+        order.total_amount = total_cost
+        order.shipping_address = shipping_address
+        order.payment_method = payment_method
+        order.save()
+
+        # Clean previous checkout attempt
+        order.orderitem_set.all().delete()
 
     today = timezone.now()
-    if created:   
-        for cart_item in cart_items:
-            order_item = OrderItem.objects.create(order=order,
-                                        product=cart_item.product,
-                                        quantity=cart_item.quantity)
 
-            if order_item.product.is_perishable:
-                pickup_date_time = today + timedelta(days=1)
-            pickup_date_time = today + timedelta(days=4)
-                
-            try:
-                TransportBooking.objects.create(
-                    customer=request.user,
-                    order_item=order_item,
-                    pickup_location=order_item.product.farm.hub.name,
-                    destination=delivery_destination,
-                    transport_option=transport,
-                    cost=order_item.get_shipping_cost,
-                    pickup_date_time=pickup_date_time,
-                    )
-            except Exception as e:
-                print(e)
-                return None
-    
-    return order.pk
+    for cart_item in cart_items:
+        order_item = OrderItem.objects.create(
+            order=order,
+            product=cart_item.product,
+            quantity=cart_item.quantity
+        )
+
+        pickup_date_time = (
+            today + timedelta(days=1)
+            if order_item.product.is_perishable
+            else today + timedelta(days=4)
+        )
+
+        TransportBooking.objects.create(
+            customer=user,
+            order_item=order_item,
+            pickup_location=order_item.product.farm.hub.name,
+            destination=delivery_destination,
+            transport_option=transport,
+            cost=order_item.get_shipping_cost,
+            pickup_date_time=pickup_date_time,
+        )
+
+    return order
+
 
 class Payout(models.Model):
     farmer = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -150,6 +184,17 @@ class Payout(models.Model):
 
     def __str__(self):
         return f"Payout amount {self.amount} to {self.farmer.username}"
+    
+    @classmethod
+    def total_paid(cls, farmer):
+        total_paid = (
+            Payout.objects
+            .filter(farmer=farmer)
+            .aggregate(
+                total=Coalesce(Sum("amount"), Decimal("0.00"))
+                )
+        )["total"]
+        return total_paid
 
 class PayoutItem(models.Model):
     payout = models.ForeignKey(Payout, related_name="items", on_delete=models.CASCADE)

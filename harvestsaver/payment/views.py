@@ -20,9 +20,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from farm.models import Product, Order, Cart, OrderItem
+from farm.models import Product, Order, Cart
 from transit.models import TransportBooking
-from .models import Payment, Account
+from utils.payments.helper import process_payment
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -32,43 +32,17 @@ def farm_payment_landing(request, pk):
 
 def create_checkoutfarmpayment(request, pk):
     """This function processes payment in farm pay service"""
-    from utils.constants import Status
+    from utils.constants import PaymentMethod
 
     order = Order.objects.get(pk=pk)
-    current_account = request.user.account.account_number
-    cart_items = Cart.objects.filter(customer=request.user)
-    transport = TransportBooking.objects.get(order=order)
-    order_items = OrderItem.objects.filter(order=order)
-    
     if request.method == "POST":
-        try:
-            with transaction.atomic():
-                Payment.objects.create(
-                customer=request.user,
-                order=order,
-                payment_method=order.payment_method,
-                amount=order.total_amount
-                )
-                
-                account = Account.objects.get(account_number=current_account)
+        success, error = process_payment(order, request.user)
 
-                if account.account_balance >= order.total_amount:
-                    account.account_balance = F("account_balance") - order.total_amount
-                    account.total_payment = F("total_payment") + order.total_amount
-                    account.last_transaction_date = timezone.now()
-                    account.save()
-                    account.refresh_from_db()
-                
-                order.status = Status.PAID
-                order.save()
-                cart_items.delete()
-                messages.success(request, ("Payment was successfull. "
-                                           "Thanks for shopping with us."))
+        if success:
+            messages.success(request, "Payment was successful.")
             return redirect("payment:success")
-        except Exception as e:
-            transport.delete()
-            order_items.delete()
-            messages.error(request, f"Error processing payment: {str(e)}")
+        else:
+            messages.error(request, f"Payment failed: {error}")
             return redirect("payment:payment_failed")
     return render(request, "payment/farmpayment.html")
         

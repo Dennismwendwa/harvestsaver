@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
-from utils.constants import UserRole, Status
+from utils.constants import UserRole, PaymentStatus, PaymentMethod
 
 class Hub(models.Model):
     name = models.CharField(max_length=100)
@@ -112,11 +112,24 @@ class Product(models.Model):
         ordering = ("-pk",)
     
     def __str__(self):
-        return f"product: {self.name} farm: "
+        return f"product: {self.name} farm: {self.farm.name}"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def reduce_stock(self, qty):
+        """Reduces stock after customer buys"""
+        from django.db import transaction
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=self.pk)
+
+            if product.quantity < qty:
+                raise ValueError("Out of stock")
+            
+            product.quantity -= qty
+            product.save(update_fields=["quantity"])
         
 
 class Cart(models.Model):
@@ -155,19 +168,23 @@ class Cart(models.Model):
 
 class Order(models.Model):
     """This model stores the products add to cart"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer = models.ForeignKey(User, on_delete = models.CASCADE)
     order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=Status,
-                              default=Status.PENDING)
+    status = models.CharField(max_length=20, choices=PaymentStatus,
+                              default=PaymentStatus.PENDING)
+    is_checkout_active = models.BooleanField(default=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
-    payment_method = models.CharField(max_length=50)
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod)
+    order_reference = models.CharField(
+        max_length=50, unique=True, editable=False
+    )
 
-    class meta:
+    class Meta:
         verbose_name = "Order"
         verbose_name_plural = "Orders"
-        ordering = ("-pk",)
+        ordering = ("-order_date",)
         constraints = [
             models.UniqueConstraint(
                 fields=["customer"],
@@ -176,23 +193,20 @@ class Order(models.Model):
             )
         ]
 
+    @staticmethod
+    def generate_order_reference():
+        year = timezone.now().year
+        seq = Order.objects.filter(order_date__year=year).count() + 1
+        return f"HARVEST-{year}-{seq:07d}"
+    
+    def save(self, *args, **kwargs):
+        if not self.order_reference:
+            self.order_reference = self.generate_order_reference()
+        super().save(*args, **kwargs)
+
+
     def __str__(self):
-        return (
-                f"({self.pk}). Customer: {self.customer.username} "
-                f"Order Id: {self.transaction_id} "
-                f"Order amount: {self.total_amount}"
-                )
-
-
-def order_transaction_id():
-    """This function generates unique transaction ID"""
-    month = timezone.now().strftime("%B")[:4].upper()
-
-    num = str(uuid.uuid4())[:10].upper()
-
-    complete_id = f"{month}{num}"
-
-    return complete_id
+        return f"{self.order_reference} - {self.customer.username}"
 
 
 class OrderItem(models.Model):
@@ -202,14 +216,14 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
 
-    class meta:
+    class Meta:
         verbose_name = "Order Item"
         verbose_name_plural = "Order Items"
         ordering = ("-pk",)
 
     def __str__(self):
         return (
-                f"Order: {self.order.transaction_id} "
+                f"Order: {self.order.order_reference} "
                 f"Product: {self.product.name} Quantity: {self.quantity}"
                 )
     
@@ -235,20 +249,21 @@ class OrderItem(models.Model):
         return total_sales
     
     @classmethod
-    def total_payout_for_farmer(cls, farmer):
+    def wallet_balance_for_farmer(cls, farmer):
         """
         To return the amount the farmer is to be paid. Only completed items
         and items not paid for before
         """
         from django.db.models.functions import Coalesce
         from payment.models import PayoutItem
+        from utils.constants import PaymentStatus
         paid_order_ids = PayoutItem.objects.values("order_item_id")
 
         available_balance = (
             cls.objects
             .filter(
                 product__farm__owner=farmer,
-                order__status=Status.COMPLETED
+                order__status=PaymentStatus.COMPLETED
             )
             .exclude(id__in=paid_order_ids)
             .aggregate(

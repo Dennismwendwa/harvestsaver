@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 from django.core.validators import EmailValidator, MinValueValidator
 from django.core.validators import MaxValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator, MinLengthValidator

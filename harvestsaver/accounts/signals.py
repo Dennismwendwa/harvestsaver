@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from accounts.models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
-from payment.models import Account, accounts_number
+from payment.models import Account
 
 
 @receiver(post_save, sender=User, dispatch_uid="create_profile")
@@ -15,7 +15,6 @@ def create_profile(sender, instance, created, **kwargs):
             EquipmentOwnerProfile.objects.create(user=instance)
 
         Account.objects.create(user=instance,
-                               account_number=accounts_number(instance.pk),
                                account_name= f"{instance.first_name} {instance.last_name}")
 
 

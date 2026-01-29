@@ -10,7 +10,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("farm_name", "hub_name", "name", "category", "price", "quantity",
+    list_display = ("farm_name", "farm_owner", "hub_name", "name", "category", "price", "quantity",
                     "unit_quantity",
                     "unit_quantity_type", "harvest_date",
                     "is_available",
@@ -25,12 +25,14 @@ class ProductAdmin(admin.ModelAdmin):
         return obj.farm.name if obj.hub else "-"
     hub_name.short_description = "Hub"
 
-
+    def farm_owner(self, obj):
+        return obj.farm.owner.username if obj.farm.owner else "-"
+    farm_owner.short_description = "Farm Owner"
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
-        "customer", "order_date", "status", "total_amount",
-        "shipping_address", "transaction_id", "payment_method"
+        "customer", "order_date", "status", "is_checkout_active", "total_amount",
+        "shipping_address", "order_reference", "payment_method"
     )
 
 class EquipmentCategoryAdmin(admin.ModelAdmin):

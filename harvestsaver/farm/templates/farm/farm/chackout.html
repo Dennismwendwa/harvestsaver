@@ -124,63 +124,62 @@ HarvestSaver – Checkout
 
                             {# ================= MIXED CART ================= #}
                             {% if delivery_type == "mixed" %}
-                    {# ================= MIXED CART ================= #}
-                    {% if delivery_type == "mixed" %}
-                        <div class="alert alert-warning">
-                            <strong>Delivery optimized for freshness</strong><br>
-                            Fresh items will ship Express. You may upgrade the rest.
-                        </div>
-
-                        <ul class="list-group mb-3">
-                            <!-- PERISHABLES (FORCED EXPRESS) -->
-                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong>Perishable items</strong>
-                                    <div class="text-muted small">Requires Express delivery</div>
+                            {# ================= MIXED CART ================= #}
+                            {% if delivery_type == "mixed" %}
+                                <div class="alert alert-warning">
+                                    <strong>Delivery optimized for freshness</strong><br>
+                                    Fresh items will ship Express. You may upgrade the rest.
                                 </div>
-                                <div class="text-success fw-bold">
-                                    🚚 Arrives Tomorrow
-                                </div>
-                            </li>
 
-                            <!-- NON-PERISHABLES (USER CHOICE) -->
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <strong>Non-perishable items</strong>
-                                        <div class="text-muted small">
-                                            Default: Standard delivery (2–3 days)
+                                <ul class="list-group mb-3">
+                                    <!-- PERISHABLES (FORCED EXPRESS) -->
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>Perishable items</strong>
+                                            <div class="text-muted small">Requires Express delivery</div>
                                         </div>
-                                    </div>
-                                    <div class="text-muted">
-                                        🚚 2–3 days
-                                    </div>
-                                </div>
+                                        <div class="text-success fw-bold">
+                                            🚚 Arrives Tomorrow
+                                        </div>
+                                    </li>
 
-                                <!-- UPGRADE OPTION -->
-                                <div class="form-check mt-2">
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        name="upgrade_non_perishable_express"
-                                        id="upgradeExpress"
-                                        value="true"
-                                    >
-                                    <label class="form-check-label fw-bold text-success" for="upgradeExpress">
-                                        Upgrade non-perishables to Express
-                                        <span class="badge bg-success ms-1">Faster</span>
-                                    </label>
-                                    <div class="small text-muted">
-                                        🚚 Arrives Tomorrow · Extra cost applies
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
+                                    <!-- NON-PERISHABLES (USER CHOICE) -->
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Non-perishable items</strong>
+                                                <div class="text-muted small">
+                                                    Default: Standard delivery (2–3 days)
+                                                </div>
+                                            </div>
+                                            <div class="text-muted">
+                                                🚚 2–3 days
+                                            </div>
+                                        </div>
 
-                        <!-- SYSTEM DECIDES BASE TRANSPORT -->
-                        <input type="hidden" name="transport_option" value="Mixed">
-                    {% endif %}
+                                        <!-- UPGRADE OPTION -->
+                                        <div class="form-check mt-2">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="upgrade_non_perishable_express"
+                                                id="upgradeExpress"
+                                                value="true"
+                                            >
+                                            <label class="form-check-label fw-bold text-success" for="upgradeExpress">
+                                                Upgrade non-perishables to Express
+                                                <span class="badge bg-success ms-1">Faster</span>
+                                            </label>
+                                            <div class="small text-muted">
+                                                🚚 Arrives Tomorrow · Extra cost applies
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
 
+                                <!-- SYSTEM DECIDES BASE TRANSPORT -->
+                                <input type="hidden" name="transport_option" value="Mixed">
+                            {% endif %}
 
                             {# ================= PERISHABLE ONLY ================= #}
                             {% elif delivery_type == "perishable" %}

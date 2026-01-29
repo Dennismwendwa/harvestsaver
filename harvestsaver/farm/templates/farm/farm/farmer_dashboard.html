@@ -1,6 +1,7 @@
 {% extends "accounts/layout.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}
 Farmer Dashboard
@@ -70,7 +71,7 @@ Farmer Dashboard
                 <div class="col-md-3">
                     <div class="card p-3 shadow-sm">
                         <h6>Total Sales</h6>
-                        <h4>KES {{ total_sales_per_farmer }}</h4>
+                        <h4>KES {{ total_sales_per_farmer|floatformat:2|intcomma }}</h4>
                     </div>
                 </div>
             </div>
@@ -134,135 +135,137 @@ Farmer Dashboard
             </div>
         </div>
 
-
         <!-- PRODUCTS -->
-<!-- PRODUCTS -->
-<div class="tab-pane fade" id="products">
+        <div class="tab-pane fade" id="products">
 
-    <div class="row">
-        {% for product in current_farmer_products %}
-        <div class="col-md-3 mb-3">
-            <div class="card shadow-sm h-100">
+            <div class="row">
+                {% for product in current_farmer_products %}
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow-sm h-100">
 
-                <img 
-                    src="{{ product.image.url }}" 
-                    class="card-img-top" 
-                    style="height: 180px; object-fit: cover;"
-                    alt="{{ product.name }}"
-                >
+                        <img 
+                            src="{{ product.image.url }}" 
+                            class="card-img-top" 
+                            style="height: 180px; object-fit: cover;"
+                            alt="{{ product.name }}"
+                        >
 
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.name }}</h5>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
 
-                    <p class="mb-1">
-                        <strong>Category:</strong> {{ product.category.name }}
-                    </p>
+                            <p class="mb-1">
+                                <strong>Category:</strong> {{ product.category.name }}
+                            </p>
 
-                    <p class="mb-1 accompanied by a smaller font">
-                        <strong>Farm:</strong> {{ product.farm.name }}
-                    </p>
+                            <p class="mb-1 accompanied by a smaller font">
+                                <strong>Farm:</strong> {{ product.farm.name }}
+                            </p>
 
-                    <p class="mb-1">
-                        <strong>Price:</strong> KES {{ product.price }}
-                    </p>
+                            <p class="mb-1">
+                                <strong>Price:</strong> KES {{ product.price }}
+                            </p>
 
-                    <p class="mb-1">
-                        <strong>Stock:</strong> {{ product.quantity }}
-                        {% if product.unit_quantity_type %}
-                            {{ product.unit_quantity_type }}
-                        {% endif %}
-                    </p>
+                            <p class="mb-1">
+                                <strong>Stock:</strong> {{ product.quantity }}
+                                {% if product.unit_quantity_type %}
+                                    {{ product.unit_quantity_type }}
+                                {% endif %}
+                            </p>
 
-                    <p class="mb-1">
-                        <strong>Harvest:</strong> {{ product.harvest_date|date:"M d, Y" }}
-                    </p>
+                            <p class="mb-1">
+                                <strong>Harvest:</strong> {{ product.harvest_date|date:"M d, Y" }}
+                            </p>
 
-                    <p>
-                        <strong>Status:</strong>
-                        {% if product.is_available %}
-                            <span class="badge bg-success">Available</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Unavailable</span>
-                        {% endif %}
-                    </p>
+                            <p>
+                                <strong>Status:</strong>
+                                {% if product.is_available %}
+                                    <span class="badge bg-success">Available</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Unavailable</span>
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="card-footer d-flex justify-content-between">
+                            <a href="" 
+                            class="btn btn-sm btn-outline-primary">
+                                Edit
+                            </a>
+
+                            {% if product.is_available %}
+                            <a href="" 
+                            class="btn btn-sm btn-outline-danger">
+                                Disable
+                            </a>
+                            {% else %}
+                            <a href="{% url 'farm:toggle_product' product.id %}" 
+                            class="btn btn-sm btn-outline-success">
+                                Enable
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+                {% empty %}
+                    <p class="text-muted">No products yet.</p>
+                {% endfor %}
+            </div>
 
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="" 
-                       class="btn btn-sm btn-outline-primary">
-                        Edit
-                    </a>
+            <hr>
 
-                    {% if product.is_available %}
-                    <a href="" 
-                       class="btn btn-sm btn-outline-danger">
-                        Disable
-                    </a>
-                    {% else %}
-                    <a href="{% url 'farm:toggle_product' product.id %}" 
-                       class="btn btn-sm btn-outline-success">
-                        Enable
-                    </a>
-                    {% endif %}
+            <!-- ADD PRODUCT FORM -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5>Add New Product</h5>
+                    <div class="card p-3 shadow-sm">
+                        <form action="{% url 'farm:create_product' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ products_form|crispy }}
+                            <button class="btn btn-primary w-100 mt-3" type="submit">
+                                Add Product
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
+
         </div>
-        {% empty %}
-            <p class="text-muted">No products yet.</p>
-        {% endfor %}
-    </div>
-
-    <hr>
-
-    <!-- ADD PRODUCT FORM -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <h5>Add New Product</h5>
-            <div class="card p-3 shadow-sm">
-                <form action="{% url 'farm:create_product' %}" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ products_form|crispy }}
-                    <button class="btn btn-primary w-100 mt-3" type="submit">
-                        Add Product
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-</div>
-
 
         <!-- ORDERS -->
         <div class="tab-pane fade" id="orders">
-            {% for item in order_items %}
-                <div class="card p-2 mb-2">
-                    <div>
-                        <strong>Order #{{ item.order.id }}</strong>
-                        ({{ item.order.status }})
-                    </div>
+            <div class="row">
 
-                    <div>
-                        Buyer: {{ item.order.customer.username }}
-                    </div>
+            {% for order, items in grouped_orders %}
 
-                    <div>
-                        Product: {{ item.product.name }}
-                    </div>
-
-                    <div>
-                        Quantity: {{ item.quantity }}
-                    </div>
-
-                    <div>
-                        Subtotal: 
-                        {{ item.quantity|floatformat:2 }} × {{ item.product.price }} =
-                        <strong>KES {{ item.subtotal }}</strong>
-                    </div>
+                <div class="col-12 mb-2">
+                    <h5>
+                        Order {{ order.order_reference }}
+                        ({{ order.status }})
+                        - Buyer: {{ order.customer.get_full_name|title|default:order.customer.username|title }}
+                    </h5>
                 </div>
+
+                {% for item in items %}
+                    <div class="col-md-6">
+                        <div class="card p-2 mb-2">
+                            <div>Product: {{ item.product.name }}</div>
+                            <div>Quantity: {{ item.quantity }}</div>
+                            <div>
+                                Subtotal:
+                                {{ item.quantity }} × {{ item.product.price }} =
+                                <strong>KES {{ item.subtotal }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="col-12"><hr></div>
+
             {% empty %}
                 <p>No orders for your products yet.</p>
             {% endfor %}
+
+            </div>
         </div>
 
 
@@ -312,7 +315,6 @@ Farmer Dashboard
             </div>
         </div>
 
-
         <!-- WEATHER -->
         <div class="tab-pane fade" id="weather">
             <h5 class="mb-3">Next 24 Hours Forecast</h5>
@@ -325,17 +327,13 @@ Farmer Dashboard
                         <small class="text-muted">
                             {{ w.dt_readable|date:"D, H:i" }}
                         </small>
-
                         <img 
                             src="https://openweathermap.org/img/wn/{{ w.icon }}@2x.png"
                             alt="icon"
                             width="60"
                         >
-
                         <h4>{{ w.temp_c }}°C</h4>
-
                         <p class="mb-1">{{ w.condition }}</p>
-
                         <small class="text-muted">
                             Humidity: {{ w.humidity }}%
                         </small>
@@ -345,7 +343,6 @@ Farmer Dashboard
             </div>
         </div>
 
-
         <!-- PAYMENTS / WALLET -->
         <div class="tab-pane fade" id="payments">
             <div class="row">
@@ -353,7 +350,7 @@ Farmer Dashboard
                     <div class="card shadow-sm p-4 text-center">
                         <h6 class="text-muted mb-2">Available Balance</h6>
                         <h2 class="fw-bold text-success">
-                            KES {{ wallet_balance }}
+                            KES {{ wallet_balance|floatformat:2|intcomma }}
                         </h2>
 
                         <small class="text-muted">
@@ -374,13 +371,13 @@ Farmer Dashboard
 
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total Sales</span>
-                            <strong>KES {{ total_sales_per_farmer }}</strong>
+                            <strong>KES {{ total_sales_per_farmer|floatformat:2|intcomma }}</strong>
                         </div>
 
                         <div class="d-flex justify-content-between mb-2">
                             <span>Total Paid Out</span>
                             <strong class="text-muted">
-                                KES {{ total_paid }}
+                                KES {{ total_paid|floatformat:2|intcomma }}
                             </strong>
                         </div>
 
@@ -389,14 +386,13 @@ Farmer Dashboard
                         <div class="d-flex justify-content-between">
                             <span>Available for Payout</span>
                             <strong class="text-success">
-                                KES {{ wallet_balance }}
+                                KES {{ wallet_balance|floatformat:2|intcomma }}
                             </strong>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <!-- MESSAGES -->
         <div class="tab-pane fade" id="messages">
@@ -412,7 +408,6 @@ Farmer Dashboard
             <h5>Analytics</h5>
             <p>Sales trends, charts, and performance KPIs go here.</p>
         </div>
-
     </div>
 </div>
 <!-- Leaflet CSS -->

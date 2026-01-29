@@ -9,6 +9,7 @@ from .models import Contact
 from .forms import ContactForm, FarmerProfileForm, BuyerProfileForm, EquipmentOwnerProfileForm
 
 from .utils.functions import create_group_and_permission
+from utils.constants import UserRole
 
 
 def register(request):
@@ -48,11 +49,11 @@ def register(request):
                                                 role=role,
                                                 )
 
-                if role == User.Role.STAFF:
+                if role == UserRole.STAFF:
                     user.is_staff = True
                     user.save(update_fields=["is_staff"])
                 
-                if role == "farmer" or role == "equipment_owner":
+                if role in [UserRole.FARMER, UserRole.EQUIPMENT_OWNER]:
                     create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
 

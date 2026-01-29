@@ -3,7 +3,7 @@ from .models import Account, Payment
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = (
-        "customer", "order", "amount", "timestamp", "payment_method"
+        "order", "transaction_id", "amount", "timestamp"
     )
 
 admin.site.register(Account)
