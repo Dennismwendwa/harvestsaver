@@ -5,12 +5,12 @@ User = get_user_model()
 from .models import FarmerProfile, BuyerProfile, EquipmentOwnerProfile
 
 class UserAdmin(UA):
-    list_display = ("username", "email", "role")
+    list_display = ("username", "email", "active_role")
 
     fieldsets = UA.fieldsets + (
         ("Custom Fields", {
             "fields": (
-                "role",
+                "active_role",
                 "gender",
                 "phone_number",
                 "country",
@@ -21,7 +21,7 @@ class UserAdmin(UA):
     add_fieldsets = UA.add_fieldsets + (
         ("Custom Fields", {
             "fields": (
-                "role",
+                "active_role",
                 "gender",
                 "phone_number",
                 "country",

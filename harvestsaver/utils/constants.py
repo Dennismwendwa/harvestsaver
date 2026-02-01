@@ -8,6 +8,7 @@ class UserRole(models.TextChoices):
 
 
 class PaymentStatus(models.TextChoices):
+    ACTIVE = "active", "Active (Checkout)"
     PENDING = "pending", "Pending"
     PAID = "paid", "Paid"
     COMPLETED = "completed", "Completed"

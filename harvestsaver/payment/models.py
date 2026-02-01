@@ -119,14 +119,14 @@ def process_order(shipping_address, payment_method, transport, delivery_destinat
 
     order = Order.objects.filter(
         customer=user,
-        status=PaymentStatus.PENDING,
+        status=PaymentStatus.ACTIVE,
         is_checkout_active=True
     ).first()
 
     if not order:
         order = Order.objects.create(
             customer=user,
-            status=PaymentStatus.PENDING,
+            status=PaymentStatus.ACTIVE,
             is_checkout_active=True,
             total_amount=total_cost,
             shipping_address=shipping_address,

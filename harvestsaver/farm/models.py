@@ -172,7 +172,7 @@ class Order(models.Model):
     customer = models.ForeignKey(User, on_delete = models.CASCADE)
     order_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=PaymentStatus,
-                              default=PaymentStatus.PENDING)
+                              default=PaymentStatus.ACTIVE)
     is_checkout_active = models.BooleanField(default=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
@@ -185,13 +185,15 @@ class Order(models.Model):
         verbose_name = "Order"
         verbose_name_plural = "Orders"
         ordering = ("-order_date",)
+        
         constraints = [
             models.UniqueConstraint(
                 fields=["customer"],
-                condition=Q(status="pending"),
-                name="one_pending_order_per_customer"
+                condition=Q(status=PaymentStatus.ACTIVE),
+                name="one_active_checkout_order_per_customer"
             )
         ]
+        
 
     @staticmethod
     def generate_order_reference():

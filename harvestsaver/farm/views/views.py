@@ -204,7 +204,7 @@ def checkout(request):
     Collects details about the shipping, payment type and prepair
     the items for transport upon successfull payment
     """
-    from utils.constants import PaymentMethod
+    from utils.constants import PaymentMethod, PaymentStatus
     user = request.user
     cart_items = Cart.objects.filter(customer=user)
     total = Cart.total_cart_price(user)
@@ -232,6 +232,7 @@ def checkout(request):
                 return redirect("farm:checkout")
             cart_items.delete()
             order.is_checkout_active = False
+            order.status = PaymentStatus.PENDING
             order.save()
             return redirect("farm:all_products")
         

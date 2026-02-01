@@ -4,9 +4,11 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import auth
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import (User)
+from accounts.models import (User, FarmerProfile, BuyerProfile,
+                             EquipmentOwnerProfile, StaffProfile)
 from .models import Contact
-from .forms import ContactForm, FarmerProfileForm, BuyerProfileForm, EquipmentOwnerProfileForm
+from .forms import (ContactForm, FarmerProfileForm, BuyerProfileForm,
+                    EquipmentOwnerProfileForm)
 
 from .utils.functions import create_group_and_permission
 from utils.constants import UserRole
@@ -49,10 +51,20 @@ def register(request):
                                                 role=role,
                                                 )
 
-                if role == UserRole.STAFF:
-                    user.is_staff = True
-                    user.save(update_fields=["is_staff"])
+                if role == UserRole.STAFF and request.user.is_aunthenticated:
+                    staff_role = request.POST.get("staff_role")
+                    StaffProfile.objects.create(user=user, role=staff_role)
+
+                elif role == UserRole.FARMER:
+                    FarmerProfile.objects.create(user=user)
+                elif role == UserRole.CUSTOMER:
+                    BuyerProfile.objects.create(user=user)
+                elif role == UserRole.EQUIPMENT_OWNER:
+                    EquipmentOwnerProfile.objects.create(user=user)
                 
+                user.active_role = role
+                user.save()
+
                 if role in [UserRole.FARMER, UserRole.EQUIPMENT_OWNER]:
                     create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
