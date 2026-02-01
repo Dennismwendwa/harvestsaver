@@ -18,7 +18,7 @@ from ..models import Category, Product, Cart, Farm, OrderItem, Order
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
 from ..forms import ProductForm, EquipmentForm, FarmForm
 from transit.services import cart_deliery_type
-from .utils import weather_data, assign_hub_to_farm
+from ..utils.utils import weather_data, assign_hub_to_farm, get_default_range
 from farm.services.functions import reduce_stock_for_order
 
 
@@ -323,6 +323,7 @@ def farmer_dashboard(request):
     user = request.user
     city = "Mombasa"
     country = "kenya"
+    start = get_default_range()
 
     if not request.user.has_perm("farm.view_product"):
         messages.error(request, _(f"You do not have permission to access "
@@ -373,6 +374,16 @@ def farmer_dashboard(request):
     wallet_balance = OrderItem.wallet_balance_for_farmer(user)
     total_paid = Payout.total_paid(user)
 
+    # KPI Cards
+    total_revenue = OrderItem.total_revenue(user, start)
+    orders_count = OrderItem.total_orders(user, start)
+    total_units = OrderItem.total_units(user, start)
+
+    current_order_count = orders_count.get("current_orders_count")
+    lifetime_order_count = orders_count.get("lifetime")
+    current_aov = (total_revenue.get("current") / current_order_count if current_order_count else 0)
+    lifetime_aov = (total_revenue.get("lifetime") / lifetime_order_count if lifetime_order_count else 0)
+
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
@@ -401,6 +412,15 @@ def farmer_dashboard(request):
         "total_paid": total_paid,
         "inventory": inventory,
         "wallet_balance": wallet_balance,
+
+        # KPI Cards
+        "total_revenue": total_revenue,
+        "orders_count": orders_count,
+        "total_units": total_units,
+        "aov": {
+            "current_aov": current_aov,
+            "lifetime_aov": lifetime_aov,
+        },
         }
     return render(request, "farm/farm/farmer_dashboard.html", context)
 

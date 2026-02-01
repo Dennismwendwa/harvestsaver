@@ -254,9 +254,7 @@ class OrderItem(models.Model):
         To return the amount the farmer is to be paid. Only completed items
         and items not paid for before
         """
-        from django.db.models.functions import Coalesce
         from payment.models import PayoutItem
-        from utils.constants import PaymentStatus
         paid_order_ids = PayoutItem.objects.values("order_item_id")
 
         available_balance = (
@@ -279,6 +277,69 @@ class OrderItem(models.Model):
     def get_shipping_cost(self):
         shipping = round((Decimal(9 / 100) * self.product.price * self.quantity), 2)
         return  max(shipping, Decimal(200))
+    
+    @classmethod
+    def total_revenue(cls, farmer, start_date):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        current = qs.filter(
+            order__order_date__gte=start_date
+        ).aggregate(
+            total=Coalesce(
+                Sum(F("quantity") * F("product__price")),
+                Decimal("0.00")
+            )
+        )["total"]
+        
+        lifetime = qs.aggregate(
+            total=Coalesce(
+                Sum(F("quantity") * F("product__price")),
+                Decimal("0.00")
+            )
+        )["total"]
+        return {"current": current, "lifetime": lifetime}
+    
+    @classmethod
+    def total_orders(cls, farmer, start_date):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        current_orders_count = qs.filter(
+            order__order_date__gte=start_date
+        ).values("order_id").distinct().count()
+
+        lifetime = qs.values("order_id").distinct().count()
+        return {
+            "current_orders_count": current_orders_count,
+            "lifetime": lifetime
+        }
+    
+    @classmethod
+    def total_units(cls, farmer, start_time):
+        """
+        Returns total units sold, default to current month
+        """
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        items = qs.filter(
+            order__order_date__gte=start_time
+        ).aggregate(
+            total=Coalesce(Sum("quantity"), 0)
+        )["total"]
+
+        lifetime = qs.aggregate(
+            total=Coalesce(Sum("quantity"), 0)
+        )["total"]
+        return {"current_items": items, "lifetime": lifetime}
+
 
 class EquipmentCategory(models.Model):
     """This model is for all equipment categories"""

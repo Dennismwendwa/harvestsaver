@@ -403,11 +403,166 @@ Farmer Dashboard
             {% endfor %}
         </div>
 
-        <!-- REPORTS -->
-        <div class="tab-pane fade" id="reports">
-            <h5>Analytics</h5>
-            <p>Sales trends, charts, and performance KPIs go here.</p>
+<!-- REPORTS -->
+<div class="tab-pane fade" id="reports">
+    <div class="container-fluid py-3">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-0">Analytics Dashboard</h4>
+                <small class="text-muted">Business performance overview</small>
+            </div>
+            <div>
+                <select class="form-select form-select-sm">
+                    <option>Last 7 days</option>
+                    <option>Last 30 days</option>
+                    <option selected>This month</option>
+                    <option>This year</option>
+                </select>
+            </div>
         </div>
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+
+            <!-- Revenue -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <small class="text-muted">
+                            Revenue <span class="fw-normal">(This Month)</span>
+                        </small>
+                        <h4 class="fw-bold mb-0" id="kpiRevenue">
+                            KES {{total_revenue.current}}
+                        </h4>
+                        <div class="small text-muted">
+                            Lifetime: KES {{total_revenue.lifetime}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <small class="text-muted">
+                            Orders <span class="fw-normal">(This Month)</span>
+                        </small>
+                        <h4 class="fw-bold mb-0" id="kpiOrders">
+                            {{orders_count.current_orders_count}}
+                        </h4>
+                        <div class="small text-muted">
+                            Lifetime: {{orders_count.lifetime}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Units Sold -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <small class="text-muted">
+                            Units Sold <span class="fw-normal">(This Month)</span>
+                        </small>
+                        <h4 class="fw-bold mb-0" id="kpiUnits">
+                            {{total_units.current_items}}
+                        </h4>
+                        <div class="small text-muted">
+                            Lifetime: {{total_units.lifetime}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avg Order Value -->
+            <div class="col-md-3">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <small class="text-muted">
+                            Avg Order Value <span class="fw-normal">(This Month)</span>
+                        </small>
+                        <h4 class="fw-bold mb-0" id="kpiAOV">
+                            KES {{aov.current_aov}}
+                        </h4>
+                        <div class="small text-muted">
+                            Lifetime: KES {{aov.lifetime_aov}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold">
+                        Sales Trend
+                    </div>
+                    <div class="card-body">
+                        <canvas id="salesChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold">
+                        Order Distribution
+                    </div>
+                    <div class="card-body">
+                        <canvas id="orderPieChart" height="180"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold">
+                Top Products
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Tomatoes</td>
+                            <td>120</td>
+                            <td>KES 24,000</td>
+                            <td><span class="badge bg-success">In Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Onions</td>
+                            <td>98</td>
+                            <td>KES 18,500</td>
+                            <td><span class="badge bg-warning">Low</span></td>
+                        </tr>
+                        <tr>
+                            <td>Potatoes</td>
+                            <td>76</td>
+                            <td>KES 14,200</td>
+                            <td><span class="badge bg-danger">Out</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
     </div>
 </div>
 <!-- Leaflet CSS -->
@@ -415,6 +570,8 @@ Farmer Dashboard
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <script src="{% static 'assets/js/farmer_dashboard.js' %}"></script>
 </section>

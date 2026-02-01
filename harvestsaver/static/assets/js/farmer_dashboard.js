@@ -43,3 +43,36 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Sales line chart
+    const salesCtx = document.getElementById("salesChart");
+    console.log(salesCtx);
+    new Chart(salesCtx, {
+        type: "line",
+        data: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            datasets: [{
+                label: "Sales (KES)",
+                data: [12000, 19000, 15000, 22000, 18000, 25000, 30000],
+                tension: 0.4,
+                fill: true
+            }]
+        }
+    });
+
+    // Orders pie chart
+    const pieCtx = document.getElementById("orderPieChart");
+
+    new Chart(pieCtx, {
+        type: "doughnut",
+        data: {
+            labels: ["Completed", "Pending", "Cancelled"],
+            datasets: [{
+                data: [65, 25, 10]
+            }]
+        }
+    });
+
+});
+
