@@ -3,8 +3,10 @@ from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import F, Sum, DecimalField, Q
+from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from django.db.models.functions import Coalesce
 from decimal import Decimal
+from datetime import timedelta
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_file_is_pdf, validate_date_is_not_past
@@ -64,6 +66,54 @@ class Category(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+class ProductQuerySet(models.QuerySet):
+    """
+    Custom queryset for Product model providing domain-specific
+    query helpers for analytics and reporting.
+    """
+
+    def for_farmer(self, farmer):
+        """
+        Filter products owned by a specific farmer.
+        Args:
+            farmer (User): The farmer (owner) whose products
+                           should be returned.
+        Returns:
+            QuerySet: Products belonging to the given farmer.
+        """
+        return self.filter(farm__owner=farmer)
+    
+    def top_products(self, farmer, limit=5):
+        """
+        Return the top-selling products for a farmer based on
+        total units sold.
+        Each product in the returned queryset is annotated with:
+            - units_sold: Total quantity sold across all orders.
+            - revenue: Total revenue generated from the product.
+        Only products belonging to the given farmer are considered.
+        Args:
+            farmer (User): The farmer (owner) whose products
+                           should be analyzed.
+            limit (int, optional): Maximum number of products
+                                   to return. Defaults to 5.
+        Returns:
+            QuerySet: Annotated Product queryset ordered by
+                      units_sold in descending order.
+        """
+        return (
+            self.for_farmer(farmer)
+            .annotate(
+                units_sold=Coalesce(Sum("orderitem__quantity"), 0),
+                revenue=Coalesce(
+                    Sum(
+                        F("orderitem__quantity") * F("price"),
+                        output_field=DecimalField(max_digits=12, decimal_places=2),
+                    ), Decimal("0.00"),
+                )
+            )
+            .order_by("-units_sold")[:limit]
+        )
+
 
 class Product(models.Model):
     """Model for all products availble in our site"""
@@ -105,6 +155,8 @@ class Product(models.Model):
     harvest_date = models.DateField()
     is_available = models.BooleanField(default=True)
     is_perishable = models.BooleanField(default=False)
+
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Product"
@@ -347,7 +399,99 @@ class OrderItem(models.Model):
             total=Coalesce(Sum("quantity"), 0)
         )["total"]
         return {"current_items": items, "lifetime": lifetime}
+    
+    @classmethod
+    def order_distribution(cls, farmer):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer
+        )
 
+        completed = qs.filter(
+            order__status=PaymentStatus.COMPLETED
+        ).values("order_id").distinct().count()
+
+        pending = qs.filter(
+            order__status=PaymentStatus.PENDING
+        ).values("order_id").distinct().count()
+
+        cancelled = qs.filter(
+            order__status=PaymentStatus.CANCELLED
+        ).values("order_id").distinct().count()
+
+        return {
+            "completed": completed,
+            "pending": pending,
+            "cancelled": cancelled
+        }
+
+    @classmethod
+    def sales_timeseries(cls, farmer, period="week"):
+        """
+        Calculates the Sales in week, month, or year.
+        """
+        today = timezone.now().date()
+
+        if period == "week":
+            start = today - timedelta(days=6)
+            trunc = TruncDay
+            step = "day"
+            length = 7
+
+        elif period == "month":
+            start = today - timedelta(days=29)
+            trunc = TruncDay
+            step = "day"
+            length = 30
+
+        elif period == "year":
+            start = today.replace(month=1, day=1)
+            trunc = TruncMonth
+            step = "month"
+            length = 12
+        else:
+            raise ValueError("Invalid period")
+        
+        q1 = OrderItem.objects.filter(
+                product__farm__owner=farmer,
+                order__status=PaymentStatus.COMPLETED
+            ).count()
+        
+        qs = (
+            cls.objects.filter(
+                product__farm__owner=farmer,
+                order__status=PaymentStatus.COMPLETED,
+                order__order_date__date__gte=start
+            )
+            .annotate(period=trunc("order__order_date"))
+            .values("period")
+            .annotate(
+                total=Sum(
+                    F("quantity") * F("product__price"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2)
+                )
+            )
+            .order_by("period")
+        )
+        data = {row["period"].date(): row["total"] for row in qs}
+
+        result = []
+        labels = []
+
+        for i in range(length):
+            if step == "day":
+                point = start + timedelta(days=i)
+                label = point.strftime("%d %b")
+            else:
+                point = today.replace(month=i+1, day=1)
+                label = point.strftime("%b") # Jan Feb
+
+            labels.append(label)
+            result.append(float(data.get(point, Decimal("0.00"))))
+
+        return {
+            "labels": labels,
+            "values": result
+        }
 
 class EquipmentCategory(models.Model):
     """This model is for all equipment categories"""
