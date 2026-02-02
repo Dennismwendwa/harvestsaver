@@ -538,24 +538,22 @@ Farmer Dashboard
                                 </tr>
                             </thead>
                             <tbody>
+                                {% for product in top_products %}
                                 <tr>
-                                    <td>Tomatoes</td>
-                                    <td>120</td>
-                                    <td>KES 24,000</td>
-                                    <td><span class="badge bg-success">In Stock</span></td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.units_sold }}</td>
+                                    <td>KES {{ product.revenue|floatformat|intcomma }}</td>
+                                    <td>
+                                        {% if product.quantity > 20 %}
+                                            <span class="badge bg-success">In Stock</span>
+                                        {% elif product.quantity > 0 %}
+                                            <span class="badge bg-warning">Low</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Out</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                                <tr>
-                                    <td>Onions</td>
-                                    <td>98</td>
-                                    <td>KES 18,500</td>
-                                    <td><span class="badge bg-warning">Low</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Potatoes</td>
-                                    <td>76</td>
-                                    <td>KES 14,200</td>
-                                    <td><span class="badge bg-danger">Out</span></td>
-                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -566,6 +564,10 @@ Farmer Dashboard
 
     </div>
 </div>
+
+{{ order_distribution|json_script:"order-data" }}
+{{ sales_trend|json_script:"sales-trend-data" }}
+
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
