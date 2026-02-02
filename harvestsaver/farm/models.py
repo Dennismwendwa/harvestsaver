@@ -201,6 +201,12 @@ class Order(models.Model):
         seq = Order.objects.filter(order_date__year=year).count() + 1
         return f"HARVEST-{year}-{seq:07d}"
     
+    @property
+    def is_completed(self):
+        if self.status == PaymentStatus.COMPLETED:
+            return True
+        return False
+    
     def save(self, *args, **kwargs):
         if not self.order_reference:
             self.order_reference = self.generate_order_reference()
@@ -277,8 +283,8 @@ class OrderItem(models.Model):
 
     @property
     def get_shipping_cost(self):
-        shipping = round((Decimal(9 / 100) * self.product.price * self.quantity), 2)
-        return  max(shipping, Decimal(200))
+        shipping = (Decimal("0.09") * self.product.price * self.quantity)
+        return  max(shipping.quantize(Decimal("0.01")), Decimal("300"))
     
     @classmethod
     def total_revenue(cls, farmer, start_date):

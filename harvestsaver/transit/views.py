@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
-from .services import calculate_transport_cost, get_coords_from_name, cart_deliery_type
+from .services import calculate_transport_cost, get_lat_long, cart_deliery_type
 from .utils import get_driving_distance
 
 from .models import TransportBooking, Quote
@@ -105,8 +105,8 @@ def calculate_trip(request):
     dist = request.GET.get("distnace")
     terrain = request.GET.get("terrain", "tarmac")
 
-    lat1, lon1 = get_coords_from_name(origin_name)
-    lat2, lon2 = get_coords_from_name(dest_name)
+    lat1, lon1 = get_lat_long(origin_name)
+    lat2, lon2 = get_lat_long(dest_name)
 
     if lat1 and lat2:
         distance_km = get_driving_distance(lat1, lon1, lat2, lon2)

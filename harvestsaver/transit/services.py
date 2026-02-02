@@ -1,11 +1,126 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
+from datetime import timedelta
+from collections import defaultdict
+import hashlib
+
+from django.core.cache import cache
 
 from geopy.geocoders import Nominatim
+from geopy.distance import geodesic
 
-from .models import Location
+from django.utils import timezone
+from django.db import transaction
 
-from farm.models import Hub
+from .models import Location, TransportBooking
+from farm.models import Hub, Order, Cart, OrderItem
+from utils.constants import RATE_PER_KM
 
+
+@transaction.atomic
+def process_order(shipping_address, payment_method, transport, delivery_destination,
+                  upgrade_non_perishable_express, request):
+    from utils.constants import PaymentStatus
+
+    user = request.user
+    cart_items = Cart.objects.filter(customer=user)
+
+    if not cart_items.exists():
+        return None
+
+    total = Cart.total_cart_price(user)
+    shipping = round(Decimal("0.09") * total, 2)
+    total_cost = total + shipping
+
+    order = Order.objects.filter(
+        customer=user,
+        status=PaymentStatus.ACTIVE,
+        is_checkout_active=True
+    ).first()
+
+    if not order:
+        order = Order.objects.create(
+            customer=user,
+            status=PaymentStatus.ACTIVE,
+            is_checkout_active=True,
+            total_amount=total_cost,
+            shipping_address=shipping_address,
+            payment_method=payment_method,
+        )
+    else:
+        # Update totals if cart changed
+        order.total_amount = total_cost
+        order.shipping_address = shipping_address
+        order.payment_method = payment_method
+        order.save()
+
+        # Clean previous checkout attempt
+        order.orderitem_set.all().delete()
+
+    today = timezone.now()
+
+    for cart_item in cart_items:
+        print()
+        print(f"item: {cart_item.product.name}")
+        print(f"quantity: {cart_item.quantity}")
+        print(f"unit_quantity: {cart_item.product.unit_quantity}")
+        print()
+        order_item = OrderItem.objects.create(
+            order=order,
+            product=cart_item.product,
+            quantity=cart_item.quantity
+        )
+
+    if upgrade_non_perishable_express:
+        pass
+
+    pickup_date_time = (
+        today + timedelta(days=1)
+        if order_item.product.is_perishable
+        else today + timedelta(days=4)
+    )
+
+    shipping_cost = calcalate_shipping(cart_items, delivery_destination)
+    print()
+    print(f"shipping cost: {shipping_cost}")
+    print()
+
+    TransportBooking.objects.create(
+        customer=user,
+        order=order,
+        pickup_location=order_item.product.farm.hub.name,
+        destination=delivery_destination,
+        transport_option=transport,
+        cost=shipping_cost,
+        pickup_date_time=pickup_date_time,
+    )
+
+    return order
+
+def make_cache_key(prefix, value):
+    """This function makes safe cache keys"""
+    safe = value.lower().strip()
+    hashed = hashlib.md5(safe.encode()).hexdigest()
+    return f"{prefix}:{hashed}"
+
+
+def calcalate_shipping(cart_items, destination):
+    total_shipping = Decimal("0.00")
+
+    hub_groups = defaultdict(list)
+    for item in cart_items:
+        hub_groups[item.product.hub].append(item)
+
+    for hub, items in hub_groups.items():
+        origin_coords = (hub.latitude, hub.longitude)
+        desination_coords = get_lat_long(destination)
+
+        distance_km = get_distance(origin_coords, desination_coords)
+        distance_km = Decimal(distance_km).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        weight = sum(i.product.unit_quantity * i.quantity for i in items)
+        hub_cost = distance_km * RATE_PER_KM * weight
+        total_shipping += hub_cost
+
+    return total_shipping
 
 def calculate_transport_cost(vehicle_id, distance_km, terrain_type="tarmac"):
     from .models import VehicleCategory, TerrainAdjustment
@@ -20,27 +135,30 @@ def calculate_transport_cost(vehicle_id, distance_km, terrain_type="tarmac"):
 
     return round(total_price, 2)
 
-def get_coords_from_name(location_name):
-    location_name = location_name.strip().lower()
+def get_lat_long(location_name):
+    """
+    This function use the city name to get its latitude
+    and longitude
+    """
+    cache_key = make_cache_key("geo", location_name)
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
     
-    cached_location = Location.objects.filter(name__iexact=location_name).first()
-    if cached_location:
-        return cached_location.latitude, cached_location.longitude
-    
-    geolocator = Nominatim(user_agent="my_agritech_app")
-    try:
-        location = geolocator.geocode(f"{location_name}, Kenya")
-        if location:
-            new_loc = Location.objects.create(
-                name=location_name,
-                latitude=location.latitude,
-                longitude=location.longitude,
-            )
-            return new_loc.latitude, new_loc.longitude
-    except Exception as e:
-        print(f"Error: {e}")
+    geolocator = Nominatim(user_agent="my_geocoder")
+    location = geolocator.geocode(location_name)
 
-    return None, None,
+    if location:
+        coords = (location.latitude, location.longitude)
+        cache.set(cache_key, coords, timeout=60 * 60 * 24 * 30) # 30 days
+        return coords
+    return None
+
+def get_distance(origin_coords, destination_coords):
+    if not origin_coords or not destination_coords:
+        raise ValueError("Both origin and destination coordinates must be provided")
+    
+    return geodesic(origin_coords, destination_coords).km
 
 def cart_deliery_type(cart_items):
     has_perishable = any(i.product.is_perishable for i in cart_items)

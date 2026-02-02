@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 
 class UserRole(models.TextChoices):
     FARMER = "farmer", "Farmer"
@@ -79,3 +80,5 @@ COUNTRY_NUMERIC = {
 }
 APP_CODE = "01"
 PRODUCT_CODE = "01"  # wallet
+
+RATE_PER_KM = Decimal("3.00")

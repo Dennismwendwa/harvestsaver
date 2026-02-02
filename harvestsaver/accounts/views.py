@@ -48,7 +48,6 @@ def register(request):
                                                 phone_number=phone_number,
                                                 gender=gender,
                                                 country=country,
-                                                role=role,
                                                 )
 
                 if role == UserRole.STAFF and request.user.is_aunthenticated:

@@ -13,11 +13,11 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from payment.models import process_order, Payout
+from payment.models import Payout
 from ..models import Category, Product, Cart, Farm, OrderItem, Order
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
 from ..forms import ProductForm, EquipmentForm, FarmForm
-from transit.services import cart_deliery_type
+from transit.services import cart_deliery_type, process_order
 from ..utils.utils import weather_data, assign_hub_to_farm, get_default_range
 from farm.services.functions import reduce_stock_for_order
 
@@ -42,7 +42,7 @@ def all_products(request):
     """List all product with pagination of 4 per page"""
     products = Product.objects.all()
 
-    products_per_page = 2
+    products_per_page = 8
     page_number = request.GET.get("page")
     paginator = Paginator(products, products_per_page)
 
@@ -217,11 +217,12 @@ def checkout(request):
         payment_method = request.POST.get("payment_method", "card")
         transport = request.POST.get("transport_option")
         delivery_destination= request.POST.get("delivery_destination")
-        upgrade_non_perishable_express = request.POST.get("upgrade_non_perishable_express")
+        upgrade_non_perishable_express = "upgrade_non_perishable_express" in request.POST
 
         
         order = process_order(shipping_address,payment_method,
                                        transport, delivery_destination,
+                                       upgrade_non_perishable_express,
                                        request)
         
         if order.payment_method == PaymentMethod.PAY_ON_DELIVERY:
@@ -382,8 +383,8 @@ def farmer_dashboard(request):
 
     current_order_count = orders_count.get("current_orders_count")
     lifetime_order_count = orders_count.get("lifetime")
-    current_aov = (total_revenue.get("current") / current_order_count if current_order_count else 0)
-    lifetime_aov = (total_revenue.get("lifetime") / lifetime_order_count if lifetime_order_count else 0)
+    current_aov = round((total_revenue.get("current") / current_order_count if current_order_count else 0.00), 2)
+    lifetime_aov = round((total_revenue.get("lifetime") / lifetime_order_count if lifetime_order_count else 0.00), 2)
 
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)

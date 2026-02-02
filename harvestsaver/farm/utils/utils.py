@@ -6,7 +6,8 @@ from django.conf import settings
 from django.core.cache import cache
 
 from farm.models import Hub
-from .helpers import make_cache_key, get_lat_long, get_agro_weather
+from .helpers import get_agro_weather
+from transit.services import make_cache_key, get_lat_long
 
 
 def weather_data(city, country):
