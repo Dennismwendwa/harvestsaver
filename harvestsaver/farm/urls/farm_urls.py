@@ -31,4 +31,7 @@ urlpatterns = [
     path("create-or-edit-farm/", views.create_or_edit_farm,
          name="create_or_edit_farm"),
     path("create/product/", views.create_product, name="create_product"),
+
+    # Deliary Dashboard
+    path("delivery-dashboard/", views.delivery_dashboard, name="delivery_dashboard"),
 ]

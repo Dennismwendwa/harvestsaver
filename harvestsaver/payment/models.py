@@ -59,8 +59,6 @@ class Account(models.Model):
         return f"{self.user.username} {self.account_number}"
 
 
-
-
 class Payment(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     transaction_id = models.CharField(max_length=100, unique=True,)

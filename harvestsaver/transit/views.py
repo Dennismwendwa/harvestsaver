@@ -41,10 +41,8 @@ def transporthome(request):
                 phone=phone,
                 message=message,
             )
-            messages.success(request, (
-                                       f"Your quote request has been sent "
-                                       f"successfully. Thank you!")
-                                       )
+            messages.success(request, (f"Your quote request has been sent "
+                                       f"successfully. Thank you!"))
 
             return redirect("transit:transportquote")
         else:

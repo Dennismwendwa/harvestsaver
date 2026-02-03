@@ -386,6 +386,13 @@ def farmer_dashboard(request):
     current_aov = round((total_revenue.get("current") / current_order_count if current_order_count else 0.00), 2)
     lifetime_aov = round((total_revenue.get("lifetime") / lifetime_order_count if lifetime_order_count else 0.00), 2)
 
+    # Order Distribution
+    order_distribution = OrderItem.order_distribution(user)
+    # Sales Trend
+    sales_trend = OrderItem.sales_timeseries(user)
+
+    top_products = Product.objects.top_products(user)
+
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
@@ -423,6 +430,13 @@ def farmer_dashboard(request):
             "current_aov": current_aov,
             "lifetime_aov": lifetime_aov,
         },
+
+        # Order Distribution
+        "order_distribution": order_distribution,
+        # Sales Trend
+        "sales_trend": sales_trend,
+        #Top products
+        "top_products": top_products,
         }
     return render(request, "farm/farm/farmer_dashboard.html", context)
 
@@ -560,4 +574,14 @@ def equipment_inquiry_respond(request, slug, pk):
         "inquiry": inquiry,
     }
     return render(request, "farm/farm/equipment_inquiry_respond.html", context)
+
+
+def delivery_dashboard(request):
+    if request.method == "POST":
+        pass
+
+    context={
+        
+    }
+    return render(request, "farm/delivery/delivery_dashboard.html", context)
 

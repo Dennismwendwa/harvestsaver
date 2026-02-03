@@ -59,11 +59,7 @@ def process_order(shipping_address, payment_method, transport, delivery_destinat
     today = timezone.now()
 
     for cart_item in cart_items:
-        print()
-        print(f"item: {cart_item.product.name}")
-        print(f"quantity: {cart_item.quantity}")
-        print(f"unit_quantity: {cart_item.product.unit_quantity}")
-        print()
+
         order_item = OrderItem.objects.create(
             order=order,
             product=cart_item.product,
@@ -80,9 +76,6 @@ def process_order(shipping_address, payment_method, transport, delivery_destinat
     )
 
     shipping_cost = calcalate_shipping(cart_items, delivery_destination)
-    print()
-    print(f"shipping cost: {shipping_cost}")
-    print()
 
     TransportBooking.objects.create(
         customer=user,
@@ -153,6 +146,7 @@ def get_lat_long(location_name):
         cache.set(cache_key, coords, timeout=60 * 60 * 24 * 30) # 30 days
         return coords
     return None
+
 
 def get_distance(origin_coords, destination_coords):
     if not origin_coords or not destination_coords:

@@ -46,15 +46,16 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener("DOMContentLoaded", function () {
 
     // Sales line chart
+    const saleTrendData = JSON.parse(document.getElementById("sales-trend-data").textContent);
     const salesCtx = document.getElementById("salesChart");
-    console.log(salesCtx);
+    
     new Chart(salesCtx, {
         type: "line",
         data: {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            labels: saleTrendData.labels,
             datasets: [{
                 label: "Sales (KES)",
-                data: [12000, 19000, 15000, 22000, 18000, 25000, 30000],
+                data: saleTrendData.values,
                 tension: 0.4,
                 fill: true
             }]
@@ -62,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Orders pie chart
+    const data = JSON.parse(document.getElementById("order-data").textContent);
     const pieCtx = document.getElementById("orderPieChart");
 
     new Chart(pieCtx, {
@@ -69,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
         data: {
             labels: ["Completed", "Pending", "Cancelled"],
             datasets: [{
-                data: [65, 25, 10]
+                data: [data.completed, data.pending, data.cancelled]
             }]
         }
     });

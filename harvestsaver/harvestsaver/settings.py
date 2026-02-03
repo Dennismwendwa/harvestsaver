@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "transit",
     "api",
     "payment",
+    "logistics",
     "rest_framework",
     "crispy_forms",
     "crispy_bootstrap4",
