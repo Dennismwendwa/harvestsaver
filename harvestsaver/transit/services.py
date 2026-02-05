@@ -11,7 +11,7 @@ from geopy.distance import geodesic
 from django.utils import timezone
 from django.db import transaction
 
-from .models import Location, TransportBooking
+from .models import TransportBooking
 from farm.models import Hub, Order, Cart, OrderItem
 from utils.constants import RATE_PER_KM
 

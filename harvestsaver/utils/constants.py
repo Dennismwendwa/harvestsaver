@@ -17,6 +17,14 @@ class PaymentStatus(models.TextChoices):
     REFUNDED = "refunded", "Refunded"
 
 
+class ItemStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
+    PREPARING = "Preparing", "Preparing"
+    READY = "Ready", "Ready"
+    DISPATCHED = "Dispatched", "Dispatched"
+    COMPLETED = "Completed", "Completed"
+
+
 class PaymentMethod(models.TextChoices):
     WALLET = "wallet", "Wallet"
     MPESA = "mpesa", "M-Pesa"

@@ -20,7 +20,6 @@ def admin_staff(request):
     )
 
     if request.method == "POST":
-        print(request.POST)
 
         hub_form = HubForm(request.POST)
         if hub_form.is_valid():

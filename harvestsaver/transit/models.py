@@ -24,8 +24,7 @@ class TransportBooking(models.Model):
     TRANSIT_OPTIONS = [
         ("Standard Delivery", "Standard Delivery"),
         ("Express Delivery", "Express Delivery"),
-        
-    ]
+        ]
     STATUS = [
         ("Pending", "Pending"),
         ("Transit", "Transit"),
@@ -33,28 +32,36 @@ class TransportBooking(models.Model):
     ]
 
     customer = models.ForeignKey(User, on_delete=models.PROTECT)
-    order = models.OneToOneField(
-        Order,
-        on_delete=models.PROTECT,
-        related_name="transport", blank=True, null=True
-    )
-    pickup_location = models.CharField(max_length=200)
-    destination  = models.CharField(max_length=100, blank=True, null=True)
+    order = models.OneToOneField(Order, on_delete=models.PROTECT,
+                                 related_name="transport", blank=True,
+                                 null=True)
     transport_option = models.CharField(max_length=100, choices=TRANSIT_OPTIONS)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
-    pickup_date_time = models.DateTimeField()
-    delivery_dateTime = models.DateTimeField(blank=True, null=True)
-    status = models.CharField(max_length=20, default="Pending", choices=STATUS)
-    carrier = models.CharField(max_length=100, blank=True, null=True)
+    requested_pickup_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         verbose_name = "Transport Booking"
         verbose_name_plural = "Transport Bookings"
-        ordering = ("-pk","-delivery_dateTime",) 
+        ordering = ("-created_at",) 
 
     def __str__(self):
         return f"{self.customer.username}'s Transport Booking"
 
+
+class Carrier(models.Model):
+    name = models.CharField(max_length=100)
+    contact = models.CharField(max_length=50)
+    rating = models.FloatField(default=5.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Name: {self.name} - Contact: {self.contact}"
+    
 
 class Quote(models.Model):
     """model for transport quotes inquire"""
@@ -128,17 +135,4 @@ class TerrainAdjustment(models.Model):
     def __str__(self):
         return f"{self.zone_type} ({self.multiplier}x)"
 
-
-class Location(models.Model):
-    name = models.CharField(max_length=255, unique=True, help_text="Molo Market")
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-
-    class Meta:
-        verbose_name = "Location"
-        verbose_name_plural = "Locations"
-        ordering = ("-pk",)
-
-    def __str__(self):
-        return self.name
 

@@ -119,6 +119,7 @@ class EquipmentOwnerProfile(Profile):
         return f"Owner: {self.user.username}"
     
 class StaffProfile(Profile):
+    from farm.models import Hub
     ROLE_CHOICES = (
         ("delivery", "Delivery"),
         ("warehouse", "Warehouse"),
@@ -126,6 +127,8 @@ class StaffProfile(Profile):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name="staff_profile")
+    hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                            related_name="my_hub", null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     class Meta:

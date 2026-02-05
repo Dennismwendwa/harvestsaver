@@ -11,6 +11,7 @@ urlpatterns = [
     path("transport/", include("transit.urls")),
     path("api/", include("api.urls")),
     path("payment/", include("payment.urls")),
+    path("logistics/", include("logistics.urls")),
 ]
 
 if settings.DEBUG:

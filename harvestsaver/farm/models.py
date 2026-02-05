@@ -9,8 +9,8 @@ from decimal import Decimal
 from datetime import timedelta
 
 from accounts.models import User, BuyerProfile
-from .validators import validate_file_is_pdf, validate_date_is_not_past
-from utils.constants import UserRole, PaymentStatus, PaymentMethod
+from .validators import validate_date_is_not_past
+from utils.constants import UserRole, PaymentStatus, PaymentMethod, ItemStatus
 
 class Hub(models.Model):
     name = models.CharField(max_length=100)
@@ -31,7 +31,6 @@ class Hub(models.Model):
 
 class Farm(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
-                              limit_choices_to={"role": "farmer"},
                               related_name="farms")
     name = models.CharField(max_length=100)
     latitude = models.FloatField()
@@ -275,6 +274,9 @@ class OrderItem(models.Model):
                               on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
+    status = models.CharField(max_length=20,
+                              choices=ItemStatus,
+                              default=ItemStatus.PENDING)
 
     class Meta:
         verbose_name = "Order Item"

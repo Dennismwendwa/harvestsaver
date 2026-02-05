@@ -11,12 +11,14 @@ def get_agro_weather(api_key, latitude, longitude):
         "lon": longitude,
         "appid": api_key,
     }
-    response = requests.get(base_url, params=params)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
+    try:
+        response = requests.get(base_url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return None
+    except:
         return None
     
 

@@ -12,8 +12,10 @@ def is_staff(view_func):
     from utils.constants import UserRole
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if request.user.role == UserRole.STAFF:
+        if request.user.is_staff:
             return view_func(request, *args, **kwargs)
         messages.warning(request, _("You requested for staff only page"))
         return redirect("farm:home")
     return _wrapped_view
+
+

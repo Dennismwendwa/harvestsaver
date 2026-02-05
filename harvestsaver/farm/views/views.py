@@ -576,12 +576,5 @@ def equipment_inquiry_respond(request, slug, pk):
     return render(request, "farm/farm/equipment_inquiry_respond.html", context)
 
 
-def delivery_dashboard(request):
-    if request.method == "POST":
-        pass
 
-    context={
-        
-    }
-    return render(request, "farm/delivery/delivery_dashboard.html", context)
 

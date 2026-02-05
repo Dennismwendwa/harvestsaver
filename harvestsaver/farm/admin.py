@@ -35,12 +35,14 @@ class OrderAdmin(admin.ModelAdmin):
         "shipping_address", "order_reference", "payment_method"
     )
 
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ("order", "product", "quantity", "status")
+
 class EquipmentCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 
 class EquipmentAdmin(admin.ModelAdmin):
-
     prepopulated_fields = {"slug": ("name",)}
 
 class ProductReviewAdmin(admin.ModelAdmin):
@@ -148,7 +150,7 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(OrderItem)
+admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(EquipmentCategory, EquipmentCategoryAdmin)
 admin.site.register(Equipment, EquipmentAdmin)
 admin.site.register(FrequentQuestion)
