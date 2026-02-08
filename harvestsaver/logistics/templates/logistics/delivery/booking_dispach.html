@@ -1,0 +1,80 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+Prepare Dispatch
+{% endblock %}
+
+{% block category %}
+<section>
+    <div class="container">
+
+        <form method="post" action="{% url 'logistics:prepare_dispatch' booking.id %}">
+        {% csrf_token %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    Route: {{ booking.source_hub }} → {{ booking.destination_hub }}
+                </h6>
+                <small>Dispatch Batch</small>
+            </div>
+
+            <div class="card-body">
+
+                <ul class="list-group list-group-flush">
+
+                {% for route_booking in some_route_items %}
+                    {% for item in route_booking.order.hub_items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                type="checkbox"
+                                name="items"
+                                value="{{ item.id }}"
+                                id="item{{ item.id }}">
+
+                            <label class="form-check-label" for="item{{ item.id }}">
+                                <strong>{{ item.product.name }}</strong><br>
+                                <small class="text-muted">
+                                    {{ item.quantity }} {{ item.product.unit_quantity_type }} ×
+                                    {{ item.product.unit_weight_kg }} kg =
+                                    {{ item.total_weight }} kg
+                                </small>
+                            </label>
+                        </div>
+
+                        <span class="badge bg-secondary">
+                            {{ item.product.farm.name }}
+                        </span>
+
+                    </li>
+                    {% endfor %}
+                {% empty %}
+                    <div class="alert alert-secondary">
+                        No items available for this route.
+                    </div>
+                {% endfor %}
+
+                </ul>
+
+                <!-- Footer actions -->
+                <div class="mt-4 d-flex justify-content-between">
+                    <div class="text-muted">
+                        Select items to load onto this shipment.
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        Confirm Loading
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        </form>
+
+    </div>
+</section>
+{% endblock %}
