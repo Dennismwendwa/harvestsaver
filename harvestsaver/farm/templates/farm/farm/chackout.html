@@ -94,31 +94,37 @@ HarvestSaver – Checkout
 
                             <!-- ROUTE -->
                             <div class="row g-3 mb-1">
-                                {%comment%}
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold text-primary">
-                                        Pickup From (Farm Location)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="pickup_location"
-                                        class="form-control form-control-lg"
-                                        value="{{ farm_location }}"
-                                        required
-                                    >
-                                </div>
-                                {%endcomment%}
+                                <div class="row">
+                                    <!-- COUNTY -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-success">
+                                            Select County
+                                        </label>
+                                        <select id="countySelect"
+                                                class="form-select form-select-lg"
+                                                required>
+                                            <option value="">-- Select County --</option>
+                                            {% for county in location %}
+                                                <option value="{{ county.name }}">{{ county.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold text-success">
-                                        Deliver To (Destination)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="delivery_destination"
-                                        class="form-control form-control-lg"
-                                        required
-                                    >
+                                    <!-- HUB -->
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold text-success">
+                                            Delivery Hub
+                                        </label>
+                                        <select id="hubSelect"
+                                                name="delivery_destination"
+                                                class="form-select form-select-lg"
+                                                disabled
+                                                required>
+                                            <option value="">-- Select Hub --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 </div>
                             </div>
 
@@ -215,7 +221,7 @@ HarvestSaver – Checkout
                                                 type="radio"
                                                 name="transport_option"
                                                 id="express"
-                                                value="Express"
+                                                value="EXPRESS"
                                                 checked
                                             >
                                             <label class="form-check-label fw-bold text-success" for="express">
@@ -239,7 +245,7 @@ HarvestSaver – Checkout
                                                 type="radio"
                                                 name="transport_option"
                                                 id="standard"
-                                                value="Standard"
+                                                value="STANDARD"
                                             >
                                             <label class="form-check-label fw-bold" for="standard">
                                                 Standard Delivery
@@ -309,5 +315,30 @@ HarvestSaver – Checkout
             </div>
         </form>
     </div>
+    <script>
+document.getElementById("countySelect").addEventListener("change", function () {
+    const county = this.value;
+    const hubSelect = document.getElementById("hubSelect");
+    console.log(county)
+    hubSelect.innerHTML = "<option>Loading...</option>";
+    hubSelect.disabled = true;
+
+    if (!county) return;
+
+    fetch(`/api/hubs/?county=${county}`)
+        .then(res => res.json())
+        .then(data => {
+            hubSelect.innerHTML = "<option value=''>-- Select Hub --</option>";
+
+            data.forEach(hub => {
+                hubSelect.innerHTML +=
+                    `<option value="${hub.id}">${hub.name}</option>`;
+            });
+
+            hubSelect.disabled = false;
+        });
+});
+</script>
+
 </section>
 {% endblock %}

@@ -16,6 +16,7 @@ from django.utils.translation import gettext as _
 from payment.models import Payout
 from ..models import Category, Product, Cart, Farm, OrderItem, Order
 from ..models import EquipmentCategory, Equipment, EquipmentInquiry
+from logistics.models import Location
 from ..forms import ProductForm, EquipmentForm, FarmForm
 from transit.services import cart_deliery_type, process_order
 from ..utils.utils import weather_data, assign_hub_to_farm, get_default_range
@@ -212,10 +213,12 @@ def checkout(request):
     shipping = round((Decimal(9 / 100) * total), 2)
     total_cost = (total + shipping)
 
+    location = Location.objects.all()
+    
     if request.method == "POST":
         shipping_address = request.POST.get("address")
         payment_method = request.POST.get("payment_method", "card")
-        transport = request.POST.get("transport_option")
+        transport = request.POST.get("transport_option", "STANDARD")
         delivery_destination= request.POST.get("delivery_destination")
         upgrade_non_perishable_express = "upgrade_non_perishable_express" in request.POST
 
@@ -244,6 +247,7 @@ def checkout(request):
         "shipping": shipping,
         "total_cost": total_cost,
         "delivery_type": cart_deliery_type(cart_items),
+        "location": location
     }
     return render(request, "farm/farm/chackout.html", context)
 
@@ -576,5 +580,9 @@ def equipment_inquiry_respond(request, slug, pk):
     return render(request, "farm/farm/equipment_inquiry_respond.html", context)
 
 
-
+def hubs_by_county(request):
+    from farm.models import Hub
+    county = request.GET.get("county")
+    hubs = Hub.objects.filter(location__name=county).values("id", "name")
+    return JsonResponse(list(hubs), safe=False)
 

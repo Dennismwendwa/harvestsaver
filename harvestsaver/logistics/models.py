@@ -81,9 +81,6 @@ class IssueRecord(models.Model):
 class Location(models.Model):
     name = models.CharField(max_length=255, unique=True,
                             help_text="County names. e.g Nairobi")
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    hub = models.ManyToManyField(Hub, related_name="my_location")
 
     class Meta:
         verbose_name = "Location"

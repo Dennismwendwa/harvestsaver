@@ -6,40 +6,33 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
-from farm.models import Order
+from farm.models import Order, Hub, OrderItem
 from .validators import DimensionsValidator
+from utils.constants import TransitOption
 
 
 class TransportBooking(models.Model):
-    """
-    This model stores all transport booking
-    TRANSIT_OPTION: choices list for all options available
-        Standard: This is the first option for transport
-        Express: It offers faster delivaries
-    STATUS: The status of the transport.
-        Pending: for transport which have not started
-        Transit: fro stransport which has not yet be delivered
-        Delivered: for transport which is complete
-    """
-    TRANSIT_OPTIONS = [
-        ("Standard Delivery", "Standard Delivery"),
-        ("Express Delivery", "Express Delivery"),
-        ]
+
     STATUS = [
         ("Pending", "Pending"),
         ("Transit", "Transit"),
         ("Delivered", "Delivered"),
     ]
-
-    customer = models.ForeignKey(User, on_delete=models.PROTECT)
-    order = models.OneToOneField(Order, on_delete=models.PROTECT,
+    order = models.ForeignKey(Order, on_delete=models.PROTECT,
                                  related_name="transport", blank=True,
                                  null=True)
-    transport_option = models.CharField(max_length=100, choices=TRANSIT_OPTIONS)
+    source_hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                                   related_query_name="out_going_booking",
+                                   null=True, blank=True)
+    destination_hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                                        related_name="incoming_bookings",
+                                        null=True, blank=True)
+    transport_option = models.CharField(max_length=100, choices=TransitOption.choices)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     requested_pickup_at = models.DateTimeField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS, default="Pending")
 
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Transport Booking"
@@ -47,10 +40,39 @@ class TransportBooking(models.Model):
         ordering = ("-created_at",) 
 
     def __str__(self):
-        return f"{self.customer.username}'s Transport Booking"
+        return f"Transport Booking"
 
+
+class TransportBookingItem(models.Model):
+    booking = models.ForeignKey(TransportBooking, on_delete=models.CASCADE)
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "transport booking item"
+        verbose_name_plural = "transport booking items"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Order: {self.order}"
+
+class VehicleCategory(models.Model):
+    name = models.CharField(max_length=50, help_text="e.g Pickup, 3-Ton Truck")
+    base_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_per_km = models.DecimalField(max_digits=10, decimal_places=2)
+    max_capacity_kg = models.IntegerField()
+
+    class Meta:
+        verbose_name = "Vehicle Category"
+        verbose_name_plural = "Vehicle Categories"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
 
 class Carrier(models.Model):
+    vehicle = models.ForeignKey(VehicleCategory, on_delete=models.PROTECT,
+                                related_name="my_company")
     name = models.CharField(max_length=100)
     contact = models.CharField(max_length=50)
     rating = models.FloatField(default=5.0)
@@ -101,21 +123,6 @@ class Quote(models.Model):
 
     def __str_(self):
         return f"Qoute from {self.name} email is {self.email}"
-    
-
-class VehicleCategory(models.Model):
-    name = models.CharField(max_length=50, help_text="e.g Pickup, 3-Ton Truck")
-    base_fee = models.DecimalField(max_digits=10, decimal_places=2)
-    rate_per_km = models.DecimalField(max_digits=10, decimal_places=2)
-    max_capacity_kg = models.IntegerField()
-
-    class Meta:
-        verbose_name = "Vehicle Category"
-        verbose_name_plural = "Vehicle Categories"
-        ordering = ("-pk",)
-
-    def __str__(self):
-        return self.name
     
 
 class TerrainAdjustment(models.Model):

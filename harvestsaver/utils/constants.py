@@ -30,6 +30,10 @@ class PaymentMethod(models.TextChoices):
     MPESA = "mpesa", "M-Pesa"
     CARD = "card", "Card"
     PAY_ON_DELIVERY = "pay_on_delivery", "Pay on Delivery"
+
+class TransitOption(models.TextChoices):
+    STANDARD = "STANDARD", "Standard Delivery"
+    EXPRESS = "EXPRESS", "Express Delivery"
     
 
 class Country(models.TextChoices):

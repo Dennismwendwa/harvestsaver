@@ -134,7 +134,7 @@ class FarmForm(forms.ModelForm):
 class HubForm(forms.ModelForm):
     class Meta:
         model = Hub
-        fields = ["name", "county", "latitude", "longitude", "radius_km"]
+        fields = ["name", "location", "latitude", "longitude", "radius_km"]
         widgets = {
             "latitude": forms.HiddenInput(),
             "longitude": forms.HiddenInput(),

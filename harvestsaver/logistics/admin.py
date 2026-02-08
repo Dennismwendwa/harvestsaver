@@ -2,8 +2,8 @@ from django.contrib import admin
 from .models import IssueRecord, TransferRecord, Location
 
 class TransferRecordAdmin(admin.ModelAdmin):
-    list_display = ("order_item", "from_hub", "to_hub", "quantity_sent",
-                    "quantity_received", "received_at", "status")
+    list_display = ("order_item", "from_hub", "to_hub", "status", "quantity_sent",
+                    "quantity_received", "received_at",)
     
 
 class IssuedRecordAdmin(admin.ModelAdmin):

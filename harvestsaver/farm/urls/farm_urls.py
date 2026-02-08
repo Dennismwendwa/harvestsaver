@@ -31,4 +31,5 @@ urlpatterns = [
     path("create-or-edit-farm/", views.create_or_edit_farm,
          name="create_or_edit_farm"),
     path("create/product/", views.create_product, name="create_product"),
+    path("api/hubs/", views.hubs_by_county, name="hubs_by_county"),
 ]

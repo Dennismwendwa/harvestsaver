@@ -11,7 +11,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("farm_name", "farm_owner", "hub_name", "name", "category", "price", "quantity",
-                    "unit_quantity",
+                    "unit_weight_kg",
                     "unit_quantity_type", "harvest_date",
                     "is_available",
                     )

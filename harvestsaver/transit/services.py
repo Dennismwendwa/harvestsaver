@@ -10,20 +10,23 @@ from geopy.distance import geodesic
 
 from django.utils import timezone
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 
-from .models import TransportBooking
+from .models import TransportBooking, TransportBookingItem
 from farm.models import Hub, Order, Cart, OrderItem
-from utils.constants import RATE_PER_KM
+from utils.constants import RATE_PER_KM, TransitOption
 
 
 @transaction.atomic
-def process_order(shipping_address, payment_method, transport, delivery_destination,
+def process_order(shipping_address, payment_method, transport, destination_hub_pk,
                   upgrade_non_perishable_express, request):
     from utils.constants import PaymentStatus
+
 
     user = request.user
     cart_items = Cart.objects.filter(customer=user)
 
+    destination_hub = get_object_or_404(Hub, pk=destination_hub_pk)
     if not cart_items.exists():
         return None
 
@@ -56,37 +59,49 @@ def process_order(shipping_address, payment_method, transport, delivery_destinat
         # Clean previous checkout attempt
         order.orderitem_set.all().delete()
 
-    today = timezone.now()
-
+    
+    order_items = []
     for cart_item in cart_items:
 
-        order_item = OrderItem.objects.create(
+        oi = OrderItem.objects.create(
             order=order,
             product=cart_item.product,
             quantity=cart_item.quantity
         )
+        order_items.append(oi)
 
+    hub_map = defaultdict(list)
+    for item in order_items:
+        hub_map[item.product.hub].append(item)
+
+    today = timezone.now()
     if upgrade_non_perishable_express:
         pass
+    
+    for hub, items in hub_map.items():
+        pickup_date_time = (
+            today + timedelta(days=1)
+            if any(i.product.is_perishable for i in items)
+            else today + timedelta(days=4)
+        )
 
-    pickup_date_time = (
-        today + timedelta(days=1)
-        if order_item.product.is_perishable
-        else today + timedelta(days=4)
-    )
+        shipping_cost = calcalate_shipping(items, destination_hub.name)
 
-    shipping_cost = calcalate_shipping(cart_items, delivery_destination)
+        booking = TransportBooking.objects.create(
+            order=order,
+            source_hub=hub,
+            destination_hub=destination_hub,
+            transport_option=transport,
+            cost=shipping_cost,
+            requested_pickup_at=pickup_date_time,
+            status="Pending"
+        )
 
-    TransportBooking.objects.create(
-        customer=user,
-        order=order,
-        pickup_location=order_item.product.farm.hub.name,
-        destination=delivery_destination,
-        transport_option=transport,
-        cost=shipping_cost,
-        pickup_date_time=pickup_date_time,
-    )
-
+        for item in items:
+            TransportBookingItem.objects.create(
+                booking=booking,
+                order_item=item
+            )
     return order
 
 def make_cache_key(prefix, value):
@@ -109,7 +124,7 @@ def calcalate_shipping(cart_items, destination):
 
         distance_km = get_distance(origin_coords, desination_coords)
         distance_km = Decimal(distance_km).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        weight = sum(i.product.unit_quantity * i.quantity for i in items)
+        weight = sum(i.product.unit_weight_kg * i.quantity for i in items)
         hub_cost = distance_km * RATE_PER_KM * weight
         total_shipping += hub_cost
 

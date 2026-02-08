@@ -16,7 +16,11 @@ class Hub(models.Model):
     name = models.CharField(max_length=100)
     latitude = models.CharField()
     longitude = models.FloatField()
-    county = models.CharField(max_length=100)
+    location = models.ForeignKey(
+        "logistics.Location",
+        on_delete=models.PROTECT,
+        related_name="hubs", null=True, blank=True
+    )
     is_active = models.BooleanField(default=True)
     radius_km = models.IntegerField(default=30)
 
@@ -141,10 +145,10 @@ class Product(models.Model):
                                  on_delete=models.SET_NULL)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    unit_quantity = models.DecimalField(max_digits=8, decimal_places=2,
+    unit_weight_kg = models.DecimalField(max_digits=8, decimal_places=2,
                                         null=True, blank=True,
-                                        help_text="Quantity per unit, e.g., 50 for a 50kg bag"
-    )
+                                        help_text="Quantity per unit, e.g., 50 for a 50kg bag")
+                                        # ALWAYS in kilograms regardless of unit type
     unit_quantity_type = models.CharField(max_length=10, null=True,blank=True,
                                           choices=UNIT_CHOICES,
                                           help_text="Unit type of the quantity"
@@ -181,6 +185,8 @@ class Product(models.Model):
             
             product.quantity -= qty
             product.save(update_fields=["quantity"])
+
+        
         
 
 class Cart(models.Model):
@@ -494,6 +500,13 @@ class OrderItem(models.Model):
             "labels": labels,
             "values": result
         }
+
+    @property
+    def total_weight(self):
+        if not self.product.unit_weight_kg:
+            return 0
+        return self.quantity * self.product.unit_weight_kg
+
 
 class EquipmentCategory(models.Model):
     """This model is for all equipment categories"""
