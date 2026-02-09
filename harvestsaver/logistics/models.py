@@ -2,6 +2,20 @@ from django.db import models
 from accounts.models import User
 from farm.models import OrderItem, Farm, Hub
 from transit.models import TransportBooking, Carrier, VehicleCategory
+from utils.constants import ItemStatus
+
+class TransferRecordQuerySet(models.QuerySet):
+    def in_transit_to(self, hub):
+        return self.filter(
+            to_hub=hub,
+            status=ItemStatus.IN_TRANSIT
+        )
+    
+    def in_transit_from(self, hub):
+        return self.filter(
+            from_hub=hub,
+            status=ItemStatus.IN_TRANSIT
+        )
 
 class TransferRecord(models.Model):
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
@@ -18,14 +32,11 @@ class TransferRecord(models.Model):
     received_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
-        choices=[
-            ("in_transit", "In transit"),
-            ("received", "Received"),
-            ("rejected", "Rejected"),
-            ("damaged", "Damaged"),
-        ],
-        default="in_transit"
+        choices=ItemStatus.choices,
+        default=ItemStatus.IN_TRANSIT
     )
+
+    objects = TransferRecordQuerySet.as_manager()
 
     class Meta:
         verbose_name = "transfer record"
@@ -37,7 +48,7 @@ class TransferRecord(models.Model):
 
     def __str__(self):
         try:
-            return f"Item: {self.order_item.name} - {self.status}"
+            return f"Item: {self.order_item} - {self.status}"
         except:
             return "TransferRecord (no order item yet)"
 

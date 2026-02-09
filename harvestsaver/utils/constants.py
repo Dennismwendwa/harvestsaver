@@ -20,9 +20,17 @@ class PaymentStatus(models.TextChoices):
 class ItemStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     PREPARING = "Preparing", "Preparing"
+    PARTIALLY_DISPATCHED = "PARTIALLY_DISPATCHED", "Partially Dispatched"
+    IN_TRANSIT = "IN_TRANSIT", "In Transit"
     READY = "Ready", "Ready"
     DISPATCHED = "Dispatched", "Dispatched"
     COMPLETED = "Completed", "Completed"
+
+class BookStatus(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    PARTIALLY_DISPATCHED = "PARTIALLY_DISPATCHED", "Partially Dispatched"
+    IN_TRANSIT = "IN_TRANSIT", "In Transit"
+    DELIVERED = "DELIVERED", "Delivered"
 
 
 class PaymentMethod(models.TextChoices):

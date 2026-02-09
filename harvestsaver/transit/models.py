@@ -8,16 +8,10 @@ from django.utils.translation import gettext_lazy as _
 from accounts.models import User
 from farm.models import Order, Hub, OrderItem
 from .validators import DimensionsValidator
-from utils.constants import TransitOption
+from utils.constants import TransitOption, BookStatus
 
 
 class TransportBooking(models.Model):
-
-    STATUS = [
-        ("Pending", "Pending"),
-        ("Transit", "Transit"),
-        ("Delivered", "Delivered"),
-    ]
     order = models.ForeignKey(Order, on_delete=models.PROTECT,
                                  related_name="transport", blank=True,
                                  null=True)
@@ -30,7 +24,7 @@ class TransportBooking(models.Model):
     transport_option = models.CharField(max_length=100, choices=TransitOption.choices)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     requested_pickup_at = models.DateTimeField()
-    status = models.CharField(max_length=20, choices=STATUS, default="Pending")
+    status = models.CharField(max_length=20, choices=BookStatus.choices, default=BookStatus.PENDING)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

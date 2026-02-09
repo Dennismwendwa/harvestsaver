@@ -291,7 +291,7 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return (
-                f"Order: {self.order.order_reference} "
+                f"pk({self.pk}) Order: {self.order.order_reference} "
                 f"Product: {self.product.name} Quantity: {self.quantity}"
                 )
     
@@ -506,6 +506,22 @@ class OrderItem(models.Model):
         if not self.product.unit_weight_kg:
             return 0
         return self.quantity * self.product.unit_weight_kg
+    
+
+    @property
+    def shipped_quantity(self):
+        return (
+            self.transferrecord_set
+            .aggregate(total=Sum("quantity_sent"))["total"] or 0
+        )
+
+    @property
+    def remaining_quantity(self):
+        return self.quantity - self.shipped_quantity
+
+    @property
+    def is_fully_shipped(self):
+        return self.remaining_quantity <= 0
 
 
 class EquipmentCategory(models.Model):

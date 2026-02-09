@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from .models import TransportBooking, TransportBookingItem
 from farm.models import Hub, Order, Cart, OrderItem
-from utils.constants import RATE_PER_KM, TransitOption
+from utils.constants import RATE_PER_KM, TransitOption, BookStatus
 
 
 @transaction.atomic
@@ -94,7 +94,7 @@ def process_order(shipping_address, payment_method, transport, destination_hub_p
             transport_option=transport,
             cost=shipping_cost,
             requested_pickup_at=pickup_date_time,
-            status="Pending"
+            status=BookStatus.PENDING
         )
 
         for item in items:

@@ -36,7 +36,7 @@ class OrderAdmin(admin.ModelAdmin):
     )
 
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ("order", "product", "quantity", "status")
+    list_display = ("pk", "order", "product", "quantity", "status")
 
 class EquipmentCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
