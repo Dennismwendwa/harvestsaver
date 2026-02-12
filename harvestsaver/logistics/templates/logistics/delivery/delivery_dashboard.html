@@ -40,11 +40,16 @@ HarvestSaver Nextwork - Delivary Dashboard
 
         <!-- DISPATCH -->
         <div class="tab-pane fade show active" id="dispatch">
-        <div class="card bg-info text-white mx-auto" style="width: 50%;">
-            <div class="card-body">
-                <p class="m-0">My Hub: {{ user.staff_profile.hub }}</p>
+            <div class="card bg-info text-white mb-2 mx-auto" style="width: 50%;">
+                <div class="card-body">
+                    <p class="m-0">My Hub: {{ user.staff_profile.hub }}</p>
+                </div>
             </div>
-        </div>
+            {%for message in messages%}
+            <div class="alert alert-{{message.tags}}">
+                {{message}}
+            </div>
+            {%endfor%}
             {% for booking in to_load %}
                 <div class="card shadow-sm mb-3">
                     <div class="card-body">
@@ -95,49 +100,83 @@ HarvestSaver Nextwork - Delivary Dashboard
             {% endfor %}
         </div>
 
-
         <!-- IN TRANSIT -->
         <div class="tab-pane fade" id="transit">
             <div class="accordion" id="transitOrders">
 
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#order1">
-                            Order #1001 - Farm Hub A → City Hub
-                        </button>
-                    </h2>
-                    <div id="order1" class="accordion-collapse collapse show">
-                        <div class="accordion-body">
-                            <ul class="list-group">
-                                <li class="list-group-item text-secondary">
-                                    Tomatoes - 50kg
-                                </li>
-                                <li class="list-group-item text-secondary">
-                                    Onions - 30kg
-                                </li>
-                            </ul>
+                {% for transfer in outgoing %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#transfer{{ transfer.id }}">
+                                Order {{ transfer.order_item.order.order_reference }}
+                                — {{ transfer.from_hub.name }} → {{ transfer.to_hub.name }}
+                            </button>
+                        </h2>
+
+                        <div id="transfer{{ transfer.id }}" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <ul class="list-group">
+                                    <li class="list-group-item text-secondary">
+                                        {{ transfer.order_item.product.name }}
+                                        — {{ transfer.quantity_sent }}kg
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {% empty %}
+                    <div class="alert alert-secondary">
+                        No transfers currently in transit.
+                    </div>
+                {% endfor %}
 
             </div>
         </div>
 
         <!-- RECEIVING -->
         <div class="tab-pane fade" id="receiving">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h6>Order #1001</h6>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        Tomatoes - 50kg
-                        <button class="btn btn-success btn-sm">Mark Received</button>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        Onions - 30kg
-                        <button class="btn btn-success btn-sm">Mark Received</button>
+            {% for transfer in incoming %}
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <strong>{{ transfer.order_item.order.order_reference }}</strong><br>
+                                <small class="text-muted">
+                                    {{ transfer.from_hub.name }} → {{ transfer.to_hub.name }}
+                                </small>
+                            </div>
+
+                            <span class="badge bg-warning">
+                                In Transit
+                            </span>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                {{ transfer.order_item.product.name }}
+                                — {{ transfer.quantity_sent }}kg
+                            </span>
+
+                            <form method="post" action="{% url 'logistics:mark_received' transfer.id %}">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm">
+                                    Mark Received
+                                </button>
+                            </form>
+                        </div>
+
                     </div>
                 </div>
-            </div>
+            {% empty %}
+                <div class="alert alert-secondary">
+                    No items currently in transit.
+                </div>
+            {% endfor %}
         </div>
 
         <!-- STORAGE / COLLECTION -->
@@ -146,21 +185,34 @@ HarvestSaver Nextwork - Delivary Dashboard
                 <div class="card-body">
                     <h6>Storage Items</h6>
 
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        Tomatoes - 50kg
-                        <span>
-                            <span class="badge bg-warning">In Store</span>
-                            <button class="btn btn-outline-primary btn-sm">Collected</button>
-                        </span>
-                    </div>
+                    {% for transfer in storage_items %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>
+                                {{ transfer.order_item.product.name }}
+                                — {{ transfer.quantity_received }}kg
+                            </span>
 
-                    <div class="d-flex justify-content-between align-items-center">
-                        Onions - 30kg
-                        <span class="badge bg-success">Collected</span>
-                    </div>
+                            <span>
+                                <span class="badge bg-warning">In Store</span>
+
+                                <form method="post" action="{% url 'logistics:mark_collected' transfer.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button class="btn btn-outline-primary btn-sm">
+                                        Collected
+                                    </button>
+                                </form>
+                            </span>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-secondary">
+                            No items currently in storage.
+                        </div>
+                    {% endfor %}
+
                 </div>
             </div>
         </div>
+
 
     </div>
 </div>

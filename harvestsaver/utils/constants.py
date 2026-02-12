@@ -25,6 +25,7 @@ class ItemStatus(models.TextChoices):
     READY = "Ready", "Ready"
     DISPATCHED = "Dispatched", "Dispatched"
     COMPLETED = "Completed", "Completed"
+    RECEIVED = "RECEIVED", "Received"
 
 class BookStatus(models.TextChoices):
     PENDING = "PENDING", "Pending"

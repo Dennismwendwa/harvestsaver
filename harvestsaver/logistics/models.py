@@ -2,19 +2,34 @@ from django.db import models
 from accounts.models import User
 from farm.models import OrderItem, Farm, Hub
 from transit.models import TransportBooking, Carrier, VehicleCategory
-from utils.constants import ItemStatus
+from utils.constants import ItemStatus as TransferStatus
 
 class TransferRecordQuerySet(models.QuerySet):
-    def in_transit_to(self, hub):
+    def inbound(self, hub):
+        return self.filter(to_hub=hub)
+    
+    def outbound(self, hub):
+        return self.filter(from_hub=hub)
+    
+    def in_transit(self):
+        return self.filter(status=TransferStatus.IN_TRANSIT)
+    
+    def receivable(self, hub):
+        return self.inbound(hub).in_transit()
+    
+    def dispatchable(self, hub):
+        return self.outbound(hub).in_transit()
+    
+    def active(self):
+        return self.exclude(status=TransferStatus.CANCELLED)
+
+    def completed(self):
+        return self.filter(status=TransferStatus.RECEIVED)
+    
+    def received_at_hub(self, hub):
         return self.filter(
             to_hub=hub,
-            status=ItemStatus.IN_TRANSIT
-        )
-    
-    def in_transit_from(self, hub):
-        return self.filter(
-            from_hub=hub,
-            status=ItemStatus.IN_TRANSIT
+            status=TransferStatus.RECEIVED
         )
 
 class TransferRecord(models.Model):
@@ -23,17 +38,15 @@ class TransferRecord(models.Model):
                                  related_name="outgoing_transfers")
     to_hub = models.ForeignKey(Hub, on_delete=models.CASCADE,
                                related_name="incoming_transfers")
-
     quantity_sent = models.DecimalField(max_digits=8, decimal_places=2)
     quantity_received = models.DecimalField(max_digits=8, decimal_places=2,
                                                 null=True, blank=True)
-
     sent_at = models.DateTimeField(auto_now_add=True)
     received_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
-        choices=ItemStatus.choices,
-        default=ItemStatus.IN_TRANSIT
+        choices=TransferStatus.choices,
+        default=TransferStatus.IN_TRANSIT
     )
 
     objects = TransferRecordQuerySet.as_manager()
@@ -51,6 +64,26 @@ class TransferRecord(models.Model):
             return f"Item: {self.order_item} - {self.status}"
         except:
             return "TransferRecord (no order item yet)"
+        
+
+    def mark_received(self, qty):
+        from django.utils import timezone
+        if self.status != TransferStatus.IN_TRANSIT:
+            raise ValueError("Cannot receive non-transit item")
+
+        if qty > self.quantity_sent:
+            raise ValueError("Received more than sent")
+
+        self.quantity_received = qty
+        self.received_at = timezone.now()
+
+        if qty == self.quantity_sent:
+            self.status = TransferStatus.RECEIVED
+        else:
+            self.status = TransferStatus.PARTIALLY_RECEIVED
+
+        self.save()
+
 
 class IssueRecordQuerySet(models.QuerySet):
     def for_hub(self, hub):

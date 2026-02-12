@@ -30,19 +30,15 @@ def delivery_dashboard(request):
                 "order__items",
                 queryset=OrderItem.objects.filter(
                     product__hub=my_hub,
-                    #status__in=[ItemStatus.PENDING, ItemStatus.PARTIALLY_DISPATCHED],
                 ),
                 to_attr="hub_items"
             )
         )
     ).order_by("created_at")
 
-    items_in_transit = TransferRecord.objects.in_transit_to(my_hub)
-
-    print()
-    print(items_in_transit)
-    print()
-    print()
+    incoming = TransferRecord.objects.receivable(my_hub)
+    outgoing = TransferRecord.objects.dispatchable(my_hub)
+    storage_items = TransferRecord.objects.received_at_hub(my_hub)
     
     if request.method == "POST":
         pass
@@ -53,6 +49,9 @@ def delivery_dashboard(request):
     context={
         "transferForm": transferForm,
         "to_load": to_load,
+        "incoming": incoming,
+        "outgoing": outgoing,
+        "storage_items": storage_items,
     }
     return render(request, "logistics/delivery/delivery_dashboard.html", context)
 
@@ -71,21 +70,12 @@ def booking_dispach(request, booking_id):
                 "order__items",
                 queryset=OrderItem.objects.filter(
                     product__hub=my_hub,
-                    status=ItemStatus.PENDING,
+                    #status=ItemStatus.PENDING,
                 ),
                 to_attr="hub_items"
             )
         )
     ).order_by("created_at")
-
-    print()
-    for b in some_route_items:
-        print()
-        print(f"book: {b.id} - {b.status}")
-        print(f"order: {b.order.order_reference}")
-        items = OrderItem.objects.filter(order=b.order)
-        for i in items:
-            print(f"id: {i.id} - {i.status}")
 
     if request.method == "POST":
         items_to_load = []
@@ -96,14 +86,16 @@ def booking_dispach(request, booking_id):
 
                 if qty > 0:
                     items_to_load.append((item, qty))
-
-        DispatchService.prepare_dispatch(
-            user=user,
-            booking=booking,
-            items=items_to_load
-        )
+        try:
+            DispatchService.prepare_dispatch(
+                user=user,
+                booking=booking,
+                items=items_to_load
+            )
+            messages.success(request, "Items Dispatched successfully")
+        except Exception as e:
+            messages.error(request, f"{e}")
         return redirect("logistics:delivarly")
-
 
     context = {
         "booking": booking,
