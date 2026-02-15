@@ -23,7 +23,7 @@
         <div class="row">
 
             <!-- Product Image -->
-            <div class="col-md-5 border">
+            <div class="col-md-5">
                 <img
                     src="{{ product.image.url }}"
                     class="img-fluid"
@@ -114,4 +114,73 @@
         </div>
     </div>
 </section>
+<!-- Recently Viewed -->
+<section class="">
+    <div class="container">
+        <h5 class="mb-3">Recently Viewed</h5>
+
+        {% if recently_viewed %}
+            <div class="row">
+                {% for item in recently_viewed %}
+                    <div class="col-md-2">
+                        <div class="card shadow-sm h-100">
+                            <img
+                                src="{{ item.image.url }}"
+                                class="card-img-top"
+                                style="height: 120px; object-fit: cover;"
+                            >
+                            <div class="card-body p-2">
+                                <small class="d-block text-truncate">
+                                    {{ item.name }}
+                                </small>
+                                <strong class="text-success">
+                                    KES {{ item.price|intcomma }}
+                                </strong>
+                                <a href="{% url 'farm:product_details' item.slug item.pk %}"
+                                   class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No recent views yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Recommended Products -->
+<section class="mt-5">
+    <div class="container">
+        <h5 class="mb-3">Recommended for you</h5>
+
+        {% if recommended %}
+            <div class="row">
+                {% for item in recommended %}
+                    <div class="col-md-2">
+                        <div class="card shadow-sm h-100">
+                            <img src="{{ item.image.url }}"
+                                 class="card-img-top"
+                                 style="height: 120px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <small class="d-block text-truncate">
+                                    {{ item.name }}
+                                </small>
+                                <strong class="text-primary">
+                                    KES {{ item.price|intcomma }}
+                                </strong>
+                                <a href="{% url 'farm:product_details' item.slug item.pk %}"
+                                   class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No recommendations yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+
 {% endblock %}

@@ -31,16 +31,6 @@
                     {{ product.description|truncatechars:80 }}
                 </p>
 
-                {%comment%}
-                <!-- Info -->
-                <ul class="list-unstyled small mb-2">
-                    <li>
-                        <i class="bi bi-geo-alt"></i>
-                        {{ product.location }}
-                    </li>
-                </ul>
-                {%endcomment%}
-
                 <!-- Availability -->
                 {% if product.is_available %}
                     <span class="badge bg-success">Available</span>
