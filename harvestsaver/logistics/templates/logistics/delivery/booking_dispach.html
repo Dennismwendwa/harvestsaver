@@ -26,28 +26,30 @@ Prepare Dispatch
         <ul class="list-group list-group-flush">
 
         {% for route_booking in some_route_items %}
-            {% for item in route_booking.order.hub_items %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+            {% for link in route_booking.hub_items %}
+                {% with item=link.order_item %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
 
-                <div>
-                    <strong>{{ item.product.name }}</strong><br>
-                    <small class="text-muted">
-                        Remaining: {{ item.remaining_quantity }}
-                        {{ item.product.unit_quantity_type }}
-                        ({{ item.product.farm.name }})
-                    </small>
-                </div>
+                    <div>
+                        <strong>{{ item.product.name }}</strong><br>
+                        <small class="text-muted">
+                            Remaining: {{ item.remaining_quantity }}
+                            {{ item.product.unit_quantity_type }}
+                            ({{ item.product.farm.name }})
+                        </small>
+                    </div>
 
-                <div style="width: 120px;">
-                    <input type="number"
-                           name="qty_{{ item.id }}"
-                           min="0"
-                           max="{{ item.remaining_quantity }}"
-                           value="0"
-                           class="form-control form-control-sm">
-                </div>
+                    <div style="width: 120px;">
+                        <input type="number" required
+                               name="qty_{{ item.id }}"
+                               min="0"
+                               max="{{ item.remaining_quantity }}"
+                               value=""
+                               class="form-control form-control-sm">
+                    </div>
 
-            </li>
+                </li>
+                {% endwith %}
             {% endfor %}
         {% empty %}
             <div class="alert alert-secondary">
@@ -75,3 +77,4 @@ Prepare Dispatch
 </div>
 </section>
 {% endblock %}
+
