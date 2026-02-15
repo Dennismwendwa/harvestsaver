@@ -1,6 +1,7 @@
 {% extends "accounts/layout.html" %}
 {% load static %}
 {% load humanize %}
+{% load custom_tags %}
 
 
 {% block title %}
@@ -61,6 +62,31 @@
                         <span class="text-danger">Out of stock</span>
                     {% endif %}
                 </p>
+
+                <div class="rating-inline d-flex align-items-center gap-2">
+                    <div class="stars">
+                        {% with avg=product.avg_rating %}
+                            {% for i in "12345" %}
+                                {% if avg >= forloop.counter %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% elif avg >= forloop.counter|add:"-0.5" %}
+                                    <i class="bi bi-star-half"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </div>
+
+                    <a class="review-link"
+                    data-bs-toggle="collapse"
+                    href="#reviewsCollapse"
+                    role="button"
+                    aria-expanded="false"
+                    aria-controls="reviewsCollapse">
+                        ({{ product.review_count }} verified ratings)
+                    </a>
+                </div>
             </div>
 
             <!-- Cart Controls -->
@@ -112,8 +138,87 @@
             </div>
 
         </div>
+        
+        <div class="collapse mt-3" id="reviewsCollapse">
+            <div class="card card-body">
+
+                <h5 class="mb-3">Customer Reviews</h5>
+
+                <div class="row">
+                    <!-- Left Column: Rating Summary -->
+                    <div class="col-md-3 p-1">
+                        <div class="card p-3 text-center shadow-sm">
+                            <h4 class="text-warning mb-2">
+                                {{ product.average_rating|default:0 }}/5
+                            </h4>
+                            <div class="mb-2">
+                                {% for i in "12345" %}
+                                    {% if product.average_rating >= forloop.counter %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% elif product.average_rating >= forloop.counter|add:"-0.5" %}
+                                        <i class="bi bi-star-half text-warning"></i>
+                                    {% else %}
+                                        <i class="bi bi-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- Rating Distribution -->
+                            {% for i in "54321" %}
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="me-2">{{ i }} <i class="bi bi-star-fill text-warning"></i></span>
+                                <div class="progress flex-grow-1" style="height: 10px;">
+                                    <div class="progress-bar bg-warning" role="progressbar"
+                                        style="width: {{ rating_percentages|dict_get:i }}%;" 
+                                        aria-valuenow="{{ rating_percentages|dict_get:i }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <span class="ms-2 text-muted">{{ rating_counts|dict_get:i }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Reviews -->
+                    <div class="col-md-9 p-2">
+                        {% for review in product.reviews.all %}
+                        <div class="single-review mb-3 p-2 border rounded shadow-sm">
+                            <div>
+                                <span class="stars">
+                                    {% for i in "12345" %}
+                                        {% if review.rating >= forloop.counter %}
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        {% elif review.rating >= forloop.counter|add:"-0.5" %}
+                                            <i class="bi bi-star-half text-warning"></i>
+                                        {% else %}
+                                            <i class="bi bi-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            <p class="my-3">{{review.comment}}</p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+
+                                <span class="text-muted small mb-1">{{ review.review_date|date:"M d, Y" }}
+                                    by {{review.customer.get_full_name|default:review.customer.username}}
+                                </span>
+                            </div>
+                            
+                            
+                        </div>
+                        {% empty %}
+                            <p class="text-muted">No reviews yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
+
 </section>
+
 <!-- Recently Viewed -->
 <section class="">
     <div class="container">

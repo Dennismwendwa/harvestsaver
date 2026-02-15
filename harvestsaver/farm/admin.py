@@ -46,15 +46,15 @@ class EquipmentAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
 
 class ProductReviewAdmin(admin.ModelAdmin):
-    list_display = ("customer", "review", "rating",
+    list_display = ("customer", "comment", "rating",
                     "review_date", "product")
 
 class PlatformReviewAdmin(admin.ModelAdmin):
-    list_display = ("customer", "review", "rating",
+    list_display = ("customer", "comment", "rating",
                     "review_date", "category")
 
 class EquipmentReviewAdmin(admin.ModelAdmin):
-    list_display = ("customer", "review", "rating",
+    list_display = ("customer", "comment", "rating",
                     "review_date", "equipment")
     
 class EquipmentRentalAdmin(admin.ModelAdmin):

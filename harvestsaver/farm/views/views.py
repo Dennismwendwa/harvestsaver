@@ -12,6 +12,8 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.conf import settings
+from django.core.cache import cache
 
 from payment.models import Payout
 from ..models import Category, Product, Cart, Farm, OrderItem, Order
@@ -82,14 +84,32 @@ def prodcuts_category(request, slug):
     
     return render(request, "farm/farm/category.html", context)
 
-
 #@login_required
 def product_details(request, slug, pk):
     """Show the deatils of one product at a time"""
-    
-    product = Product.objects.get(pk=pk)
+    from django.db.models import Case, When, Avg, Count
+    from django_redis import get_redis_connection
+
+    redis = get_redis_connection("default")
     cart_item = None
     total_price = 0
+    
+    product = Product.objects.prefetch_related('reviews').annotate(
+        average_rating=Avg("reviews__rating"),
+        total_review_count=Count("reviews")
+    ).get(pk=pk)
+
+    product.average_rating = round(product.average_rating or 0, 1)
+
+    rating_counts = {}
+    for i in range(1, 6):
+        rating_counts[i] = product.reviews.filter(rating=i).count()
+
+    # Compute percentage (avoid division by zero)
+    rating_percentages = {}
+    for i in range(1, 6):
+        rating_percentages[i] = ((rating_counts[i] / product.total_review_count * 100)
+                                 if product.total_review_count else 0)
 
     if request.user.is_authenticated:
         cart_item = Cart.objects.filter(
@@ -97,15 +117,63 @@ def product_details(request, slug, pk):
             product=product
         ).first()
 
+        cache_key = f"recent:{request.user.id}"
+
+        last_key = f"last_view:{request.user.id}"
+        last_product = redis.get(last_key)
+        if last_product:
+            last_product = int(last_product)
+            if last_product != product.id:
+                pair_key = f"coview:{last_product}"
+                redis.zincrby(pair_key, 1, product.id)
+
+        redis.setex(last_key, 60 * 30, product.id)  # 30 min window
+    else:
+        cache_key = f"recent:anon:{request.session.session_key}"
+        if not request.session.session_key:
+            request.session.save()
+
     if cart_item:
         total_price = product.price * cart_item.quantity
 
-    # to add recommentations here
+    recent_ids = cache.get(cache_key, [])
+    if product.id in recent_ids:
+        recent_ids.remove(product.id)
+
+    recent_ids.insert(0, product.id)
+    cache.set(cache_key, recent_ids, timeout=60 * 60 * 24 * 7)
+
+    rec_key = f"coview:{product.id}"
+
+    rec_ids = redis.zrevrange(rec_key, 0, 5)  # top 6
+    rec_ids = [int(i) for i in rec_ids]
+    
+    recommended = Product.objects.filter(id__in=rec_ids)
+
+    recently_viewed = (
+        Product.objects
+        .filter(id__in=recent_ids)
+        .exclude(id=product.id)
+    )
+
+    preserved = Case(
+        *[When(id=pk, then=pos) for pos, pk in enumerate(recent_ids)]
+    )
+    recently_viewed = recently_viewed.order_by(preserved)
+    
+    preserved_recom = Case(
+        *[When(id=pk, then=pos) for pos, pk in enumerate(rec_ids)]
+    )
+    recommended = recommended.order_by(preserved_recom)
 
     context = {
         "product": product,
         "cart_item": cart_item,
         "total_price": total_price,
+        "recently_viewed": recently_viewed,
+        "recommended": recommended,
+        "rating_counts": rating_counts,
+        "rating_percentages": rating_percentages,
     }
     return render(request, "farm/farm/product_detail.html", context)
 

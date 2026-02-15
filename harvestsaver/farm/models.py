@@ -2,7 +2,7 @@ import uuid
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
-from django.db.models import F, Sum, DecimalField, Q
+from django.db.models import F, Sum, DecimalField, Q, Avg
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from django.db.models.functions import Coalesce
 from decimal import Decimal
@@ -186,7 +186,13 @@ class Product(models.Model):
             product.quantity -= qty
             product.save(update_fields=["quantity"])
 
-        
+    @property
+    def avg_rating(self):
+        return self.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
+    
+    @property
+    def review_count(self):
+        return self.reviews.count()
         
 
 class Cart(models.Model):
@@ -281,7 +287,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
     status = models.CharField(max_length=20,
-                              choices=ItemStatus,
+                              choices=ItemStatus.choices,
                               default=ItemStatus.PENDING)
 
     class Meta:
@@ -611,7 +617,7 @@ class EquipmentInquiry(models.Model):
 
 class Review(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    review = models.TextField()
+    comment = models.TextField()
     rating = models.PositiveSmallIntegerField(default=5)
     review_date = models.DateTimeField(auto_now_add=True)
 
@@ -632,11 +638,16 @@ class ProductReview(Review):
     class Meta:
         verbose_name = "Product Review"
         verbose_name_plural = "Product Reviews"
+        ordering = ("-review_date",)
         constraints = [
             models.UniqueConstraint(
                 fields=["customer", "product"],
                 name="unique_product_review"
             )
+        ]
+        indexes = [
+            models.Index(fields=["product"]),
+            models.Index(fields=["customer"]),
         ]
 
     def __str__(self):
