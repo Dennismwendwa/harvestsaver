@@ -113,22 +113,36 @@ Farmer Dashboard
                 {% endfor %}
                 </div>
             {% else %}
-                <p>No farms available.</p>
+                <div class="card border-0 shadow-sm text-center p-5 mt-4">
+                    <div class="mb-3">
+                        <i class="bi bi-geo-alt-fill text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold">No farms yet</h5>
+                    <p class="text-muted">
+                        You haven't added any farms. Start by creating your first one.
+                    </p>
+                    <button class="btn btn-primary btn-lg mt-2" onclick="scrollToFarmForm()">
+                        + Add Your First Farm
+                    </button>
+                </div>
             {% endif %}
 
             <h5 class="mt-4">Create New Farm</h5>
-            <div class="card p-3 col-md-6">
+            <div class="card p-3">
                 <form action="{% url 'farm:create_or_edit_farm' %}" method="post" enctype="multipart/form-data" id="new-farm-form">
                     {% csrf_token %}
                     {{ new_farm_form.name|as_crispy_field }}
                     {{ new_farm_form.address|as_crispy_field }}
+                    <script>
+                        document.getElementById("id_name").focus();
+                    </script>
 
                     <!-- Hidden latitude/longitude -->
                     <input type="hidden" name="latitude" id="id_latitude" required>
                     <input type="hidden" name="longitude" id="id_longitude" required>
 
                     <label class="mt-3 fw-bold">Pick Farm Location</label>
-                    <div id="farm-map" style="height: 400px;"></div>
+                    <div id="farm-map" style="height: 650px;"></div>
 
                     <button type="submit" class="btn btn-primary mt-3">Add Farm</button>
                 </form>
@@ -207,24 +221,103 @@ Farmer Dashboard
                     </div>
                 </div>
                 {% empty %}
-                    <p class="text-muted">No products yet.</p>
+                    <div class="card border-0 shadow-sm text-center p-5 my-4">
+                        <div class="mb-3">
+                            <i class="bi bi-box-seam text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="fw-bold">No products yet</h5>
+                        <p class="text-muted">
+                            You haven't added any products for this farm.
+                        </p>
+                        <button class="btn btn-primary btn-lg mt-2" onclick="scrollToProductForm()">
+                            + Add Your First Product
+                        </button>
+                    </div>
                 {% endfor %}
             </div>
 
             <hr>
 
             <!-- ADD PRODUCT FORM -->
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <h5>Add New Product</h5>
+            <div class="row mt-4" id="product-form-section" style="scroll-margin-top: 120px;">
+                <div class="col-md-8">
                     <div class="card p-3 shadow-sm">
                         <form action="{% url 'farm:create_product' %}" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
-                            {{ products_form|crispy }}
-                            <button class="btn btn-primary w-100 mt-3" type="submit">
-                                Add Product
-                            </button>
+
+                            <div class="card p-4 shadow-sm border-0">
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-1">Add New Product</h5>
+                                    <p class="text-muted mb-0">
+                                        Fill in the details below to add a product to your farm.
+                                    </p>
+                                </div>
+
+                                <!-- Basic Info -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary mb-3">Basic Info</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            {{ products_form.name|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ products_form.category|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pricing & Stock -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary mb-3">Pricing & Stock</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            {{ products_form.price|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ products_form.quantity|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ products_form.unit_quantity_type|as_crispy_field }}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            {{ products_form.unit_weight_kg|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Details -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-primary mb-3">Details</h6>
+                                    {{ products_form.description|as_crispy_field }}
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            {{ products_form.image|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ products_form.is_perishable|as_crispy_field }}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-2">
+                                        <div class="col-md-6">
+                                            {{ products_form.harvest_date|as_crispy_field }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ products_form.farm|as_crispy_field }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">
+                                    Add Product
+                                </button>
+                            </div>
                         </form>
+
                     </div>
                 </div>
             </div>
@@ -564,6 +657,29 @@ Farmer Dashboard
 
     </div>
 </div>
+
+<script>
+function scrollToFarmForm() {
+    const form = document.getElementById("new-farm-form");
+    const yOffset = -100;
+    const y = form.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+    window.scrollTo({ top: y, behavior: "smooth" });
+
+    form.classList.add("border", "border-primary", "shadow");
+}
+
+function scrollToProductForm() {
+    const el = document.getElementById("product-form-section");
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    el.classList.add("border", "border-primary", "shadow");
+
+    setTimeout(() => {
+        el.classList.remove("border", "border-primary", "shadow");
+    }, 1500);
+}
+</script>
 
 {{ order_distribution|json_script:"order-data" }}
 {{ sales_trend|json_script:"sales-trend-data" }}

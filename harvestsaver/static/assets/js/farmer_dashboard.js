@@ -76,5 +76,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    function scrollToFarmForm() {
+        const form = document.getElementById("new-farm-form");
+        form.scrollIntoView({ behavior: "smooth" });
+        form.classList.add("border", "border-primary", "shadow");
+    }
+
+    setTimeout(() => {
+        const firstInput = document.querySelector("#product-form-section input");
+        if (firstInput) firstInput.focus();
+    }, 600);
+
 });
+
 
