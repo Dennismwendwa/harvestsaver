@@ -29,7 +29,7 @@ def admin_staff(request):
         else:
             hub_form = hub_form()
 
-    form = FarmForm()
+    form = FarmForm(user=request.user)
     hub_form = HubForm()
 
     context = {

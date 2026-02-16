@@ -22,37 +22,76 @@ class ProductForm(forms.ModelForm):
         labels = {
             "name": _("Product name"),
             "category": _("Category"),
-            "price": _("price per unit"),
-            "quantity": _("Quantity available"),
-            "unit_of_measurement": _("Unit_of_measurement"),
-            "description": _("Product description"),
-            "image": _("Image"),
-            "location": _("location"),
-            "harvest_date": _("harvest_date"),
+            "price": _("Price per unit"),
+            "quantity": _("Available quantity"),
+            "unit_quantity_type": _("Unit"),
+            "unit_weight_kg": _("Weight per unit (kg)"),
+            "description": _("Description"),
+            "image": _("Product image"),
+            "harvest_date": _("Harvest date"),
         }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
-        super(ProductForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({"class": "form-control my-2",})
+        super().__init__(*args, **kwargs)
 
+        for name, field in self.fields.items():
+            base_classes = "form-control form-control-lg"
+
+            # Text inputs
+            if isinstance(field.widget, forms.TextInput):
+                field.widget.attrs.update({
+                    "class": base_classes,
+                    "placeholder": field.label
+                })
+
+            # Number inputs
+            elif isinstance(field.widget, forms.NumberInput):
+                field.widget.attrs.update({
+                    "class": base_classes,
+                    "placeholder": field.label
+                })
+
+            # Selects
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs.update({
+                    "class": "form-select form-select-lg"
+                })
+
+            # File upload
+            elif isinstance(field.widget, forms.ClearableFileInput):
+                field.widget.attrs.update({
+                    "class": "form-control"
+                })
+
+            # Textarea
+            elif isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.update({
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter " + field.label.lower()
+                })
+
+        # Date picker
         self.fields["harvest_date"].widget = forms.DateInput(
             attrs={
-            "class": "form-control my-2",
-            "placeholder": "Select harvest date",
-            "type": "date",
+                "class": "form-control form-control-lg",
+                "type": "date",
             }
         )
-        
+
+        # Farm filtering
         if self.user:
-            self.fields["farm"].queryset = Farm.objects.filter(owner=self.user,
-                                                               is_verified=True)
-            
+            self.fields["farm"].queryset = Farm.objects.filter(
+                owner=self.user,
+                is_verified=True
+            )
+
         self.fields["farm"].label_from_instance = lambda obj: obj.name
 
+
     def clean_form(self):
-        farm = self.cleaned_dats.get("farm")
+        farm = self.cleaned_data.get("farm")
 
         if not farm:
             raise forms.ValidationError(_("You must select a farm"))
@@ -126,7 +165,26 @@ class FarmForm(forms.ModelForm):
 
 
     def __init__(self, *args, **kwargs):
-        super(FarmForm, self).__init__(*args, **kwargs)
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        # Staff can see everything
+        if self.user and self.user.is_staff:
+            self.fields["owner"] = forms.ModelChoiceField(
+                queryset=User.objects.filter(
+                    farmer_profile__isnull=False,
+                    is_active=True, ),
+                required=True,
+                label="Farmer"
+            )
+            self.fields["hub"] = forms.ModelChoiceField(
+                queryset=Hub.objects.all(),
+                required=False
+            )
+            self.fields["is_verified"] = forms.BooleanField(
+                required=False
+            )
+
         for field_name, field in self.fields.items():
             field.widget.attrs.update({"class": "form-control my-2",})
 
