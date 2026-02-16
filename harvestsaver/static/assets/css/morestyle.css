@@ -57,3 +57,22 @@
   font-size: 14px;
   text-align: center;
 }
+
+.stars i {
+    color: #ffa41c;
+    font-size: 14px;
+}
+
+.review-link {
+    color: #007185;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.review-link:hover {
+    text-decoration: underline;
+}
+
+.single-review {
+    font-size: 14px;
+}
