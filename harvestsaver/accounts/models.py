@@ -34,7 +34,13 @@ class User(AbstractUser):
     
     @property
     def is_system_staff(self):
-        return self.active_role == UserRole.STAFF
+        if self.is_staff:
+            return True
+        
+        try:
+            return self.staff_profile.role == "admin"
+        except StaffProfile.DoesNotExist:
+            return False
     
     @cached_property
     def staff_profile(self):
@@ -48,7 +54,13 @@ class User(AbstractUser):
     
     @property
     def is_admin(self):
-        return self.staff_profile and self.staff_profile.role == "admin"
+        if self.is_superuser:
+            return True
+        
+        try:
+            return self.staff_profile.role == "admin"
+        except StaffProfile.DoesNotExist:
+            return False
     
     @property
     def is_warehouse(self):
