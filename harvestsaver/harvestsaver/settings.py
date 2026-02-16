@@ -12,10 +12,11 @@ load_dotenv(dotenv_path)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dgu5*^9cexga$udi7@__0lwjbhm3lrkm7@c$320l!!)drw*onu'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-ALLOWED_HOSTS = ["127.0.0.1", "54.237.207.136",
-                 "www.pysoftware.tech", "pysoftware.tech"]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -52,7 +53,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-        # BASE_DIR / "templates" for tempates at project level
+            BASE_DIR / "templates/"
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -109,15 +110,15 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get("PGDATABASE"),
-            'USER': os.environ.get("PGUSER"),
-            'PASSWORD': os.environ.get("PASSWORD"),
-            'HOST': os.environ.get("HOST"),
-            'PORT': os.environ.get("PORT"),
-            }
-        }
+    'default': {
+        'ENGINE': os.environ.get("DB_ENGINE"),
+        'NAME': os.environ.get("DB_NAME"),
+        'USER': os.environ.get("DB_USER"),
+        'PASSWORD': os.environ.get("DB_PASSWORD"),
+        'HOST': os.environ.get("DB_HOST"),
+        'PORT': os.environ.get("DB_PORT"),
+    }
+}
 
 #setting for sendimg email
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
@@ -134,6 +135,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
 # weather
 WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")
+WEATHER_LOCATION = os.getenv("WEATHER_LOCATION")
 
 CACHES = {
     "default": {
@@ -141,11 +143,15 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",  # db 1 for cache
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "MAX_ENTRIES": 1000,
         }
     }
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -162,7 +168,7 @@ LOGGING = {
             "level": "DEBUG",
 #            "class": "logging.FileHandler",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "harvestsaver.log",
+            "filename": "logs/harvestsaver.log",
             "formatter": "verbose",
             "maxBytes": 10485760,
             "backupCount": 5,     # Number of backup log files to retain
