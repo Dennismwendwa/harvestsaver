@@ -1,0 +1,56 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+Approve farm
+{% endblock %}
+
+{% block category %}
+<section class="py-4 mt-2">
+    <div class="container">
+        <h5>Approve Farm: {{ farm.name }}</h5>
+        <p>Owner: {{ farm.owner.get_full_name|default:farm.owner.username }}</p>
+
+        <div id="approve-map" style="height: 650px;"></div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const map = L.map('approve-map').setView([{{ farm.latitude }}, {{ farm.longitude }}], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            // Show farm marker
+            const marker = L.marker([{{ farm.latitude }}, {{ farm.longitude }}]).addTo(map)
+                .bindPopup("<strong>{{ farm.name }}</strong><br/>Owner: {{ farm.owner.get_full_name|default:farm.owner.username }}");
+        });
+        </script>
+        <div class="mt-3 d-flex gap-2">
+            <!-- Approve -->
+            <form action="{% url 'farm:approve_farm' farm.id %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" name="action" value="approve" class="btn btn-success">
+                    Approve Farm
+                </button>
+            </form>
+
+            <!-- Reject -->
+            <form action="{% url 'farm:approve_farm' farm.id %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" name="action" value="reject" class="btn btn-danger">
+                    Reject Farm
+                </button>
+            </form>
+
+            <!-- Back -->
+            <a href="{% url 'farm:admin_dashboard' %}" class="btn btn-secondary text-center">
+                Back
+            </a>
+        </div>
+        
+
+    </div>
+</section>
+{% endblock %}
