@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>HarvestSaver</title>
+  <title>Mkulimax</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -42,7 +42,7 @@
     <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
 
       <a href="{% url 'farm:home' %}" class="logo d-flex align-items-center">
-        <h1>HarvestSaver Nextwork</h1>
+        <h1>Mkulimax</h1>
       </a>
 
       <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
@@ -76,7 +76,7 @@
           <li><a href="{% url 'accounts:logout' %}">Logout</a></li>
           {% else %}
           <li><a href="{% url 'accounts:login' %}">Login</a></li>
-          <li><a href="{% url 'accounts:register' %}">Signin</a></li>
+          <li><a href="{% url 'accounts:register' %}">Sign Up</a></li>
           {% endif %}
           <li><a href="{% url 'accounts:contact' %}">Contact</a></li>
           <li><a class="get-a-quote" href="{% url 'transit:transportquote' %}">Get a Quote</a></li>
@@ -107,10 +107,10 @@
         </div>
         {%endfor%}
         <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
-          <h2 data-aos="fade-up">Welcome to HarvestSaver Network</h2>
+          <h2 data-aos="fade-up">Welcome to Mkulimax</h2>
           
           <p data-aos="fade-up" data-aos-delay="100">
-            Explore the HarvestSaver Network, your hub for cultivating connections 
+            Explore the Mkulimax, your hub for cultivating connections 
             within a community of like-minded individuals. Join us on a journey where 
             we share knowledge, celebrate sustainable living, and collectively nurture 
             the seeds of agricultural excellence. Together, let's grow and thrive in 
@@ -123,7 +123,7 @@
             data-aos="fade-up" data-aos-delay="200">
             {%csrf_token%}
             <input type="text" name="query" 
-            class="form-control" placeholder="Search by product name, price" required>
+            class="form-control" placeholder="Search by product name or description" required>
             <button type="submit" class="btn btn-primary">Search</button>
           </form>
 
@@ -281,7 +281,7 @@
 
                   <p>
                     <i class="bi bi-quote quote-icon-left"></i>
-                    {{ review.review }}
+                    {{ review.comment }}
                     <i class="bi bi-quote quote-icon-right"></i>
                   </p>
 
@@ -339,7 +339,7 @@
       <div class="row gy-4">
         <div class="col-lg-4 col-md-12 footer-info">
           <a href="index.html" class="logo d-flex align-items-center">
-            <span>HarvestSaver Nextwork</span>
+            <span>Mkulimax</span>
           </a>
           <p>Follow us on Social media</p>
           <div class="social-links d-flex mt-4">
@@ -395,10 +395,10 @@
 
     <div class="container mt-4">
       <div class="copyright">
-        &copy; Copyright <strong><span>HarvestSaver Nextwork</span></strong>. All Rights Reserved
+        &copy; Copyright <strong><span>Mkulimax</span></strong>. All Rights Reserved
       </div>
       <div class="credits">
-        Designed by <a href="">HarvestSaver Network</a>
+        Designed by <a href="">Mkulimax</a>
       </div>
     </div>
 

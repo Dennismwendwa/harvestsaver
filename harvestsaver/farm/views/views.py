@@ -25,7 +25,6 @@ from ..utils.utils import weather_data, assign_hub_to_farm, get_default_range
 from farm.services.functions import reduce_stock_for_order
 
 
-
 def succes_page(request):
     """This is success page after successfull payment"""
     return render(request, "farm/farm/success_page.html")
@@ -57,10 +56,10 @@ def all_products(request):
     return render(request, "farm/farm/all_products.html", context)
 
 def all_equipments(request):
-    """List all equipments with pagination of 4 per page"""
+    """List all equipments with pagination of 8 per page"""
     equipments = Equipment.objects.all()
     
-    equipments_per_page = 4
+    equipments_per_page = 8
     page_number = request.GET.get("page")
     paginator = Paginator(equipments, equipments_per_page)
 
@@ -105,7 +104,7 @@ def product_details(request, slug, pk):
     for i in range(1, 6):
         rating_counts[i] = product.reviews.filter(rating=i).count()
 
-    # Compute percentage (avoid division by zero)
+    # Compute percentage
     rating_percentages = {}
     for i in range(1, 6):
         rating_percentages[i] = ((rating_counts[i] / product.total_review_count * 100)
@@ -335,7 +334,7 @@ def equipment_category(request, slug):
     }
     return render(request, "farm/farm/category.html", context)
 
-from ..services.inquiries import send_inquiry_email_async
+
 def equipment_detail(request, slug):
     """This view is for equipment details inquiry"""
     user = request.user
@@ -374,14 +373,14 @@ def search(request):
     if request.method == "POST":
         query = request.POST.get("query")
         results = Product.objects.filter(
-            Q(name__icontains=query) | Q(description__icontains=query) |
-            Q(price__icontains=query)
+            Q(name__icontains=query) | Q(description__icontains=query)
+            # | Q(price__icontains=query)
         )
         context = {
             "results": results,
             "query": query,
         }
-        return render(request, "farm/search.html", context)
+        return render(request, "farm/farm/search.html", context)
 
     context = {}
     return render(request, "farm/farm/search.html", context)
@@ -514,14 +513,14 @@ def farmer_dashboard(request):
 
 def create_or_edit_farm(request):
     user = request.user
-    farms = user.farms.all()  # all farms owned by this user
+    farms = user.farms.all()
 
     edit_form = None
-    new_farm_form = FarmForm()  # form for creating new farm
+    new_farm_form = FarmForm()
 
     if request.method == "POST":
         # Determine if this is edit or create form
-        if "farm_id" in request.POST:  # editing existing farm
+        if "farm_id" in request.POST:
             farm_id = request.POST.get("farm_id")
             try:
                 farm = farms.get(id=farm_id)
@@ -540,9 +539,11 @@ def create_or_edit_farm(request):
             if new_farm_form.is_valid():
                 new_farm = new_farm_form.save(commit=False)
                 new_farm.owner = user
+                farm_name = new_farm_form.cleaned_data["name"].strip().title()
+                new_farm.name = farm_name
                 new_farm.save()
                 assign_hub_to_farm(new_farm)
-                messages.success(request, f"New farm '{new_farm.name}' created!")
+                messages.success(request, f"New farm '{farm_name}' created!")
                 return redirect("farm:farmer_dashboard")
             
 
@@ -590,7 +591,7 @@ def equipment_dashboard(request):
             messages.success(request, f"Equipment saved successfully")
             return redirect("farm:equipment_dashboard")
         else:
-            return render(request, "farm/equipment_dashboard.html",
+            return render(request, "farm/farm/equipment_dashboard.html",
                           {"form": form})
     
     form = EquipmentForm(user=request.user)

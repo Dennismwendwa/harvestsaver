@@ -51,6 +51,11 @@ class ProductForm(forms.ModelForm):
                     "class": base_classes,
                     "placeholder": field.label
                 })
+                if name == "unit_weight_kg":
+                    field.widget.attrs.update({
+                        "min": "0.01",
+                        "step": "0.01"
+                    })
 
             # Selects
             elif isinstance(field.widget, forms.Select):
@@ -113,6 +118,12 @@ class ProductForm(forms.ModelForm):
             cleaned_data["slug"] = slug
         
         return cleaned_data
+    
+    def clean_unit_weight_kg(self):
+        weight = self.cleaned_data.get("unit_weight_kg")
+        if weight is not None and weight <= 0:
+            raise forms.ValidationError("Unit weight must be greater than 0 kg.")
+        return weight
 
 class EquipmentForm(forms.ModelForm):
     class Meta:
@@ -133,6 +144,29 @@ class EquipmentForm(forms.ModelForm):
 
         if user:
             self.fields["owner"].queryset = User.objects.filter(pk=user.pk)
+
+        for name, field in self.fields.items():
+            field.widget.attrs.update({"class": "form-control my-2",})
+            
+            base_classes = "form-control form-control-lg"
+
+            if isinstance(field.widget, forms.NumberInput):
+                field.widget.attrs.update({
+                    "class": base_classes,
+                    "placeholder": f"Enter {field.label.lower()}"
+                })
+
+                if name == "price_per_hour":
+                    field.widget.attrs.update({
+                        "min": "1",
+                        "step": "1"
+                    })
+    
+    def clean_price_per_hour(self):
+        price = self.cleaned_data.get("price_per_hour")
+        if price is not None and price <= 0:
+            raise forms.ValidationError(_("Price per hour must be greater than 1"))
+        return price
 
     def clean(self):
         cleaned_data = super().clean()
@@ -177,6 +211,8 @@ class FarmForm(forms.ModelForm):
                 required=True,
                 label="Farmer"
             )
+            self.fields["owner"].label_from_instance = lambda obj: obj.username
+
             self.fields["hub"] = forms.ModelChoiceField(
                 queryset=Hub.objects.all(),
                 required=False

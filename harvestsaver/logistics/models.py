@@ -2,7 +2,7 @@ from django.db import models
 from accounts.models import User
 from farm.models import OrderItem, Farm, Hub
 from transit.models import TransportBooking, Carrier, VehicleCategory
-from utils.constants import ItemStatus as TransferStatus
+from utils.constants import ItemStatus
 
 class TransferRecordQuerySet(models.QuerySet):
     def inbound(self, hub):
@@ -12,7 +12,7 @@ class TransferRecordQuerySet(models.QuerySet):
         return self.filter(from_hub=hub)
     
     def in_transit(self):
-        return self.filter(status=TransferStatus.IN_TRANSIT)
+        return self.filter(status=ItemStatus.IN_TRANSIT)
     
     def receivable(self, hub):
         return self.inbound(hub).in_transit()
@@ -21,15 +21,15 @@ class TransferRecordQuerySet(models.QuerySet):
         return self.outbound(hub).in_transit()
     
     def active(self):
-        return self.exclude(status=TransferStatus.CANCELLED)
+        return self.exclude(status=ItemStatus.CANCELLED)
 
     def completed(self):
-        return self.filter(status=TransferStatus.RECEIVED)
+        return self.filter(status=ItemStatus.RECEIVED)
     
     def received_at_hub(self, hub):
         return self.filter(
             to_hub=hub,
-            status=TransferStatus.RECEIVED
+            status=ItemStatus.RECEIVED
         )
 
 class TransferRecord(models.Model):
@@ -45,8 +45,8 @@ class TransferRecord(models.Model):
     received_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
-        choices=TransferStatus.choices,
-        default=TransferStatus.IN_TRANSIT
+        choices=ItemStatus.choices,
+        default=ItemStatus.IN_TRANSIT
     )
 
     objects = TransferRecordQuerySet.as_manager()
@@ -68,7 +68,7 @@ class TransferRecord(models.Model):
 
     def mark_received(self, qty):
         from django.utils import timezone
-        if self.status != TransferStatus.IN_TRANSIT:
+        if self.status != ItemStatus.IN_TRANSIT:
             raise ValueError("Cannot receive non-transit item")
 
         if qty > self.quantity_sent:
@@ -78,9 +78,9 @@ class TransferRecord(models.Model):
         self.received_at = timezone.now()
 
         if qty == self.quantity_sent:
-            self.status = TransferStatus.RECEIVED
+            self.status = ItemStatus.RECEIVED
         else:
-            self.status = TransferStatus.PARTIALLY_RECEIVED
+            self.status = ItemStatus.PARTIALLY_RECEIVED
 
         self.save()
 

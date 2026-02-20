@@ -1,16 +1,18 @@
 import uuid
+from decimal import Decimal
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models import F, Sum, DecimalField, Q, Avg
 from django.db.models.functions import TruncDay, TruncMonth, TruncYear
 from django.db.models.functions import Coalesce
-from decimal import Decimal
-from datetime import timedelta
+from django.core.validators import MinValueValidator
 
 from accounts.models import User, BuyerProfile
 from .validators import validate_date_is_not_past
 from utils.constants import UserRole, PaymentStatus, PaymentMethod, ItemStatus
+from .utils.validators import validate_image_size, validate_image_file_size
 
 class Hub(models.Model):
     name = models.CharField(max_length=100)
@@ -141,12 +143,13 @@ class Product(models.Model):
                             related_name="hub_products")
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
-    category = models.ForeignKey(Category, null=True,
-                                 on_delete=models.SET_NULL)
+    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL,
+                                 related_name="products")
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
     unit_weight_kg = models.DecimalField(max_digits=8, decimal_places=2,
                                         null=True, blank=True,
+                                        validators=[MinValueValidator(0.01)],
                                         help_text="Quantity per unit, e.g., 50 for a 50kg bag")
                                         # ALWAYS in kilograms regardless of unit type
     unit_quantity_type = models.CharField(max_length=10, null=True,blank=True,
@@ -167,7 +170,8 @@ class Product(models.Model):
         ordering = ("-pk",)
     
     def __str__(self):
-        return f"product: {self.name} farm: {self.farm.name}"
+        farm_name = self.farm.name if self.farm else "No Farm"
+        return f"product: {self.name} farm: {farm_name}"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
@@ -544,18 +548,23 @@ class EquipmentCategory(models.Model):
 
 
 class Equipment(models.Model):
-    """This model store all current equitmwnr"""
+    """This model store all current equitments"""
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
-    category = models.ForeignKey(EquipmentCategory,
-                                 on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(EquipmentCategory, on_delete=models.SET_NULL,
+                                 null=True, blank=True,
+                                 related_name="equipments")
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
-                              limit_choices_to={"role": UserRole.EQUIPMENT_OWNER})
-    location = models.CharField(max_length=100)
-    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
+                              limit_choices_to={"active_role": UserRole.EQUIPMENT_OWNER})
+    location = models.ForeignKey("logistics.Location", on_delete=models.PROTECT,
+                                 related_name="area_machines")
+    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2,
+                                         validators=[MinValueValidator(1)])
     is_available = models.BooleanField(default=True)
-    image = models.ImageField(upload_to="equipment_img")
+    image = models.ImageField(upload_to="equipment_img",
+                              validators=[validate_image_size,
+                                          validate_image_file_size])
 
     class Meta:
         verbose_name = "Equipment"
@@ -712,12 +721,12 @@ class EquipmentRental(models.Model):
         verbose_name_plural = "Equipment Rentals"
         ordering = ("created_at",)
 
-
 class FrequentQuestion(models.Model):
     """This models stores all Frequently asked Questions"""
     question = models.TextField()
     answer = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Frequent Question"

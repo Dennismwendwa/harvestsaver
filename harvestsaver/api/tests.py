@@ -29,17 +29,17 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
         self.product_data = {
                 "owner": self.owner.pk, "name": "orange", "slug": "orange",
                 "category": self.cat.pk, "price": 100,
-                "quantity": 200, "unit_of_measurement":"kg",
-                "description": "Very good", "location": "nairobi",
+                "quantity": 200, "unit_weight_kg": 1,
+                "description": "Very good",
                 "harvest_date": timezone.now().strftime('%Y-%m-%d'),
                 "image": self.image_file,
         }
 
         self.new_data = {
-                "owner": self.owner.pk, "name": "name updated", "slug": "name_updated",
+                "name": "name updated", "slug": "name_updated",
                 "category": self.cat.pk, "price": 600,
-                "quantity": 500, "unit_of_measurement":"kg",
-                "description": "The first product", "location": "kitui",
+                "quantity": 500, "unit_weight_kg": 1,
+                "description": "The first product",
                 "harvest_date": timezone.now().strftime('%Y-%m-%d'),
                 "image": self.image_file,
         }

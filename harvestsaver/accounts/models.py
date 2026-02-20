@@ -36,7 +36,7 @@ class User(AbstractUser):
     def is_system_staff(self):
         if self.is_staff:
             return True
-        
+
         try:
             return self.staff_profile.role == "admin"
         except StaffProfile.DoesNotExist:
@@ -76,7 +76,7 @@ class Profile(models.Model):
                                          null=True)
     instagram_username = models.CharField(max_length=50, blank=True,
                                           null=True)
-    notification = models.BooleanField(default=False)
+    notification = models.BooleanField(default=True)
 
     class Meta:
         abstract = True

@@ -41,3 +41,21 @@ def admin_staff(request):
     }
     return render(request, "farm/admin/dashboard.html", context)
 
+def approve_farm(request, farm_id):
+    farm = get_object_or_404(Farm, id=farm_id)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "approve":
+            farm.is_verified = True
+            farm.save()
+            messages.success(request, f"Farm '{farm.name}' approved!")
+        elif action == "reject":
+            farm.is_verified = False
+            farm.save()
+            messages.warning(request, f"Farm '{farm.name}' rejected!")
+        return redirect("farm:admin_dashboard")
+    context = {"farm": farm}
+    return render(request, "farm/admin/approve_farm.html", context)
+
+

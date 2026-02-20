@@ -24,7 +24,8 @@ class TransportBooking(models.Model):
     transport_option = models.CharField(max_length=100, choices=TransitOption.choices)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
     requested_pickup_at = models.DateTimeField()
-    status = models.CharField(max_length=20, choices=BookStatus.choices, default=BookStatus.PENDING)
+    status = models.CharField(max_length=20, choices=BookStatus.choices,
+                              default=BookStatus.PENDING)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -38,7 +39,8 @@ class TransportBooking(models.Model):
 
 
 class TransportBookingItem(models.Model):
-    booking = models.ForeignKey(TransportBooking, on_delete=models.CASCADE)
+    booking = models.ForeignKey(TransportBooking, on_delete=models.CASCADE,
+                                related_name="items")
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -76,3 +76,9 @@
 .single-review {
     font-size: 14px;
 }
+
+.equipment-img {
+    min-width: 300px;
+    min-height: 300px;
+    object-fit: cover;
+}

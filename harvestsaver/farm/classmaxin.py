@@ -8,13 +8,17 @@ import io
 
 from accounts.models import User
 from .models import Product, Equipment, Category, EquipmentCategory
-from .models import Cart
+from .models import Cart, Farm
+from logistics.models import Location
 
 
 class EquipmentTestSetupMixin:
     def common_setup(self):
         self.all_equipments_url = reverse("farm:all_equipments")
         self.cat = EquipmentCategory.objects.create(name="tractor", slug="tractor")
+        self.location = Location.objects.create(
+            name="Shimba Hills",
+        )
         
         self.register_url = reverse("accounts:register")
         self.valid_data = {
@@ -27,7 +31,7 @@ class EquipmentTestSetupMixin:
             "role": "farmer",
             "phone_number": "123456789",
             "gender": "male",
-            "country": "kenya",
+            "country": "KE",
         }
         self.client.post(self.register_url, self.valid_data)
         self.owner = User.objects.get(username="dennismwendwa")
@@ -40,7 +44,7 @@ class EquipmentTestSetupMixin:
             equipment = Equipment.objects.create(
                 name=f"harvester_tractor {e}", slug=f"harvester_tractor {e}",
                 description="very good tractor", category=self.cat,
-                owner=self.owner, location="shimba hills", price_per_hour=4000,
+                owner=self.owner, location=self.location, price_per_hour=4000,
             )
             equipment.image.save(f"sample_image{e}.jpg", File(open(file_path, "rb")))
             image_data = io.BytesIO()
@@ -67,12 +71,18 @@ class ProductsTestSetupMixin:
             "role": "farmer",
             "phone_number": "123456789",
             "gender": "male",
-            "country": "kenya",
+            "country": "KE",
         }
         self.client.post(self.register_url, self.valid_data)
         owner = User.objects.get(username="dennismwendwa")
 
         cat = Category.objects.create(name="fruits", slug="fruits")
+        self.farm = Farm.objects.create(
+            name="Test Farm1",
+            owner=owner,
+            latitude=0.12349,
+            longitude=35.12345,
+        )
 
         file_path = os.path.join(os.path.dirname(
                                  os.path.dirname(
@@ -80,11 +90,12 @@ class ProductsTestSetupMixin:
                                  "media", "profile.png")
         for p in range(10):
             product = Product.objects.create(
-                owner=owner, name=f"mango {p}", slug=f"mango {p}",
+                name=f"mango {p}", slug=f"mango {p}",
                 category=cat, price=400,
-                quantity=200, unit_of_measurement="kg",
-                description="Very good",location="nairobi",
+                quantity=200, unit_weight_kg=1,
+                description="Very good",
                 harvest_date=timezone.now(),
+                farm=self.farm,
             )
             image_data = io.BytesIO()
             image = Image.new("RGB", (100, 100), "white")
@@ -109,13 +120,19 @@ class CommonTestSetupMixin:
             "role": "farmer",
             "phone_number": "123456789",
             "gender": "male",
-            "country": "kenya",
+            "country": "KE",
         }
         self.client.post(self.register_url, self.user)
         self.client.login(username="dennismwendwa", password="securepassword")
         self.owner = User.objects.get(username="dennismwendwa")
 
         cat = Category.objects.create(name="fruits", slug="fruits")
+        self.farm = Farm.objects.create(
+            name="Test Farm",
+            owner=self.owner,
+            latitude=0.12345,
+            longitude=36.12345,
+        )
         
         file_path = os.path.join(os.path.dirname(
                                  os.path.dirname(
@@ -123,16 +140,16 @@ class CommonTestSetupMixin:
                                  "media", "profile.png")
         for p in range(10):
             product = Product.objects.create(
-                owner=self.owner, name=f"mango {p}", slug=f"mango {p}",
+                name=f"mango {p}", slug=f"mango {p}",
                 category=cat, price=400,
-                quantity=200, unit_of_measurement="kg",
-                description="Very good",location="nairobi",
+                quantity=200, unit_weight_kg=1,
+                description="Very good",
                 harvest_date=timezone.now(),
+                farm=self.farm,
             )
             product.image.save(f"sample_image{p}.jpg", 
                                File(open(file_path, "rb")))
-        for p in Product.objects.all():
-            print(p, p.pk)
+
         for c in range(4):
             Cart.objects.create(
                 product=Product.objects.get(name=f"mango {c}"), 

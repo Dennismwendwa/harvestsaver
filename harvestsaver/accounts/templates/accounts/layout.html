@@ -39,7 +39,7 @@
     <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
 
       <a href="{% url 'farm:home' %}" class="logo d-flex align-items-center">
-        <h1>HarvestSaver Nextwork</h1>
+        <h1>Mkulimax</h1>
       </a>
 
       <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
@@ -51,6 +51,9 @@
               <li><a href="{% url 'farm:farmer_dashboard' %}" class="active">Home</a></li>
             {%elif request.user.is_equipment_owner%}
               <li><a href="{% url 'farm:equipment_dashboard' %}" class="active">Home</a></li>
+            {%endif%}
+            {%if request.user.is_admin%}
+              <li><a href="{% url 'farm:equipment_dashboard' %}" class="active">Admin</a></li>
             {%endif%}
           {%endif%}
           
@@ -105,7 +108,13 @@
               {{ user.first_name|title }} {{ user.last_name|title }}
             </p>
             <small class="text-muted">
-              {{ user.active_role|title }} - {{user.staff_profile.hub.name}}
+              {% if user.is_system_staff %}
+                Admin
+              {%elif user.is_farmer%}
+                {{ user.active_role|title }} - {{user.staff_profile.hub.name}}
+              {%else%}
+                {{ user.active_role|title }}
+              {%endif%}
             </small>
           </li>
 
@@ -170,7 +179,7 @@
       <div class="row gy-4">
         <div class="col-lg-4 col-md-12 footer-info">
           <a href="{% url 'farm:home' %}" class="logo d-flex align-items-center">
-            <span>HarvestSaver Nextwork</span>
+            <span>Mkulimax</span>
           </a>
           <p>Follow us on Social media</p>
           <div class="social-links d-flex mt-4">
@@ -189,7 +198,7 @@
             <li><a href="{% url 'accounts:profile' %}">Profile</a></li>
           </ul>
         </div>
-
+        {%if categories%}
         <div class="col-lg-2 col-6 footer-links">
           <h4>Products</h4>
           <ul>
@@ -198,7 +207,8 @@
             {% endfor %}
           </ul>
         </div>
-
+        {%endif%}
+        {%if equipment_categories%}
         <div class="col-lg-1 col-6 footer-links">
           <h4>Equipments</h4>
           <ul>
@@ -207,6 +217,7 @@
             {% endfor %}
           </ul>
         </div>
+        {%endif%}
 
         <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
           <h4>Contact Us</h4>
@@ -225,10 +236,10 @@
 
     <div class="container mt-4">
       <div class="copyright">
-        &copy; Copyright <strong><span>HarvestSaver Nextwork</span></strong>. All Rights Reserved
+        &copy; Copyright <strong><span>Mkulimax</span></strong>. All Rights Reserved
       </div>
       <div class="credits">
-        Designed by <a href="">HarvestSaver Network</a>
+        Designed by <a href="">Mkulimax</a>
       </div>
     </div>
 

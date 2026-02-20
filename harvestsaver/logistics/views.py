@@ -1,8 +1,9 @@
-from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Prefetch, Q
+from django.http import JsonResponse
+from django.utils import timezone
 
 from utils.decorators import is_staff
 from .forms import TransferRecordForm
@@ -22,7 +23,7 @@ def delivery_dashboard(request):
         .filter(source_hub=my_hub)
         .filter(~Q(status__in=[BookStatus.IN_TRANSIT, BookStatus.DELIVERED]))
         .filter(
-            transportbookingitem__order_item__status__in=[
+            items__order_item__status__in=[
                 ItemStatus.PENDING,
                 ItemStatus.PARTIALLY_DISPATCHED
             ]
@@ -31,7 +32,7 @@ def delivery_dashboard(request):
         .select_related("order")
         .prefetch_related(
             Prefetch(
-                "transportbookingitem_set",
+                "items",
                 queryset=TransportBookingItem.objects.select_related(
                     "order_item__product"
                 ).filter(
@@ -78,7 +79,7 @@ def booking_dispach(request, booking_id):
             destination_hub=current_item_designation
         )
         .filter(
-            transportbookingitem__order_item__status__in=[
+            items__order_item__status__in=[
                 ItemStatus.PENDING,
                 ItemStatus.PARTIALLY_DISPATCHED
             ]
@@ -87,7 +88,7 @@ def booking_dispach(request, booking_id):
         .select_related("order")
         .prefetch_related(
             Prefetch(
-                "transportbookingitem_set",
+                "items",
                 queryset=TransportBookingItem.objects
                 .select_related("order_item__product")
                 .filter(
@@ -130,3 +131,21 @@ def booking_dispach(request, booking_id):
         "some_route_items": some_route_items,
     }
     return render(request, "logistics/delivery/booking_dispach.html", context)
+
+def mark_received(request, booking_id):
+    transfer = get_object_or_404(TransferRecord, id=booking_id)
+
+    if request.method == "POST":
+        transfer.status = BookStatus.DELIVERED
+        
+        transfer.status = ItemStatus.RECEIVED
+        transfer.received_at = timezone.now()
+        transfer.quantity_received = transfer.quantity_sent
+        transfer.save()
+        print()
+        order_item = transfer.order_item
+        order_item.status = ItemStatus.RECEIVED
+        order_item.save()
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False})
+    

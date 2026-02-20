@@ -14,11 +14,12 @@ def create_group_and_permission(role, user):
         model = "equipment"
         app_name = "farm"
     
+    role_display = role.replace("_", " ").title()
     role = role.capitalize()
     try:
-        group = Group.objects.get(name=role)
+        group = Group.objects.get(name=role_display)
     except Group.DoesNotExist:
-        group = Group.objects.create(name=role)
+        group = Group.objects.create(name=role_display)
 
     content_type = ContentType.objects.get(app_label=app_name, model=model)
 
@@ -35,3 +36,4 @@ def create_group_and_permission(role, user):
             )
     group.permissions.add(view_permission)
     group.user_set.add(user)
+
