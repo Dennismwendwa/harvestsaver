@@ -54,14 +54,8 @@ class User(AbstractUser):
     
     @property
     def is_admin(self):
-        if self.is_superuser:
-            return True
-        
-        try:
-            return self.staff_profile.role == "admin"
-        except StaffProfile.DoesNotExist:
-            return False
-    
+        return self.is_staff
+
     @property
     def is_warehouse(self):
         return self.staff_profile and self.staff_profile.role == "warehouse"
@@ -150,6 +144,7 @@ class StaffProfile(Profile):
 
     def __str__(self):
         return f"User: ({self.user.username} - Role: {self.role})"
+
 
 class Contact(models.Model):
     """

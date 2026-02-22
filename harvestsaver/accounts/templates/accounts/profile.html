@@ -61,6 +61,16 @@ My Profile
                         </p>
                     {% endif %}
 
+                    <hr>                    
+                    <p>
+                        <strong>My Hub:</strong>
+                        {{ profile.hub|default:"—" }}
+                    </p>
+                    <p>
+                        <strong>Role:</strong>
+                        {{ profile.role|title|default:"—" }}
+                    </p>
+
                     <hr>
 
                     <p>

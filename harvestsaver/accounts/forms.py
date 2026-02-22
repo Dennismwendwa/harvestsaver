@@ -1,6 +1,7 @@
 from django import forms
-from .models import Contact
-from .models import FarmerProfile, BuyerProfile, EquipmentOwnerProfile
+from .models import Contact, User
+from .models import (FarmerProfile, BuyerProfile, EquipmentOwnerProfile,
+                     StaffProfile)
 
 BASE_INPUT_CLASS = "form-control"
 BASE_TEXTAREA_CLASS = "form-control"
@@ -108,5 +109,48 @@ class BuyerProfileForm(forms.ModelForm):
                 "class": BASE_CHECKBOX_CLASS
             }),
         }
+
+class StaffProfileForm(forms.ModelForm):
+    class Meta:
+        model = StaffProfile
+        exclude = ["user",]
+
+        widgets = {
+            "image": forms.ClearableFileInput(attrs={
+                "class": BASE_INPUT_CLASS
+            }),
+            "bio": forms.Textarea(attrs={
+                "class": BASE_TEXTAREA_CLASS,
+                "rows": 4
+            }),
+            "preferred_categories": forms.TextInput(attrs={
+                "class": BASE_INPUT_CLASS,
+                "placeholder": "Grains, Vegetables, Equipment"
+            }),
+            "facebook_username": forms.TextInput(attrs={
+                "class": BASE_INPUT_CLASS
+            }),
+            "instagram_username": forms.TextInput(attrs={
+                "class": BASE_INPUT_CLASS
+            }),
+            "notification": forms.CheckboxInput(attrs={
+                "class": BASE_CHECKBOX_CLASS
+            }),
+        }
+
+    
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        self.staff = kwargs.pop("staff", None)
+        super().__init__(*args, **kwargs)
+
+        if self.user and self.staff and self.staff.is_staff:
+            self.fields["user"] = forms.ModelChoiceField(
+                queryset=User.objects.filter(
+                    farmer_profile__isnull=False,
+                    is_active=True, ),
+                required=True,
+                label="Farmer"
+            )
 
 

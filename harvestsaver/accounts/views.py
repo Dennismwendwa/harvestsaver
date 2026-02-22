@@ -8,7 +8,7 @@ from accounts.models import (User, FarmerProfile, BuyerProfile,
                              EquipmentOwnerProfile, StaffProfile)
 from .models import Contact
 from .forms import (ContactForm, FarmerProfileForm, BuyerProfileForm,
-                    EquipmentOwnerProfileForm)
+                    EquipmentOwnerProfileForm, StaffProfileForm)
 
 from .utils.functions import create_group_and_permission
 from utils.constants import UserRole
@@ -188,6 +188,8 @@ def get_profile_and_form(user):
             return user.buyer_profile, BuyerProfileForm
         elif user.is_equipment_owner:
             return user.equipment_owner_profile, EquipmentOwnerProfileForm
+        elif user.is_staff:
+            return user.staff_profile, StaffProfileForm
     except ObjectDoesNotExist:
         pass
 

@@ -53,7 +53,7 @@
               <li><a href="{% url 'farm:equipment_dashboard' %}" class="active">Home</a></li>
             {%endif%}
             {%if request.user.is_admin%}
-              <li><a href="{% url 'farm:equipment_dashboard' %}" class="active">Admin</a></li>
+              <li><a href="{% url 'farm:admin_dashboard' %}" class="active">Admin</a></li>
             {%endif%}
           {%endif%}
           
