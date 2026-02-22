@@ -1,14 +1,12 @@
-import random
 import uuid
-from datetime import timedelta
 from decimal import Decimal, InvalidOperation
-from django.utils import timezone
-from django.db import models, transaction
+from django.db import models
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
-from farm.models import order_transaction_id
 from accounts.models import User
-from farm.models import Order, Cart, OrderItem
-from transit.models import TransportBooking
+from farm.models import Order, OrderItem
+from utils.constants import PaymentStatus, Country
 
 
 class Account(models.Model):
@@ -16,7 +14,7 @@ class Account(models.Model):
     account_name = models.CharField(max_length=100)
     account_number = models.CharField(max_length=200, unique=True)
     account_balance = models.DecimalField(max_digits=12, decimal_places=2,
-                                          default=1000000)
+                                          default=0)
     opening_date = models.DateTimeField(auto_now_add=True)
 
     last_transaction_date = models.DateTimeField(null=True)
@@ -29,30 +27,44 @@ class Account(models.Model):
         verbose_name_plural = "Accounts"
         ordering = ("-pk",)
 
+    @staticmethod
+    def generate_account_number(country_code: str) -> str:
+        """
+        Returns a unique, hard-to-guess account number.
+        Format: <COUNTRY>-<RANDOM4><SEQUENTIAL6>
+        Example: KE-A7F312-000123
+        """
+        from utils.constants import COUNTRY_NUMERIC, APP_CODE, PRODUCT_CODE
+        country_num = COUNTRY_NUMERIC.get(country_code, "000")
+        prefix = f"{country_num}{APP_CODE}{PRODUCT_CODE}"
+
+        last = Account.objects.filter(
+            account_number__startswith=prefix
+        ).order_by("-account_number").first()
+
+        if not last:
+            next_seq = 1
+        else:
+            last_seq = int(last.account_number[-10:])
+            next_seq = last_seq + 1
+
+        return f"{prefix}{next_seq:010d}"
+
+    def save(self, *args, **kwargs):
+        if not self.account_number:
+            self.account_number = self.generate_account_number(self.user.country)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} {self.account_number}"
 
 
-def accounts_number(user_id):
-     
-	string_part = "ACC"
-	randd = random.randint(1, 10)
-	
-	uuid_part = str(uuid.uuid4().hex[:8])
-	user_num = str(int(user_id) - sum(ord(char) for char in str(user_id))).replace("-", "")
-	user_num = int(user_num)
-	user_num = str(user_num - randd)
-
-	bank_account_number = string_part + uuid_part + user_num
-
-	ciphertext = bank_account_number.upper()
-
-	return ciphertext
-
 class Payment(models.Model):
-    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=50)
+    transaction_id = models.CharField(max_length=100, unique=True,)
+    provider = models.CharField(max_length=50)  # mpesa, stripe, wallet
+    status = models.CharField(max_length=20, choices=PaymentStatus,
+                              )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -85,49 +97,40 @@ class CustomerSession(models.Model):
         ordering = ("-pk",)
 
 
-def order_payment(shipping_address,payment_method, transport, pickup_location, request):
+class Payout(models.Model):
+    farmer = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    period_start = models.DateField()
+    period_end = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    cart_items = Cart.objects.filter(customer=request.user).all()
-    products_instances = [cart_item.product for cart_item in cart_items]
+    class Meta:
+        verbose_name = "Payout"
+        verbose_name_plural = "Payouts"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Payout amount {self.amount} to {self.farmer.username}"
     
-    if cart_items:
-        total = 0
-        for item in cart_items:
-            subtotal = item.calculate_total_cost
-            total += subtotal
-        
-    shipping = round((Decimal(3 / 100) * total), 2)
-    total_cost = (total + shipping)
+    @classmethod
+    def total_paid(cls, farmer):
+        total_paid = (
+            Payout.objects
+            .filter(farmer=farmer)
+            .aggregate(
+                total=Coalesce(Sum("amount"), Decimal("0.00"))
+                )
+        )["total"]
+        return total_paid
 
-    transaction_id=order_transaction_id()
-    order = Order.objects.create(customer=request.user,
-                            total_amount=total_cost,
-                            transaction_id=transaction_id,
-                            shipping_address=shipping_address,
-                            payment_method=payment_method,
-                            status="pending",
-                            )
-    order.products.set(products_instances)
-        
-    for cart_item in cart_items:
-        OrderItem.objects.create(order=order,
-                                     product=cart_item.product,
-                                     quantity=cart_item.quantity)
+class PayoutItem(models.Model):
+    payout = models.ForeignKey(Payout, related_name="items", on_delete=models.CASCADE)
+    order_item = models.OneToOneField(OrderItem, on_delete=models.PROTECT)
 
-    today = timezone.now()
-    pickup_date_time = today + timedelta(days=4)
-        
-    try:
-        TransportBooking.objects.create(
-            customer=request.user,
-            order=order,
-            pickup_location=pickup_location,
-            transport_option=transport,
-            cost=shipping,
-            pickup_date_time=pickup_date_time,
-            )
-    except Exception as e:
-        print(e)
-        return "payment_error", None
+    class Meta:
+        verbose_name = "PayoutItem"
+        verbose_name_plural = "PayoutItems"
+        ordering = ("-pk",)
     
-    return "payment_seccess", order.pk
+    def __str__(self):
+        return f"{self.payout} - {self.order_item}"

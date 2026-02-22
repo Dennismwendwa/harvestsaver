@@ -1,0 +1,52 @@
+<div class="row g-3">
+    {% for equipment in equipments %}
+    <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="card h-100 shadow-sm">
+
+            <!-- Image -->
+            <div class="card-img">
+                <a href="{% url 'farm:equipment_detail' equipment.slug %}">
+                    <img src="{{ equipment.image.url }}"
+                         class="card-img-top"
+                         style="height: 200px; object-fit: cover;"
+                         alt="{{ equipment.name }}">
+                </a>
+            </div>
+
+            <div class="card-body">
+                <h5 class="card-title fw-bold">{{ equipment.name }}</h5>
+
+                <span class="badge bg-secondary mb-2">
+                    <a href="{% url 'farm:equipment_category' equipment.category.slug %}"
+                       class="text-white text-decoration-none">
+                        {{ equipment.category.name }}
+                    </a>
+                </span>
+
+                <p class="card-text small text-muted">
+                    {{ equipment.description|truncatechars:80 }}
+                </p>
+
+                <ul class="list-unstyled small mb-2">
+                    <li>
+                        <i class="bi bi-geo-alt"></i> {{ equipment.location }}
+                    </li>
+                    <li>
+                        <i class="bi bi-cash-stack"></i>
+                        KES {{ equipment.price_per_hour }}/hr
+                    </li>
+                </ul>
+
+                {% if equipment.is_available %}
+                    <span class="badge bg-success">Available</span>
+                {% else %}
+                    <span class="badge bg-danger">Unavailable</span>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-muted">No equipment added yet.</p>
+    {% endfor %}
+</div>

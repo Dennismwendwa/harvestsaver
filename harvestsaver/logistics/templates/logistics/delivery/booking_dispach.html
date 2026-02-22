@@ -1,0 +1,80 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+Prepare Dispatch
+{% endblock %}
+
+{% block category %}
+<section>
+<div class="container">
+
+<form method="post" action="{% url 'logistics:prepare_dispatch' booking.id %}">
+{% csrf_token %}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            Route: {{ booking.source_hub }} → {{ booking.destination_hub }}
+        </h6>
+        <small>Dispatch Batch</small>
+    </div>
+
+    <div class="card-body">
+
+        <ul class="list-group list-group-flush">
+
+        {% for route_booking in some_route_items %}
+            {% for link in route_booking.hub_items %}
+                {% with item=link.order_item %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <strong>{{ item.product.name }}</strong><br>
+                        <small class="text-muted">
+                            Remaining: {{ item.remaining_quantity }}
+                            {{ item.product.unit_quantity_type }}
+                            ({{ item.product.farm.name }})
+                        </small>
+                    </div>
+
+                    <div style="width: 120px;">
+                        <input type="number" required
+                               name="qty_{{ item.id }}"
+                               min="0"
+                               max="{{ item.remaining_quantity }}"
+                               value=""
+                               class="form-control form-control-sm">
+                    </div>
+
+                </li>
+                {% endwith %}
+            {% endfor %}
+        {% empty %}
+            <div class="alert alert-secondary">
+                No items available for this route.
+            </div>
+        {% endfor %}
+
+        </ul>
+
+        <!-- Footer actions -->
+        <div class="mt-4 d-flex justify-content-between">
+            <div class="text-muted">
+                Enter quantities to load onto this shipment.
+            </div>
+            <button type="submit" class="btn btn-primary">
+                Confirm Loading
+            </button>
+        </div>
+
+    </div>
+</div>
+
+</form>
+
+</div>
+</section>
+{% endblock %}
+

@@ -10,23 +10,13 @@ from dotenv import load_dotenv
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dgu5*^9cexga$udi7@__0lwjbhm3lrkm7@c$320l!!)drw*onu'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-
-ALLOWED_HOSTS = ["127.0.0.1", "54.237.207.136",
-                 "www.pysoftware.tech", "pysoftware.tech"]
-
-
-# Application definition
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,9 +30,11 @@ INSTALLED_APPS = [
     "transit",
     "api",
     "payment",
+    "logistics",
     "rest_framework",
     "crispy_forms",
     "crispy_bootstrap4",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [
@@ -61,7 +53,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-        # BASE_DIR / "templates" for tempates at project level
+            BASE_DIR / "templates/"
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -81,11 +73,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'harvestsaver.wsgi.application'
 
-
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -101,10 +88,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Africa/Nairobi'
@@ -117,8 +100,6 @@ AUTH_USER_MODEL = "accounts.User"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
@@ -128,20 +109,17 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR / "static")]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get("PGDATABASE"),
-            'USER': os.environ.get("PGUSER"),
-            'PASSWORD': os.environ.get("PASSWORD"),
-            'HOST': os.environ.get("HOST"),
-            'PORT': os.environ.get("PORT"),
-            }
-        }
+    'default': {
+        'ENGINE': os.environ.get("DB_ENGINE"),
+        'NAME': os.environ.get("DB_NAME"),
+        'USER': os.environ.get("DB_USER"),
+        'PASSWORD': os.environ.get("DB_PASSWORD"),
+        'HOST': os.environ.get("DB_HOST"),
+        'PORT': os.environ.get("DB_PORT"),
+    }
+}
 
-        
 #setting for sendimg email
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
@@ -155,12 +133,25 @@ STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 
+# weather
+WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")
+WEATHER_LOCATION = os.getenv("WEATHER_LOCATION")
 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # db 1 for cache
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "MAX_ENTRIES": 1000,
+        }
+    }
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
 
 LOGGING = {
     "version": 1,
@@ -177,7 +168,7 @@ LOGGING = {
             "level": "DEBUG",
 #            "class": "logging.FileHandler",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "harvestsaver.log",
+            "filename": "logs/harvestsaver.log",
             "formatter": "verbose",
             "maxBytes": 10485760,
             "backupCount": 5,     # Number of backup log files to retain
@@ -195,3 +186,4 @@ LOGGING = {
         },
     },
 }
+

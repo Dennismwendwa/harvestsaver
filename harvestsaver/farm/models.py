@@ -1,9 +1,62 @@
 import uuid
+from decimal import Decimal
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
+from django.db.models import F, Sum, DecimalField, Q, Avg
+from django.db.models.functions import TruncDay, TruncMonth, TruncYear
+from django.db.models.functions import Coalesce
+from django.core.validators import MinValueValidator
 
-from accounts.models import User
+from accounts.models import User, BuyerProfile
+from .validators import validate_date_is_not_past
+from utils.constants import UserRole, PaymentStatus, PaymentMethod, ItemStatus
+from .utils.validators import validate_image_size, validate_image_file_size
+
+class Hub(models.Model):
+    name = models.CharField(max_length=100)
+    latitude = models.CharField()
+    longitude = models.FloatField()
+    location = models.ForeignKey(
+        "logistics.Location",
+        on_delete=models.PROTECT,
+        related_name="hubs", null=True, blank=True
+    )
+    is_active = models.BooleanField(default=True)
+    radius_km = models.IntegerField(default=30)
+
+    class Meta:
+        verbose_name = "Hub"
+        verbose_name_plural = "Hubs"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
+
+
+class Farm(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE,
+                              related_name="farms")
+    name = models.CharField(max_length=100)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    address = models.TextField()
+
+    hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                            related_name="farms", null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Farm"
+        verbose_name_plural = "Farms"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        if self.owner.first_name:
+            return f"{self.name} ({self.owner.get_full_name})"
+        return f"{self.name} ({self.owner})"
 
 
 class Category(models.Model):
@@ -11,14 +64,62 @@ class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
 
-    class meta:
+    class Meta:
         verbose_name = "Category"
         verbose_name_plural = "Categories"
 
     def __str__(self):
         return f"{self.name}"
 
-  
+class ProductQuerySet(models.QuerySet):
+    """
+    Custom queryset for Product model providing domain-specific
+    query helpers for analytics and reporting.
+    """
+
+    def for_farmer(self, farmer):
+        """
+        Filter products owned by a specific farmer.
+        Args:
+            farmer (User): The farmer (owner) whose products
+                           should be returned.
+        Returns:
+            QuerySet: Products belonging to the given farmer.
+        """
+        return self.filter(farm__owner=farmer)
+    
+    def top_products(self, farmer, limit=5):
+        """
+        Return the top-selling products for a farmer based on
+        total units sold.
+        Each product in the returned queryset is annotated with:
+            - units_sold: Total quantity sold across all orders.
+            - revenue: Total revenue generated from the product.
+        Only products belonging to the given farmer are considered.
+        Args:
+            farmer (User): The farmer (owner) whose products
+                           should be analyzed.
+            limit (int, optional): Maximum number of products
+                                   to return. Defaults to 5.
+        Returns:
+            QuerySet: Annotated Product queryset ordered by
+                      units_sold in descending order.
+        """
+        return (
+            self.for_farmer(farmer)
+            .annotate(
+                units_sold=Coalesce(Sum("orderitem__quantity"), 0),
+                revenue=Coalesce(
+                    Sum(
+                        F("orderitem__quantity") * F("price"),
+                        output_field=DecimalField(max_digits=12, decimal_places=2),
+                    ), Decimal("0.00"),
+                )
+            )
+            .order_by("-units_sold")[:limit]
+        )
+
+
 class Product(models.Model):
     """Model for all products availble in our site"""
     UNIT_CHOICES = [
@@ -34,28 +135,34 @@ class Product(models.Model):
         ("dozen", "Dozen"),           # eggs, seedlings
         ("box", "Box"),               # sometimes fruits / seedlings
     ]
-    owner = models.ForeignKey(User,
-                              limit_choices_to={"role": User.Role.FARMER},
-                              on_delete=models.CASCADE)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE,
+                             null=True, blank=True,
+                             related_name="products")
+    hub = models.ForeignKey(Hub, on_delete=models.CASCADE, 
+                            null=True, blank=True,
+                            related_name="hub_products")
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField()
-    category = models.ForeignKey(Category, null=True,
-                                 on_delete=models.SET_NULL)
+    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL,
+                                 related_name="products")
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    unit_quantity = models.DecimalField(max_digits=8, decimal_places=2,
+    unit_weight_kg = models.DecimalField(max_digits=8, decimal_places=2,
                                         null=True, blank=True,
-                                        help_text="Quantity per unit, e.g., 50 for a 50kg bag"
-    )
+                                        validators=[MinValueValidator(0.01)],
+                                        help_text="Quantity per unit, e.g., 50 for a 50kg bag")
+                                        # ALWAYS in kilograms regardless of unit type
     unit_quantity_type = models.CharField(max_length=10, null=True,blank=True,
                                           choices=UNIT_CHOICES,
                                           help_text="Unit type of the quantity"
     )
     description = models.TextField()
     image = models.ImageField(upload_to="products")
-    location = models.CharField(max_length=100)
     harvest_date = models.DateField()
     is_available = models.BooleanField(default=True)
+    is_perishable = models.BooleanField(default=False)
+
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Product"
@@ -63,11 +170,33 @@ class Product(models.Model):
         ordering = ("-pk",)
     
     def __str__(self):
-        return f"product: {self.name} Owner: {self.owner.username}"
+        farm_name = self.farm.name if self.farm else "No Farm"
+        return f"product: {self.name} farm: {farm_name}"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def reduce_stock(self, qty):
+        """Reduces stock after customer buys"""
+        from django.db import transaction
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=self.pk)
+
+            if product.quantity < qty:
+                raise ValueError("Out of stock")
+            
+            product.quantity -= qty
+            product.save(update_fields=["quantity"])
+
+    @property
+    def avg_rating(self):
+        return self.reviews.aggregate(avg=Avg("rating"))["avg"] or 0
+    
+    @property
+    def review_count(self):
+        return self.reviews.count()
         
 
 class Cart(models.Model):
@@ -89,68 +218,321 @@ class Cart(models.Model):
                 f"product: {self.product.name} "
                 f"Quantity: {self.quantity}"
                 )
-    @property
-    def calculate_total_cost(self):
-        """This method calculates the total cost of item in cart
-           cost per item times the number of such items in cart
-        """
-        if self.product and self.quantity:
-            return self.product.price * self.quantity
-
-        return 0.0
-
+    
+    @classmethod
+    def total_cart_price(cls, user):
+        cart_items = cls.objects.filter(customer=user)
+        total = cart_items.aggregate(
+            total=Coalesce(
+                Sum(
+                    F("quantity") * F("product__price"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                ),
+                Decimal("0.00"),
+            )
+        )["total"]
+        return total
 
 class Order(models.Model):
     """This model stores the products add to cart"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     customer = models.ForeignKey(User, on_delete = models.CASCADE)
-    products = models.ManyToManyField(Product)
     order_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=50, default="pending")
+    status = models.CharField(max_length=20, choices=PaymentStatus,
+                              default=PaymentStatus.ACTIVE)
+    is_checkout_active = models.BooleanField(default=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
-    payment_method = models.CharField(max_length=50)
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_method = models.CharField(max_length=20, choices=PaymentMethod)
+    order_reference = models.CharField(
+        max_length=50, unique=True, editable=False
+    )
 
-    class meta:
+    class Meta:
         verbose_name = "Order"
         verbose_name_plural = "Orders"
-        ordering = ("-pk",)
+        ordering = ("-order_date",)
+        
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer"],
+                condition=Q(status=PaymentStatus.ACTIVE),
+                name="one_active_checkout_order_per_customer"
+            )
+        ]
+        
+
+    @staticmethod
+    def generate_order_reference():
+        year = timezone.now().year
+        seq = Order.objects.filter(order_date__year=year).count() + 1
+        return f"HARVEST-{year}-{seq:07d}"
+    
+    @property
+    def is_completed(self):
+        if self.status == PaymentStatus.COMPLETED:
+            return True
+        return False
+    
+    def save(self, *args, **kwargs):
+        if not self.order_reference:
+            self.order_reference = self.generate_order_reference()
+        super().save(*args, **kwargs)
+
 
     def __str__(self):
-        return (
-                f"({self.pk}). Customer: {self.customer.username} "
-                f"Order Id: {self.transaction_id} "
-                f"Order amount: {self.total_amount}"
-                )
-
-
-def order_transaction_id():
-    """This function generates unique transaction ID"""
-    month = timezone.now().strftime("%B")[:4].upper()
-
-    num = str(uuid.uuid4())[:10].upper()
-
-    complete_id = f"{month}{num}"
-
-    return complete_id
+        return f"{self.order_reference} - {self.customer.username}"
 
 
 class OrderItem(models.Model):
     """This model stores the individual items within an order"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, related_name="items",
+                              on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
+    status = models.CharField(max_length=20,
+                              choices=ItemStatus.choices,
+                              default=ItemStatus.PENDING)
 
-    class meta:
+    class Meta:
         verbose_name = "Order Item"
         verbose_name_plural = "Order Items"
         ordering = ("-pk",)
 
     def __str__(self):
         return (
-                f"Order: {self.order.transaction_id} "
+                f"pk({self.pk}) Order: {self.order.order_reference} "
                 f"Product: {self.product.name} Quantity: {self.quantity}"
                 )
+    
+    @classmethod
+    def total_sales_per_farmer(cls, farmer):
+        """
+        To return the total sales of the farmer including paid for items,
+        pending payment items
+        """
+        total_sales = (
+            OrderItem.objects
+            .filter(product__farm__owner=farmer)
+            .aggregate(
+                total=Coalesce(
+                    Sum(
+                        F("quantity") * F("product__price"),
+                        output_field=DecimalField(max_digits=12, decimal_places=2),
+                    ),
+                    Decimal("0.00")
+                )
+            )["total"]
+        )
+        return total_sales
+    
+    @classmethod
+    def wallet_balance_for_farmer(cls, farmer):
+        """
+        To return the amount the farmer is to be paid. Only completed items
+        and items not paid for before
+        """
+        from payment.models import PayoutItem
+        paid_order_ids = PayoutItem.objects.values("order_item_id")
+
+        available_balance = (
+            cls.objects
+            .filter(
+                product__farm__owner=farmer,
+                order__status=PaymentStatus.COMPLETED
+            )
+            .exclude(id__in=paid_order_ids)
+            .aggregate(
+                total=Coalesce(
+                    Sum(F("quantity") * F("product__price")),
+                    Decimal("0.00")
+                )
+            )
+        )["total"]
+        return available_balance
+
+    @property
+    def get_shipping_cost(self):
+        shipping = (Decimal("0.09") * self.product.price * self.quantity)
+        return  max(shipping.quantize(Decimal("0.01")), Decimal("300"))
+    
+    @classmethod
+    def total_revenue(cls, farmer, start_date):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        current = qs.filter(
+            order__order_date__gte=start_date
+        ).aggregate(
+            total=Coalesce(
+                Sum(F("quantity") * F("product__price")),
+                Decimal("0.00")
+            )
+        )["total"]
+        
+        lifetime = qs.aggregate(
+            total=Coalesce(
+                Sum(F("quantity") * F("product__price")),
+                Decimal("0.00")
+            )
+        )["total"]
+        return {"current": current, "lifetime": lifetime}
+    
+    @classmethod
+    def total_orders(cls, farmer, start_date):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        current_orders_count = qs.filter(
+            order__order_date__gte=start_date
+        ).values("order_id").distinct().count()
+
+        lifetime = qs.values("order_id").distinct().count()
+        return {
+            "current_orders_count": current_orders_count,
+            "lifetime": lifetime
+        }
+    
+    @classmethod
+    def total_units(cls, farmer, start_time):
+        """
+        Returns total units sold, default to current month
+        """
+        qs = cls.objects.filter(
+            product__farm__owner=farmer,
+            order__status=PaymentStatus.COMPLETED
+        )
+
+        items = qs.filter(
+            order__order_date__gte=start_time
+        ).aggregate(
+            total=Coalesce(Sum("quantity"), 0)
+        )["total"]
+
+        lifetime = qs.aggregate(
+            total=Coalesce(Sum("quantity"), 0)
+        )["total"]
+        return {"current_items": items, "lifetime": lifetime}
+    
+    @classmethod
+    def order_distribution(cls, farmer):
+        qs = cls.objects.filter(
+            product__farm__owner=farmer
+        )
+
+        completed = qs.filter(
+            order__status=PaymentStatus.COMPLETED
+        ).values("order_id").distinct().count()
+
+        pending = qs.filter(
+            order__status=PaymentStatus.PENDING
+        ).values("order_id").distinct().count()
+
+        cancelled = qs.filter(
+            order__status=PaymentStatus.CANCELLED
+        ).values("order_id").distinct().count()
+
+        return {
+            "completed": completed,
+            "pending": pending,
+            "cancelled": cancelled
+        }
+
+    @classmethod
+    def sales_timeseries(cls, farmer, period="week"):
+        """
+        Calculates the Sales in week, month, or year.
+        """
+        today = timezone.now().date()
+
+        if period == "week":
+            start = today - timedelta(days=6)
+            trunc = TruncDay
+            step = "day"
+            length = 7
+
+        elif period == "month":
+            start = today - timedelta(days=29)
+            trunc = TruncDay
+            step = "day"
+            length = 30
+
+        elif period == "year":
+            start = today.replace(month=1, day=1)
+            trunc = TruncMonth
+            step = "month"
+            length = 12
+        else:
+            raise ValueError("Invalid period")
+        
+        q1 = OrderItem.objects.filter(
+                product__farm__owner=farmer,
+                order__status=PaymentStatus.COMPLETED
+            ).count()
+        
+        qs = (
+            cls.objects.filter(
+                product__farm__owner=farmer,
+                order__status=PaymentStatus.COMPLETED,
+                order__order_date__date__gte=start
+            )
+            .annotate(period=trunc("order__order_date"))
+            .values("period")
+            .annotate(
+                total=Sum(
+                    F("quantity") * F("product__price"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2)
+                )
+            )
+            .order_by("period")
+        )
+        data = {row["period"].date(): row["total"] for row in qs}
+
+        result = []
+        labels = []
+
+        for i in range(length):
+            if step == "day":
+                point = start + timedelta(days=i)
+                label = point.strftime("%d %b")
+            else:
+                point = today.replace(month=i+1, day=1)
+                label = point.strftime("%b") # Jan Feb
+
+            labels.append(label)
+            result.append(float(data.get(point, Decimal("0.00"))))
+
+        return {
+            "labels": labels,
+            "values": result
+        }
+
+    @property
+    def total_weight(self):
+        if not self.product.unit_weight_kg:
+            return 0
+        return self.quantity * self.product.unit_weight_kg
+    
+
+    @property
+    def shipped_quantity(self):
+        return (
+            self.transferrecord_set
+            .aggregate(total=Sum("quantity_sent"))["total"] or 0
+        )
+
+    @property
+    def remaining_quantity(self):
+        return self.quantity - self.shipped_quantity
+
+    @property
+    def is_fully_shipped(self):
+        return self.remaining_quantity <= 0
+
 
 class EquipmentCategory(models.Model):
     """This model is for all equipment categories"""
@@ -166,18 +548,23 @@ class EquipmentCategory(models.Model):
 
 
 class Equipment(models.Model):
-    """This model store all current equitmwnr"""
+    """This model store all current equitments"""
     name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField()
-    category = models.ForeignKey(EquipmentCategory,
-                                 on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(EquipmentCategory, on_delete=models.SET_NULL,
+                                 null=True, blank=True,
+                                 related_name="equipments")
     owner = models.ForeignKey(User, on_delete=models.CASCADE,
-                              limit_choices_to={"role": User.Role.EQUIPMENT_OWNER})
-    location = models.CharField(max_length=100)
-    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2)
+                              limit_choices_to={"active_role": UserRole.EQUIPMENT_OWNER})
+    location = models.ForeignKey("logistics.Location", on_delete=models.PROTECT,
+                                 related_name="area_machines")
+    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2,
+                                         validators=[MinValueValidator(1)])
     is_available = models.BooleanField(default=True)
-    image = models.ImageField(upload_to="equipment_img")
+    image = models.ImageField(upload_to="equipment_img",
+                              validators=[validate_image_size,
+                                          validate_image_file_size])
 
     class Meta:
         verbose_name = "Equipment"
@@ -197,28 +584,49 @@ class Equipment(models.Model):
         super().save(*args, **kwargs)
 
 class EquipmentInquiry(models.Model):
-    """This model for equipments inquiry"""
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE)
-    customer = models.CharField(max_length=100)
-    email = models.EmailField()
-    date = models.DateTimeField(auto_now_add=True)
+    """Inquiry before an equipment rental agreement"""
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("responded", "Responded"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+        ("expired", "Expired"),
+    ]
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE, related_name="inquiries")
+    requester = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name="equipment_inquiries")
     message = models.TextField()
-    subject = models.CharField(max_length=100)
-    admin_responded = models.BooleanField(default=False)
+    requested_start_date = models.DateField(validators=[validate_date_is_not_past],
+                                            null=True, blank=True)
+    requested_end_date = models.DateField(validators=[validate_date_is_not_past],
+                                          null=True, blank=True)
+    response = models.TextField(blank=True, null=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Equipment Inquiry"
-        verbose_name_plural = "Equipments Inquiry"
-        ordering = ("-pk",)
+        verbose_name_plural = "Equipment Inquiries"
+        ordering = ("-created_at",)
+
     def __str__(self):
         return (
-                f"Inquiry by {self.customer} about equipment "
-                f"{self.equipment.name}")
-
+            f"Inquiry by {self.requester.username} "
+            f"for {self.equipment.name}"
+        )
+    
+    @property
+    def is_responded_to(self):
+        return self.status != "pending"
 
 class Review(models.Model):
     customer = models.ForeignKey(User, on_delete=models.CASCADE)
-    review = models.TextField()
+    comment = models.TextField()
     rating = models.PositiveSmallIntegerField(default=5)
     review_date = models.DateTimeField(auto_now_add=True)
 
@@ -239,11 +647,16 @@ class ProductReview(Review):
     class Meta:
         verbose_name = "Product Review"
         verbose_name_plural = "Product Reviews"
+        ordering = ("-review_date",)
         constraints = [
             models.UniqueConstraint(
                 fields=["customer", "product"],
                 name="unique_product_review"
             )
+        ]
+        indexes = [
+            models.Index(fields=["product"]),
+            models.Index(fields=["customer"]),
         ]
 
     def __str__(self):
@@ -287,13 +700,33 @@ class PlatformReview(Review):
     def __str__(self):
         return f"{self.customer} → Platform"
 
+class EquipmentRental(models.Model):
+    equipment = models.ForeignKey(
+        Equipment,
+        on_delete=models.CASCADE,
+        related_name="rentals"
+    )
+    renter = models.ForeignKey(
+        BuyerProfile,
+        on_delete=models.CASCADE,
+        related_name="rentals"
+    )
+    start_date = models.DateField()
+    end_date = models.DateField()
+    total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name = "Equipment Rental"
+        verbose_name_plural = "Equipment Rentals"
+        ordering = ("created_at",)
 
 class FrequentQuestion(models.Model):
     """This models stores all Frequently asked Questions"""
     question = models.TextField()
     answer = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Frequent Question"

@@ -1,0 +1,25 @@
+{% extends "accounts/layout.html" %}
+{% load static %}
+
+{% block title%}
+Mkulimax - Delivary Dashboard
+{%endblock%}
+
+{% block category%}
+<section id="delivary_dashboard" class="services pt-0">
+    <div class="container" data-aos="fade-up">
+      <div class="section-header">
+        <h2>Delivary Dashboard</h2>
+      </div>
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <form action="" method="POST">
+            {{transferForm|crispy}}
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+{%endblock%}

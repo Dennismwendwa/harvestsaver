@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 from django.core.validators import EmailValidator, MinValueValidator
 from django.core.validators import MaxValueValidator, MaxValueValidator
 from django.core.validators import RegexValidator, MinLengthValidator
@@ -7,48 +6,80 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from accounts.models import User
-from farm.models import Order
+from farm.models import Order, Hub, OrderItem
 from .validators import DimensionsValidator
+from utils.constants import TransitOption, BookStatus
 
 
 class TransportBooking(models.Model):
-    """
-    This model stores all transport booking
-    TRANSIT_OPTION: choices list for all options available
-        Standard: This is the first option for transport
-        Express: It offers faster delivaries
-    STATUS: The status of the transport.
-        Pending: for transport which have not started
-        Transit: fro stransport which has not yet be delivered
-        Delivered: for transport which is complete
-    """
-    TRANSIT_OPTIONS = [
-        ("Standard Delivery", "Standard Delivery"),
-        ("Express Delivery", "Express Delivery"),
-    ]
-    STATUS = [
-        ("Pending", "Pending"),
-        ("Transit", "Transit"),
-        ("Delivered", "Delivered"),
-    ]
-    customer = models.ForeignKey(User, on_delete=models.PROTECT)
-    order = models.ForeignKey(Order, on_delete=models.PROTECT)
-    pickup_location = models.CharField(max_length=200)
-    transport_option = models.CharField(max_length=100, choices=TRANSIT_OPTIONS)
+    order = models.ForeignKey(Order, on_delete=models.PROTECT,
+                                 related_name="transport", blank=True,
+                                 null=True)
+    source_hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                                   related_query_name="out_going_booking",
+                                   null=True, blank=True)
+    destination_hub = models.ForeignKey(Hub, on_delete=models.PROTECT,
+                                        related_name="incoming_bookings",
+                                        null=True, blank=True)
+    transport_option = models.CharField(max_length=100, choices=TransitOption.choices)
     cost = models.DecimalField(max_digits=10, decimal_places=2)
-    pickup_date_time = models.DateTimeField()
-    delivery_dateTime = models.DateTimeField(blank=True, null=True)
-    status = models.CharField(max_length=20, default="Pending", choices=STATUS)
+    requested_pickup_at = models.DateTimeField()
+    status = models.CharField(max_length=20, choices=BookStatus.choices,
+                              default=BookStatus.PENDING)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Transport Booking"
         verbose_name_plural = "Transport Bookings"
-        unique_together = ("customer", "order",)
-        ordering = ("-pk","-delivery_dateTime",) 
+        ordering = ("-created_at",) 
 
     def __str__(self):
-        return f"{self.customer.username}'s Transport Booking"
+        return f"Transport Booking"
 
+
+class TransportBookingItem(models.Model):
+    booking = models.ForeignKey(TransportBooking, on_delete=models.CASCADE,
+                                related_name="items")
+    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "transport booking item"
+        verbose_name_plural = "transport booking items"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Order: {self.order}"
+
+class VehicleCategory(models.Model):
+    name = models.CharField(max_length=50, help_text="e.g Pickup, 3-Ton Truck")
+    base_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    rate_per_km = models.DecimalField(max_digits=10, decimal_places=2)
+    max_capacity_kg = models.IntegerField()
+
+    class Meta:
+        verbose_name = "Vehicle Category"
+        verbose_name_plural = "Vehicle Categories"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return self.name
+
+class Carrier(models.Model):
+    vehicle = models.ForeignKey(VehicleCategory, on_delete=models.PROTECT,
+                                related_name="my_company")
+    name = models.CharField(max_length=100)
+    contact = models.CharField(max_length=50)
+    rating = models.FloatField(default=5.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Name: {self.name} - Contact: {self.contact}"
+    
 
 class Quote(models.Model):
     """model for transport quotes inquire"""
@@ -88,3 +119,23 @@ class Quote(models.Model):
 
     def __str_(self):
         return f"Qoute from {self.name} email is {self.email}"
+    
+
+class TerrainAdjustment(models.Model):
+    ZONE_CHOICES = [
+        ("tarmac", "Highway/Tarmac"),
+        ("rural", "Rural/Muruam"),
+        ("difficult", "Off-road/Muddy"),
+    ]
+    zone_type = models.CharField(max_length=20, choices=ZONE_CHOICES, unique=True)
+    multiplier = models.DecimalField(max_digits=4, decimal_places=2, default=100)
+
+    class Meta:
+        verbose_name = "Terrain Adjustment"
+        verbose_name_plural = "Terrain Adjustments"
+        ordering = ("-pk",)
+
+    def __str__(self):
+        return f"{self.zone_type} ({self.multiplier}x)"
+
+

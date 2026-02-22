@@ -1,0 +1,47 @@
+{%comment%}products page{%endcomment%}
+<div class="row g-3">
+    {% for product in page_object %}
+    <div class="col-md-3 mb-2 data-aos="fade-up" data-aos-delay="100"">
+        <div class="card h-100 shadow-sm">
+
+            <!-- Image -->
+            <div class="card-img">
+            <a href="{% url 'farm:product_details' product.slug product.pk %}">
+            <img src="{{ product.image.url }}"
+                class="card-img-top"
+                style="height: 200px; object-fit: cover;"
+                alt="{{ product.name }}">
+            </a>
+            </div>
+            <div class="card-body">
+                <!-- Title -->
+                <h5 class="card-title fw-bold">
+                    {{ product.name }}
+                </h5>
+
+                <!-- Category -->
+                <span class="badge bg-secondary mb-2">
+                    <a href="{% url 'farm:products_category' product.category.slug %}" class="">
+                    {{ product.category.name }}
+                    </a>
+                </span>
+
+                <!-- Description -->
+                <p class="card-text small text-muted">
+                    {{ product.description|truncatechars:80 }}
+                </p>
+
+                <!-- Availability -->
+                {% if product.is_available %}
+                    <span class="badge bg-success">Available</span>
+                {% else %}
+                    <span class="badge bg-danger">Unavailable</span>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-muted">No products added yet.</p>
+    {% endfor %}
+</div>

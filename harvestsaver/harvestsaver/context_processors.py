@@ -1,5 +1,4 @@
 from django.utils import timezone
-from random import shuffle
 from django.db.models import Sum
 from farm.models import Category, Product, Cart, Equipment, EquipmentCategory
 from farm.models import (ProductReview, FrequentQuestion, PlatformReview,
@@ -8,28 +7,32 @@ from farm.models import (ProductReview, FrequentQuestion, PlatformReview,
 
 def common_variables(request):
     
-    categories = Category.objects.all()[:5]
+    categories = Category.objects.filter(products__isnull=False).distinct()[:5]
+
     products = Product.objects.all()[:8]
 
     reviews = PlatformReview.objects.all()[:5]
-    questions = FrequentQuestion.objects.all()[:5]
+    questions = FrequentQuestion.objects.all()[:10]
 
     if request.user.is_authenticated:
         current_user_total_quantity = Cart.objects.filter(
             customer=request.user).aggregate(
-                total_quantity=Sum("quantity"))["total_quantity"]
+                total_quantity=Sum("quantity"))["total_quantity"] or 0
     else:
         current_user_total_quantity = 0
 
-    equipment_categories = EquipmentCategory.objects.all()[:5]
+    equipment_categories = EquipmentCategory.objects.filter(
+        equipments__isnull=False).distinct()[:5]
     equipments = Equipment.objects.filter(is_available=True)[:8]
 
     return {
             "categories": categories,
-            "products": products,
+            "page_object": products,
             "current_user_total_quantity": current_user_total_quantity,
             "equipment_categories": equipment_categories,
             "equipments": equipments,
             "reviews": reviews,
             "questions": questions,
             }
+
+

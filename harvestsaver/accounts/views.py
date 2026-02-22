@@ -1,13 +1,17 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.models import auth
+from django.core.exceptions import ObjectDoesNotExist
 
-from .models import User, FarmerProfile, BuyerProfile, EquipmentOwnerProfile
+from accounts.models import (User, FarmerProfile, BuyerProfile,
+                             EquipmentOwnerProfile, StaffProfile)
 from .models import Contact
-from .forms import ContactForm
+from .forms import (ContactForm, FarmerProfileForm, BuyerProfileForm,
+                    EquipmentOwnerProfileForm, StaffProfileForm)
 
 from .utils.functions import create_group_and_permission
+from utils.constants import UserRole
 
 
 def register(request):
@@ -44,30 +48,34 @@ def register(request):
                                                 phone_number=phone_number,
                                                 gender=gender,
                                                 country=country,
-                                                role=role,
                                                 )
-                if role == User.Role.FARMER:
+
+                if role == UserRole.STAFF and request.user.is_aunthenticated:
+                    staff_role = request.POST.get("staff_role")
+                    StaffProfile.objects.create(user=user, role=staff_role)
+
+                elif role == UserRole.FARMER:
                     FarmerProfile.objects.create(user=user)
-
-                elif role == User.Role.EQUIPMENT_OWNER:
-                    EquipmentOwnerProfile.objects.create(user=user)
-
-                elif role == User.Role.CUSTOMER:
+                elif role == UserRole.CUSTOMER:
                     BuyerProfile.objects.create(user=user)
-
-                elif role == User.Role.STAFF:
-                    user.is_staff = True
-                    user.save(update_fields=["is_staff"])
+                elif role == UserRole.EQUIPMENT_OWNER:
+                    EquipmentOwnerProfile.objects.create(user=user)
                 
-                if role == "farmer" or role == "equipment_owner":
+                user.active_role = role
+                user.save()
+
+                if role in [UserRole.FARMER, UserRole.EQUIPMENT_OWNER]:
                     create_group_and_permission(role, user)
                 status = login_helper(username, password1, request)
+
                 if status == "farmer":
                     return redirect("farm:farmer_dashboard")
                 elif status == "equipment":
                     return redirect("farm:equipment_dashboard")
                 elif status == "success":
                     return redirect("farm:home")
+                elif status == "staff":
+                    return redirect("farm:admin_dashboard")
 
         elif len(password1) < 8:
             messages.warning(request, f"Passward must have 8 or more characters")
@@ -77,8 +85,6 @@ def register(request):
             return redirect("accounts:register")
 
     return render(request, "accounts/register.html")
-
-    
 
 def login_helper(username, password, request):
     """This function is for login users"""
@@ -90,12 +96,13 @@ def login_helper(username, password, request):
             return "farmer"
         elif user.is_equipment_owner:
             return "equipment"
+        elif user.is_system_staff:
+            return "staff"
         else:
             return "success"
     else:
         messages.warning(request, f"Wrong password or username")
-        return redirect("accounts:login")
-        
+        return redirect("accounts:login")    
 
 def login(request):
     """This is login view
@@ -122,9 +129,10 @@ def login(request):
             return redirect("farm:equipment_dashboard")
         elif status == "success":
             return redirect("farm:home")
+        elif status == "staff":
+            return redirect("farm:admin_dashboard")
 
     return render(request, "accounts/login.html")
-
 
 def logout(request):
     """This is logout view"""
@@ -169,6 +177,52 @@ def contact(request):
     context = {"form": form,}
     return render(request, "accounts/conatact.html", context)
 
-
 def aboutus(request):
     return render(request, "accounts/aboutus.html")
+
+def get_profile_and_form(user):
+    try:
+        if user.is_farmer:
+            return user.farmer_profile, FarmerProfileForm
+        elif user.is_customer:
+            return user.buyer_profile, BuyerProfileForm
+        elif user.is_equipment_owner:
+            return user.equipment_owner_profile, EquipmentOwnerProfileForm
+        elif user.is_staff:
+            return user.staff_profile, StaffProfileForm
+    except ObjectDoesNotExist:
+        pass
+
+    raise Exception("User has no profile")
+
+
+def profile(request):
+    """
+    Docstring for profile
+    
+    This view is for updating and rendering user profile
+    """
+    user = request.user
+    profile, form_class = get_profile_and_form(user)
+
+    if request.method == "POST":
+        form = form_class(
+            request.POST,
+            request.FILES,
+            instance=profile
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully")
+            return redirect("accounts:profile")
+    else:
+        form = form_class(instance=profile)
+
+    context = {
+        "form": form,
+        "profile": profile,
+    }
+
+    return render(request, "accounts/profile.html", context)
+
+
