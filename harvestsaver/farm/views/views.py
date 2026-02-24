@@ -281,7 +281,7 @@ def checkout(request):
     total_cost = (total + shipping)
 
     location = Location.objects.all()
-    
+
     if request.method == "POST":
         shipping_address = request.POST.get("address")
         payment_method = request.POST.get("payment_method", "card")
