@@ -35,23 +35,22 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            "id", "name", "slug", "price", "quantity", "unit_of_measurement",
-            "description", "image", "location", "harvest_date", "is_available",
-            "owner", "category", "owner_details", "category_details"
+            "id", "name", "slug", "price", "quantity", "unit_weight_kg",
+            "description", "image", "harvest_date", "is_available",
+            "category", "owner_details", "category_details"
         ]
 
 
 class ProductDetailSerilizer(serializers.ModelSerializer):
     """Serializer for Product model"""
-    owner = OwnerSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
 
     class Meta:
         model = Product
         fields = [
-            "id", "name", "slug", "price", "quantity", "unit_of_measurement",
-            "description", "image", "location", "harvest_date", "is_available",
-            "owner", "category"
+            "id", "name", "slug", "price", "quantity", "unit_weight_kg",
+            "description", "image", "harvest_date", "is_available",
+            "category"
         ]
 
 

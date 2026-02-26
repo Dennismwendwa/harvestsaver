@@ -15,7 +15,8 @@ from logistics.models import Location
 class EquipmentTestSetupMixin:
     def common_setup(self):
         self.all_equipments_url = reverse("farm:all_equipments")
-        self.cat = EquipmentCategory.objects.create(name="tractor", slug="tractor")
+        self.cat = EquipmentCategory.objects.create(name="tractor",
+                                                    slug="tractor")
         self.location = Location.objects.create(
             name="Shimba Hills",
         )
@@ -46,14 +47,17 @@ class EquipmentTestSetupMixin:
                 description="very good tractor", category=self.cat,
                 owner=self.owner, location=self.location, price_per_hour=4000,
             )
-            equipment.image.save(f"sample_image{e}.jpg", File(open(file_path, "rb")))
+
+            equipment.image.save(f"sample_image{e}.jpg",
+                                 File(open(file_path, "rb")))
             image_data = io.BytesIO()
             image = Image.new("RGB", (100, 100), "white")
             image.save(image_data, format="JPEG")
             image_data.seek(0)
 
             equipment.image.save(f"sample_image{e}.jpg",
-                                 SimpleUploadedFile("sample_image.jpg", image_data.read()))
+                                 SimpleUploadedFile("sample_image.jpg",
+                                                    image_data.read()))
 
 
 class ProductsTestSetupMixin:
@@ -102,7 +106,8 @@ class ProductsTestSetupMixin:
             image.save(image_data, format="JPEG")
             image_data.seek(0)
             product.image.save(f"sample_image{p}.jpg", 
-                               SimpleUploadedFile("sample_image.jpg", image_data.read()))
+                               SimpleUploadedFile("sample_image.jpg",
+                                                  image_data.read()))
         
      
 class CommonTestSetupMixin:
@@ -155,10 +160,11 @@ class CommonTestSetupMixin:
                 product=Product.objects.get(name=f"mango {c}"), 
                 customer=self.owner, quantity=1
             )
-
         data = {
             "address": "msa",
             "payment_method": "card",
             "transport_option": "express",
             "pickup_location": "malindi",
         }
+
+

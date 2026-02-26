@@ -8,7 +8,6 @@ import os
 from accounts.models import User
 from farm.models import Product, Category, Equipment, EquipmentCategory
 from farm.classmaxin import ProductsTestSetupMixin, EquipmentTestSetupMixin
-from .serializers import ProductSerializer
 
 
 class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
@@ -76,7 +75,7 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('image', response.data)
         self.assertIn("description", response.data)
-        self.assertIn("location", response.data)
+
         self.assertIn("harvest_date", response.data)
     
     def test_get_single_product_view(self):
@@ -102,8 +101,6 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "name updated")
         self.assertEqual(response.data["description"], "The first product")
-        self.assertEqual(response.data["location"], "kitui")
-
 
     def test_search_products(self):
         query = "mango"
@@ -119,7 +116,6 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
 
     def test_search_products_no_results(self):
         query = "no such product"
-
         search_url = reverse("api:product_search_api")
 
         response = self.client.get(search_url, {"query": query})
@@ -127,7 +123,6 @@ class ProductAPIViewTest(ProductsTestSetupMixin, APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(data), 0)
-
 
 class TestEquipmentAPIViews(EquipmentTestSetupMixin, APITestCase):
     def setUp(self):
@@ -157,20 +152,20 @@ class TestEquipmentAPIViews(EquipmentTestSetupMixin, APITestCase):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 10)
-        self.assertEqual(response.data[9]["name"], "harvester_tractor 0")
+        self.assertEqual(response.data[9]["name"], "Harvester_Tractor 0")
         
     def test_get_single_equipment(self):
-        equipment = Equipment.objects.get(name="harvester_tractor 9")
+        equipment = Equipment.objects.get(name="Harvester_Tractor 9")
         equipment_url = reverse("api:equipment_deatil_api",
                                 args=(equipment.pk,))
 
         response = self.client.get(equipment_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "harvester_tractor 9")
+        self.assertEqual(response.data["name"], "Harvester_Tractor 9")
 
     def test_delete_equipment(self):
-        equipment = Equipment.objects.get(name="harvester_tractor 9")
+        equipment = Equipment.objects.get(name="Harvester_Tractor 9")
         equipment_url = reverse("api:equipment_deatil_api",
                                 args=(equipment.pk,))
 

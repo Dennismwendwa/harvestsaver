@@ -35,6 +35,7 @@ def create_checkoutfarmpayment(request, pk):
     from utils.constants import PaymentMethod
 
     order = Order.objects.get(pk=pk)
+    
     if request.method == "POST":
         success, error = process_payment(order, request.user)
 

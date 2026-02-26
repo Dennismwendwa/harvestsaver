@@ -50,8 +50,10 @@
 
                 <p>
                     <strong>Unit Price:</strong>
-                    KES {{ product.price|intcomma }} per
-                    {{ product.unit_quantity }} {{ product.unit_quantity_type }}
+                    KES {{ product.price|intcomma }} per {{ product.unit_quantity_type }}
+                    {% if product.unit_weight_kg %}
+                        ({{ product.unit_weight_kg }} kg per {{ product.unit_quantity_type }})
+                    {% endif %}
                 </p>
 
                 <p>

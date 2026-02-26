@@ -17,4 +17,8 @@ def is_staff(view_func):
         return redirect("farm:home")
     return _wrapped_view
 
+def ratelimit_exempt(view_func):
+    view_func._ratelimit_exempt = True
+    return view_func
+
 
