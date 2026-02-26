@@ -6,9 +6,6 @@ YOUR_DOMAIN = "https://pysoftware.tech"
 
 USE_X_FORWARDED_HOST = True
 
-RATELIMIT_USE_CACHE = "default"
-
-# settings_prod.py
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 STORAGES = {

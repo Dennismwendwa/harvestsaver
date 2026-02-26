@@ -5,6 +5,7 @@ harvestsaver/.env2
 harvestsaver.log
 db.sqlite3
 *.pyc
+test_ratelimit.py
 
 staticfiles/
 media/

@@ -44,9 +44,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "utils.middleware.RateLimitMiddleware",
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "utils.middleware.RateLimitMiddleware",
 ]
 
 ROOT_URLCONF = 'harvestsaver.urls'
@@ -146,15 +146,23 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",  # db 1 for cache
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "MAX_ENTRIES": 1000,
-        }
+            "IGNORE_EXCEPTIONS": True,
+        },
+        "KEY_PREFIX": "harvestsaver",
     }
 }
+RATELIMIT_USE_CACHE = "default"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
+
+RATELIMIT_ANON_LIMIT = 20          # POST/PUT/PATCH/DELETE
+RATELIMIT_AUTH_LIMIT = 100         # POST/PUT/PATCH/DELETE
+RATELIMIT_ANON_GET_LIMIT = 80      # GET
+RATELIMIT_AUTH_GET_LIMIT = 1500    # GET
+RATELIMIT_WINDOW = 60              # 60 seconds
 
 LOGGING = {
     "version": 1,
