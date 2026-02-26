@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.contrib.auth.models import auth
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.cache import cache_page
+from django_ratelimit.decorators import ratelimit
 
 from accounts.models import (User, FarmerProfile, BuyerProfile,
                              EquipmentOwnerProfile, StaffProfile)
@@ -13,7 +15,7 @@ from .forms import (ContactForm, FarmerProfileForm, BuyerProfileForm,
 from .utils.functions import create_group_and_permission
 from utils.constants import UserRole
 
-
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def register(request):
     """This is register view
        args: first name, last name, username, email, password1,
@@ -140,6 +142,9 @@ def logout(request):
     auth.logout(request)
     return redirect("farm:home")
 
+@cache_page(60 * 60)
+def aboutus(request):
+    return render(request, "accounts/aboutus.html")
 def contact(request):
     
     if request.method == "POST":
@@ -177,6 +182,7 @@ def contact(request):
     context = {"form": form,}
     return render(request, "accounts/conatact.html", context)
 
+@cache_page(60 * 60)
 def aboutus(request):
     return render(request, "accounts/aboutus.html")
 
@@ -195,7 +201,7 @@ def get_profile_and_form(user):
 
     raise Exception("User has no profile")
 
-
+@cache_page(60 * 60)
 def profile(request):
     """
     Docstring for profile

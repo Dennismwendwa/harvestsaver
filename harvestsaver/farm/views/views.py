@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.core.cache import cache
+from django.views.decorators.cache import cache_page
 
 from payment.models import Payout
 from ..models import Category, Product, Cart, Farm, OrderItem, Order
@@ -29,7 +30,7 @@ def succes_page(request):
     """This is success page after successfull payment"""
     return render(request, "farm/farm/success_page.html")
 
-
+@cache_page(60 * 5)
 def home(request):
     """
     This is the home page view
@@ -39,7 +40,7 @@ def home(request):
     context = {}
     return render(request, "farm/farm/index.html", context)
 
-
+@cache_page(60 * 5)
 def all_products(request):
     """List all product with pagination of 4 per page"""
     products = Product.objects.all()
@@ -55,6 +56,7 @@ def all_products(request):
     }
     return render(request, "farm/farm/all_products.html", context)
 
+@cache_page(60 * 5)
 def all_equipments(request):
     """List all equipments with pagination of 8 per page"""
     equipments = Equipment.objects.all()
@@ -334,7 +336,7 @@ def equipment_category(request, slug):
     }
     return render(request, "farm/farm/category.html", context)
 
-
+@cache_page(60 * 5)
 def equipment_detail(request, slug):
     """This view is for equipment details inquiry"""
     user = request.user
@@ -387,6 +389,7 @@ def search(request):
 
 
 @login_required
+@cache_page(60 * 5)
 def farmer_dashboard(request):
     """
     This is farmers home page
@@ -570,6 +573,7 @@ def create_product(request):
         pass
 
 @login_required
+@cache_page(60 * 5)
 def equipment_dashboard(request):
     """This is equipment onwers dash board view"""
     user = request.user
